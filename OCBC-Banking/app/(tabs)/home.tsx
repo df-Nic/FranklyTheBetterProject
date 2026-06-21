@@ -1,14 +1,37 @@
-import React from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import React, { useRef } from 'react';
+import { ScrollView, StyleSheet, Animated, PanResponder } from 'react-native';
 import { YStack, XStack, Text, Button } from 'tamagui';
 import { useTheme } from '../../hooks/ThemeContext';
 import { GlassCard } from '../../components/GlassCard';
 import { ThemeToggle } from '../../components/ThemeToggle';
 import { MotiView } from 'moti';
 import { Feather, FontAwesome5 } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { BlurView } from 'expo-blur';
 
 export default function HomePage() {
   const { theme } = useTheme();
+  const router = useRouter();
+
+  const pan = useRef(new Animated.ValueXY()).current;
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: () => {
+        pan.setOffset({
+          x: (pan.x as any)._value,
+          y: (pan.y as any)._value
+        });
+      },
+      onPanResponderMove: Animated.event(
+        [null, { dx: pan.x, dy: pan.y }],
+        { useNativeDriver: false }
+      ),
+      onPanResponderRelease: () => {
+        pan.flattenOffset();
+      }
+    })
+  ).current;
 
   return (
     <YStack flex={1} backgroundColor={theme === 'dark' ? '#121212' : '#F5F5F7'}>
@@ -24,11 +47,27 @@ export default function HomePage() {
           top: '-20%', right: '-30%'
         }}
       />
-      
-      <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: 100 }}>
-        
-        {/* Header */}
-        <XStack justifyContent="space-between" alignItems="center" marginTop="$8" marginBottom="$6">
+
+      {/* Persistent Glass Header */}
+      <YStack 
+        position="absolute"
+        top={0} left={0} right={0}
+        zIndex={100}
+      >
+        <BlurView 
+          intensity={80} 
+          tint={theme === 'dark' ? 'dark' : 'light'}
+          style={StyleSheet.absoluteFill} 
+        />
+        <XStack 
+          paddingHorizontal={24} 
+          paddingTop={60} 
+          paddingBottom={16} 
+          justifyContent="space-between" 
+          alignItems="center"
+          borderBottomWidth={1}
+          borderColor={theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}
+        >
           <YStack>
             <Text fontSize={14} color={theme === 'dark' ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)'}>
               Welcome back
@@ -37,9 +76,23 @@ export default function HomePage() {
               Alexander
             </Text>
           </YStack>
-          <ThemeToggle />
+          <XStack alignItems="center" gap="$3">
+            <ThemeToggle />
+            <Button 
+              circular 
+              size="$3" 
+              backgroundColor={theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}
+              onPress={() => router.replace('/login')}
+              pressStyle={{ opacity: 0.7 }}
+            >
+              <Feather name="log-out" size={16} color={theme === 'dark' ? 'white' : 'black'} />
+            </Button>
+          </XStack>
         </XStack>
-
+      </YStack>
+      
+      <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 130, paddingBottom: 100 }}>
+        
         {/* The "Pulse" Hero Section */}
         <MotiView from={{ translateY: 20, opacity: 0 }} animate={{ translateY: 0, opacity: 1 }} transition={{ delay: 100 }}>
           <YStack alignItems="center" marginBottom="$6">
@@ -149,24 +202,34 @@ export default function HomePage() {
 
       </ScrollView>
 
-      {/* Floating AI Bot */}
-      <MotiView 
-        from={{ scale: 0.95 }} 
-        animate={{ scale: 1.05 }} 
-        transition={{ type: 'timing', duration: 1500, loop: true }}
-        style={{ position: 'absolute', bottom: 30, right: 30 }}
+      {/* Floating Draggable AI Bot */}
+      <Animated.View
+        {...panResponder.panHandlers}
+        style={{
+          position: 'absolute',
+          bottom: 120,
+          right: 30,
+          transform: [{ translateX: pan.x }, { translateY: pan.y }],
+          zIndex: 1000,
+        }}
       >
-        <Button 
-          circular 
-          size="$6" 
-          backgroundColor="#DA291C" 
-          elevation={10}
-          shadowColor="#DA291C"
-          shadowRadius={10}
+        <MotiView 
+          from={{ scale: 0.95 }} 
+          animate={{ scale: 1.05 }} 
+          transition={{ type: 'timing', duration: 1500, loop: true }}
         >
-          <FontAwesome5 name="robot" size={24} color="white" />
-        </Button>
-      </MotiView>
+          <Button 
+            circular 
+            size="$6" 
+            backgroundColor="#DA291C" 
+            elevation={10}
+            shadowColor="#DA291C"
+            shadowRadius={10}
+          >
+            <FontAwesome5 name="robot" size={24} color="white" />
+          </Button>
+        </MotiView>
+      </Animated.View>
 
     </YStack>
   );

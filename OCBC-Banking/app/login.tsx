@@ -3,8 +3,9 @@ import { YStack, XStack, Text, Button, Input } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../hooks/ThemeContext';
 import { GlassCard } from '../components/GlassCard';
+import { ThemeToggle } from '../components/ThemeToggle';
 import { MotiView } from 'moti';
-import { FontAwesome5 } from '@expo/vector-icons';
+import { FontAwesome5, Feather } from '@expo/vector-icons';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,18 +20,27 @@ export default function LoginPage() {
   return (
     <YStack flex={1} backgroundColor={theme === 'dark' ? '#0A0A0A' : '#FAFAFA'} justifyContent="center" alignItems="center" padding="$4">
       
+      <YStack position="absolute" top={60} right={24} zIndex={100}>
+        <ThemeToggle />
+      </YStack>
+
       <MotiView
-        from={{ opacity: 0 }} animate={{ opacity: 1 }}
-        transition={{ duration: 1000 }}
+        from={{ opacity: 0.15, scale: 0.8 }} 
+        animate={{ opacity: 0.4, scale: 1.1 }}
+        transition={{ type: 'timing', duration: 4000, loop: true, repeatReverse: true }}
         style={{
-          position: 'absolute', width: 500, height: 500, borderRadius: 250,
+          position: 'absolute', width: 500, height: 500,
+          borderTopLeftRadius: 260,
+          borderTopRightRadius: 240,
+          borderBottomRightRadius: 280,
+          borderBottomLeftRadius: 220,
           backgroundColor: theme === 'dark' ? 'rgba(218, 41, 28, 0.15)' : 'rgba(255, 182, 193, 0.3)',
           top: '-20%', right: '-20%'
         }}
       />
 
       <YStack zIndex={1} width="100%" alignItems="center">
-        <MotiView from={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', damping: 15 }}>
+        <MotiView from={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'timing', duration: 800 }}>
           <GlassCard width={340} padding="$6" alignItems="center" gap="$5">
             
             <YStack gap="$2" alignItems="center" marginBottom="$2">
