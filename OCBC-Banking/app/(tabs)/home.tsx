@@ -73,7 +73,7 @@ export default function HomePage() {
               Welcome back
             </Text>
             <Text fontSize={20} fontWeight="bold" color={theme === 'dark' ? 'white' : 'black'}>
-              Alexander
+              Support Team 2!!
             </Text>
           </YStack>
           <XStack alignItems="center" gap="$3">
