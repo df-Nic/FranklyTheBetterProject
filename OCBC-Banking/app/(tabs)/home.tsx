@@ -33,7 +33,7 @@ export default function HomePage() {
 
   return (
     <YStack flex={1} backgroundColor="#F5F5F7">
-      
+
       {/* Dynamic Background Elements */}
       <BackgroundOrb
         size={500}
@@ -44,21 +44,21 @@ export default function HomePage() {
       />
 
       {/* Persistent Glass Header */}
-      <YStack 
+      <YStack
         position="absolute"
         top={0} left={0} right={0}
         zIndex={100}
       >
-        <BlurView 
-          intensity={80} 
+        <BlurView
+          intensity={80}
           tint="light"
-          style={StyleSheet.absoluteFill} 
+          style={StyleSheet.absoluteFill}
         />
-        <XStack 
-          paddingHorizontal={24} 
-          paddingTop={60} 
-          paddingBottom={16} 
-          justifyContent="space-between" 
+        <XStack
+          paddingHorizontal={24}
+          paddingTop={60}
+          paddingBottom={16}
+          justifyContent="space-between"
           alignItems="center"
           borderBottomWidth={1}
           borderColor="rgba(0,0,0,0.05)"
@@ -67,14 +67,14 @@ export default function HomePage() {
             <Text fontSize={14} color="rgba(0,0,0,0.5)">
               Welcome back
             </Text>
-            <Text fontSize={20} fontWeight="bold" color="black">
-              Support Team 2!!
+            <Text fontSize={20} fontWeight="bold" color={theme === 'dark' ? 'white' : 'black'}>
+              Alexander
             </Text>
           </YStack>
           <XStack alignItems="center" gap="$3">
-            <Button 
-              circular 
-              size="$3" 
+            <Button
+              circular
+              size="$3"
               backgroundColor="rgba(0,0,0,0.05)"
               onPress={() => router.replace('/login')}
               pressStyle={{ opacity: 0.7 }}
@@ -84,9 +84,9 @@ export default function HomePage() {
           </XStack>
         </XStack>
       </YStack>
-      
+
       <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 130, paddingBottom: 100 }}>
-        
+
         {/* The "Pulse" Hero Section */}
         <MotiView from={{ translateY: 20, opacity: 0 }} animate={{ translateY: 0, opacity: 1 }} transition={{ delay: 100 }}>
           <YStack alignItems="center" marginBottom="$6">
@@ -112,10 +112,10 @@ export default function HomePage() {
               {['Pay', 'Transfer', 'Scan'].map((action, i) => (
                 <YStack key={action} alignItems="center" gap="$2" padding="$2">
                   <Button circular size="$4" backgroundColor="rgba(0,0,0,0.05)">
-                    <Feather 
-                      name={action === 'Pay' ? 'send' : action === 'Transfer' ? 'repeat' : 'maximize'} 
-                      size={20} 
-                      color="black" 
+                    <Feather
+                      name={action === 'Pay' ? 'send' : action === 'Transfer' ? 'repeat' : 'maximize'}
+                      size={20}
+                      color="black"
                     />
                   </Button>
                   <Text fontSize={12} fontWeight="500" color="black">
@@ -132,7 +132,7 @@ export default function HomePage() {
           <Text fontSize={18} fontWeight="bold" color="black" marginBottom="$4">
             Wealth Portfolio
           </Text>
-          
+
           <XStack gap="$4" marginBottom="$4">
             {/* Investments (Large Square) */}
             <GlassCard flex={1} height={200} padding="$4" justifyContent="space-between">
@@ -207,15 +207,15 @@ export default function HomePage() {
           zIndex: 1000,
         }}
       >
-        <MotiView 
-          from={{ scale: 0.95 }} 
-          animate={{ scale: 1.05 }} 
+        <MotiView
+          from={{ scale: 0.95 }}
+          animate={{ scale: 1.05 }}
           transition={{ type: 'timing', duration: 1500, loop: true }}
         >
-          <Button 
-            circular 
-            size="$6" 
-            backgroundColor="#DA291C" 
+          <Button
+            circular
+            size="$6"
+            backgroundColor="#DA291C"
             elevation={10}
             shadowColor="#DA291C"
             shadowRadius={10}
