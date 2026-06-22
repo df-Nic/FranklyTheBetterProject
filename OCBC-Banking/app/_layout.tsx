@@ -1,0 +1,40 @@
+import { DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import 'react-native-reanimated';
+import { useEffect } from 'react';
+import * as SystemUI from 'expo-system-ui';
+import { TamaguiProvider } from 'tamagui';
+import tamaguiConfig from '../tamagui.config';
+
+export const unstable_settings = {
+  anchor: '(tabs)',
+};
+
+export default function RootLayout() {
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync('#F5F5F7');
+  }, []);
+
+  const navTheme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      background: '#F5F5F7',
+    },
+  };
+
+  return (
+    <TamaguiProvider config={tamaguiConfig} defaultTheme="light">
+      <NavigationThemeProvider value={navTheme}>
+        <Stack screenOptions={{ contentStyle: { backgroundColor: '#F5F5F7' } }}>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="landing" options={{ headerShown: false }} />
+          <Stack.Screen name="login" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false, animation: 'fade' }} />
+        </Stack>
+        <StatusBar style="dark" />
+      </NavigationThemeProvider>
+    </TamaguiProvider>
+  );
+}
