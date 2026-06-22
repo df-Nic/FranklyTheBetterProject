@@ -1,6 +1,5 @@
 import React, { forwardRef } from 'react';
 import { YStack, YStackProps } from 'tamagui';
-import { useTheme } from '../hooks/ThemeContext';
 import { BlurView } from 'expo-blur';
 import { StyleSheet } from 'react-native';
 
@@ -10,15 +9,8 @@ interface GlassCardProps extends YStackProps {
 }
 
 export const GlassCard = forwardRef<any, GlassCardProps>(({ children, intensity = 50, ...props }, ref) => {
-  const { theme } = useTheme();
-  
-  const backgroundColor = theme === 'dark' 
-    ? 'rgba(20, 20, 25, 0.4)' 
-    : 'rgba(255, 255, 255, 0.6)';
-    
-  const borderColor = theme === 'dark'
-    ? 'rgba(255, 255, 255, 0.08)'
-    : 'rgba(255, 255, 255, 0.8)';
+  const backgroundColor = 'rgba(255, 255, 255, 0.6)';
+  const borderColor = 'rgba(255, 255, 255, 0.8)';
 
   return (
     <YStack
@@ -32,7 +24,7 @@ export const GlassCard = forwardRef<any, GlassCardProps>(({ children, intensity 
     >
       <BlurView 
         intensity={intensity} 
-        tint={theme === 'dark' ? 'dark' : 'light'}
+        tint="light"
         style={StyleSheet.absoluteFill} 
       />
       {children}

@@ -2,9 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ScrollView, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { YStack, XStack, Text, Button } from 'tamagui';
 import { useRouter } from 'expo-router';
-import { useTheme } from '../hooks/ThemeContext';
 import { GlassCard } from '../components/GlassCard';
-import { ThemeToggle } from '../components/ThemeToggle';
+import { BackgroundOrb } from '../components/BackgroundOrb';
 import { MotiView } from 'moti';
 
 const CAROUSEL_DATA = [
@@ -24,7 +23,6 @@ const CAROUSEL_DATA = [
 
 export default function LandingPage() {
   const router = useRouter();
-  const { theme } = useTheme();
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [cardWidth, setCardWidth] = useState(380);
@@ -49,51 +47,30 @@ export default function LandingPage() {
   };
 
   return (
-    <YStack flex={1} backgroundColor={theme === 'dark' ? '#0A0A0A' : '#FAFAFA'} justifyContent="center" alignItems="center" padding="$4">
+    <YStack flex={1} backgroundColor="#FAFAFA" justifyContent="center" alignItems="center" padding="$4">
       {/* Background Orb 1 */}
-      <MotiView
-        from={{ opacity: 0.3, scale: 0.8 }}
-        animate={{ opacity: 0.6, scale: 1.1 }}
-        transition={{ type: 'timing', duration: 4000, loop: true, repeatReverse: true }}
-        style={{
-          position: 'absolute',
-          width: 400,
-          height: 400,
-          borderTopLeftRadius: 220,
-          borderTopRightRadius: 180,
-          borderBottomRightRadius: 240,
-          borderBottomLeftRadius: 160,
-          backgroundColor: theme === 'dark' ? 'rgba(218, 41, 28, 0.2)' : 'rgba(255, 182, 193, 0.5)',
-          top: '-5%',
-          left: '-20%',
-        }}
+      <BackgroundOrb
+        size={400}
+        color="rgba(255, 182, 193, 0.5)"
+        radii={{ tl: 220, tr: 180, br: 240, bl: 160 }}
+        top="-5%" left="-20%"
+        fromOpacity={0.3}
+        toOpacity={0.6}
       />
       {/* Background Orb 2 */}
-      <MotiView
-        from={{ opacity: 0.2, scale: 1 }}
-        animate={{ opacity: 0.5, scale: 0.9 }}
-        transition={{ type: 'timing', duration: 5000, loop: true, repeatReverse: true }}
-        style={{
-          position: 'absolute',
-          width: 300,
-          height: 300,
-          borderTopLeftRadius: 130,
-          borderTopRightRadius: 170,
-          borderBottomRightRadius: 160,
-          borderBottomLeftRadius: 140,
-          backgroundColor: theme === 'dark' ? 'rgba(212, 175, 55, 0.15)' : 'rgba(255, 228, 181, 0.4)',
-          bottom: '10%',
-          right: '-10%',
-        }}
+      <BackgroundOrb
+        size={300}
+        color="rgba(255, 228, 181, 0.4)"
+        radii={{ tl: 130, tr: 170, br: 160, bl: 140 }}
+        bottom="10%" right="-10%"
+        duration={5000}
+        fromOpacity={0.2}
+        toOpacity={0.5}
       />
-
-      <YStack position="absolute" top={60} right={24} zIndex={100}>
-        <ThemeToggle />
-      </YStack>
 
       <YStack zIndex={1} alignItems="center" gap="$8" width="100%">
         <MotiView from={{ translateY: 30, opacity: 0 }} animate={{ translateY: 0, opacity: 1 }} transition={{ type: 'timing', duration: 800 }}>
-          <Text fontSize={48} fontWeight="900" color={theme === 'dark' ? '#FFFFFF' : '#111111'} textAlign="center" letterSpacing={-1}>
+          <Text fontSize={48} fontWeight="900" color="#111111" textAlign="center" letterSpacing={-1}>
             OCBC Wealth
           </Text>
         </MotiView>
@@ -116,10 +93,10 @@ export default function LandingPage() {
             >
               {CAROUSEL_DATA.map((item, index) => (
                 <YStack key={index} width={cardWidth} padding="$6" gap="$4">
-                  <Text fontSize={26} fontWeight="700" color={theme === 'dark' ? '#FFFFFF' : '#111111'}>
+                  <Text fontSize={26} fontWeight="700" color="#111111">
                     {item.title}
                   </Text>
-                  <Text fontSize={16} color={theme === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)'} lineHeight={24}>
+                  <Text fontSize={16} color="rgba(0,0,0,0.6)" lineHeight={24}>
                     {item.description}
                   </Text>
                 </YStack>
@@ -134,7 +111,7 @@ export default function LandingPage() {
                   width={i === activeIndex ? 20 : 6} 
                   height={6} 
                   borderRadius={3} 
-                  backgroundColor={i === activeIndex ? '#DA291C' : (theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)')} 
+                  backgroundColor={i === activeIndex ? '#DA291C' : 'rgba(0,0,0,0.2)'} 
                 />
               ))}
             </XStack>
@@ -151,10 +128,10 @@ export default function LandingPage() {
             height={60}
             fontSize={18}
             fontWeight="bold"
-            elevation={theme === 'dark' ? 10 : 5}
+            elevation={5}
             shadowColor="#DA291C"
             shadowRadius={15}
-            shadowOpacity={theme === 'dark' ? 0.4 : 0.2}
+            shadowOpacity={0.2}
             onPress={() => router.push('/login')}
             pressStyle={{ opacity: 0.8, scale: 0.96 }}
           >

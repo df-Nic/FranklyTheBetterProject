@@ -1,16 +1,14 @@
 import React, { useRef } from 'react';
 import { ScrollView, StyleSheet, Animated, PanResponder } from 'react-native';
 import { YStack, XStack, Text, Button } from 'tamagui';
-import { useTheme } from '../../hooks/ThemeContext';
 import { GlassCard } from '../../components/GlassCard';
-import { ThemeToggle } from '../../components/ThemeToggle';
+import { BackgroundOrb } from '../../components/BackgroundOrb';
 import { MotiView } from 'moti';
 import { Feather, FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
 
 export default function HomePage() {
-  const { theme } = useTheme();
   const router = useRouter();
 
   const pan = useRef(new Animated.ValueXY()).current;
@@ -34,18 +32,15 @@ export default function HomePage() {
   ).current;
 
   return (
-    <YStack flex={1} backgroundColor={theme === 'dark' ? '#121212' : '#F5F5F7'}>
+    <YStack flex={1} backgroundColor="#F5F5F7">
       
       {/* Dynamic Background Elements */}
-      <MotiView
-        from={{ opacity: 0.5, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: 'timing', duration: 4000, loop: true }}
-        style={{
-          position: 'absolute', width: 500, height: 500, borderRadius: 250,
-          backgroundColor: theme === 'dark' ? 'rgba(218, 41, 28, 0.1)' : 'rgba(255, 182, 193, 0.2)',
-          top: '-20%', right: '-30%'
-        }}
+      <BackgroundOrb
+        size={500}
+        color="rgba(255, 182, 193, 0.2)"
+        top="-20%" right="-30%"
+        fromOpacity={0.5}
+        toOpacity={1}
       />
 
       {/* Persistent Glass Header */}
@@ -56,7 +51,7 @@ export default function HomePage() {
       >
         <BlurView 
           intensity={80} 
-          tint={theme === 'dark' ? 'dark' : 'light'}
+          tint="light"
           style={StyleSheet.absoluteFill} 
         />
         <XStack 
@@ -66,26 +61,25 @@ export default function HomePage() {
           justifyContent="space-between" 
           alignItems="center"
           borderBottomWidth={1}
-          borderColor={theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}
+          borderColor="rgba(0,0,0,0.05)"
         >
           <YStack>
-            <Text fontSize={14} color={theme === 'dark' ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)'}>
+            <Text fontSize={14} color="rgba(0,0,0,0.5)">
               Welcome back
             </Text>
-            <Text fontSize={20} fontWeight="bold" color={theme === 'dark' ? 'white' : 'black'}>
+            <Text fontSize={20} fontWeight="bold" color="black">
               Support Team 2!!
             </Text>
           </YStack>
           <XStack alignItems="center" gap="$3">
-            <ThemeToggle />
             <Button 
               circular 
               size="$3" 
-              backgroundColor={theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}
+              backgroundColor="rgba(0,0,0,0.05)"
               onPress={() => router.replace('/login')}
               pressStyle={{ opacity: 0.7 }}
             >
-              <Feather name="log-out" size={16} color={theme === 'dark' ? 'white' : 'black'} />
+              <Feather name="log-out" size={16} color="black" />
             </Button>
           </XStack>
         </XStack>
@@ -99,7 +93,7 @@ export default function HomePage() {
             <Text fontSize={14} fontWeight="600" color="#DA291C" marginBottom="$2">
               TOTAL NET WORTH
             </Text>
-            <Text fontSize={48} fontWeight="900" color={theme === 'dark' ? 'white' : 'black'} letterSpacing={-1}>
+            <Text fontSize={48} fontWeight="900" color="black" letterSpacing={-1}>
               $2,450,890
             </Text>
             <XStack alignItems="center" gap="$2" marginTop="$2">
@@ -117,14 +111,14 @@ export default function HomePage() {
             <XStack justifyContent="space-between" paddingHorizontal="$4">
               {['Pay', 'Transfer', 'Scan'].map((action, i) => (
                 <YStack key={action} alignItems="center" gap="$2" padding="$2">
-                  <Button circular size="$4" backgroundColor={theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}>
+                  <Button circular size="$4" backgroundColor="rgba(0,0,0,0.05)">
                     <Feather 
                       name={action === 'Pay' ? 'send' : action === 'Transfer' ? 'repeat' : 'maximize'} 
                       size={20} 
-                      color={theme === 'dark' ? 'white' : 'black'} 
+                      color="black" 
                     />
                   </Button>
-                  <Text fontSize={12} fontWeight="500" color={theme === 'dark' ? 'white' : 'black'}>
+                  <Text fontSize={12} fontWeight="500" color="black">
                     {action}
                   </Text>
                 </YStack>
@@ -135,7 +129,7 @@ export default function HomePage() {
 
         {/* Bento Box Portfolio */}
         <MotiView from={{ translateY: 30, opacity: 0 }} animate={{ translateY: 0, opacity: 1 }} transition={{ delay: 300 }}>
-          <Text fontSize={18} fontWeight="bold" color={theme === 'dark' ? 'white' : 'black'} marginBottom="$4">
+          <Text fontSize={18} fontWeight="bold" color="black" marginBottom="$4">
             Wealth Portfolio
           </Text>
           
@@ -144,12 +138,12 @@ export default function HomePage() {
             <GlassCard flex={1} height={200} padding="$4" justifyContent="space-between">
               <YStack>
                 <Feather name="pie-chart" size={24} color="#DA291C" />
-                <Text fontSize={14} color={theme === 'dark' ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)'} marginTop="$2">
+                <Text fontSize={14} color="rgba(0,0,0,0.6)" marginTop="$2">
                   Investments
                 </Text>
               </YStack>
               <YStack>
-                <Text fontSize={24} fontWeight="bold" color={theme === 'dark' ? 'white' : 'black'}>
+                <Text fontSize={24} fontWeight="bold" color="black">
                   $1,800,000
                 </Text>
                 <Text fontSize={12} color="#4CAF50">+12% YTD</Text>
@@ -159,18 +153,18 @@ export default function HomePage() {
             {/* Cash & Fixed Deposits (Two smaller rectangles) */}
             <YStack flex={1} gap="$4">
               <GlassCard flex={1} padding="$4" justifyContent="center">
-                <Text fontSize={12} color={theme === 'dark' ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)'}>
+                <Text fontSize={12} color="rgba(0,0,0,0.6)">
                   Cash
                 </Text>
-                <Text fontSize={18} fontWeight="bold" color={theme === 'dark' ? 'white' : 'black'}>
+                <Text fontSize={18} fontWeight="bold" color="black">
                   $150,890
                 </Text>
               </GlassCard>
               <GlassCard flex={1} padding="$4" justifyContent="center">
-                <Text fontSize={12} color={theme === 'dark' ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)'}>
+                <Text fontSize={12} color="rgba(0,0,0,0.6)">
                   Fixed Deposits
                 </Text>
-                <Text fontSize={18} fontWeight="bold" color={theme === 'dark' ? 'white' : 'black'}>
+                <Text fontSize={18} fontWeight="bold" color="black">
                   $500,000
                 </Text>
               </GlassCard>
@@ -180,7 +174,7 @@ export default function HomePage() {
 
         {/* Smart Wealth Insights */}
         <MotiView from={{ translateY: 30, opacity: 0 }} animate={{ translateY: 0, opacity: 1 }} transition={{ delay: 400 }}>
-          <Text fontSize={18} fontWeight="bold" color={theme === 'dark' ? 'white' : 'black'} marginBottom="$4" marginTop="$4">
+          <Text fontSize={18} fontWeight="bold" color="black" marginBottom="$4" marginTop="$4">
             Smart Insights
           </Text>
           <GlassCard padding="$5" borderColor="rgba(218, 41, 28, 0.3)">
@@ -189,10 +183,10 @@ export default function HomePage() {
                 <FontAwesome5 name="lightbulb" size={24} color="#DA291C" />
               </YStack>
               <YStack flex={1}>
-                <Text fontSize={16} fontWeight="bold" color={theme === 'dark' ? 'white' : 'black'} marginBottom="$1">
+                <Text fontSize={16} fontWeight="bold" color="black" marginBottom="$1">
                   Optimize Liquidity
                 </Text>
-                <Text fontSize={13} color={theme === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)'} lineHeight={20}>
+                <Text fontSize={13} color="rgba(0,0,0,0.6)" lineHeight={20}>
                   You have $10,000 idle cash. Move it to the High-Yield Vault to earn an extra $45/month.
                 </Text>
               </YStack>

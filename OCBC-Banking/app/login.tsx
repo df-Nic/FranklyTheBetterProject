@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 import { YStack, XStack, Text, Button, Input } from 'tamagui';
 import { useRouter } from 'expo-router';
-import { useTheme } from '../hooks/ThemeContext';
 import { GlassCard } from '../components/GlassCard';
-import { ThemeToggle } from '../components/ThemeToggle';
+import { BackgroundOrb } from '../components/BackgroundOrb';
 import { MotiView } from 'moti';
-import { FontAwesome5, Feather } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { theme } = useTheme();
   const [username, setUsername] = useState('');
   const [pin, setPin] = useState('');
 
@@ -18,25 +16,11 @@ export default function LoginPage() {
   };
 
   return (
-    <YStack flex={1} backgroundColor={theme === 'dark' ? '#0A0A0A' : '#FAFAFA'} justifyContent="center" alignItems="center" padding="$4">
+    <YStack flex={1} backgroundColor="#FAFAFA" justifyContent="center" alignItems="center" padding="$4">
       
-      <YStack position="absolute" top={60} right={24} zIndex={100}>
-        <ThemeToggle />
-      </YStack>
-
-      <MotiView
-        from={{ opacity: 0.15, scale: 0.8 }} 
-        animate={{ opacity: 0.4, scale: 1.1 }}
-        transition={{ type: 'timing', duration: 4000, loop: true, repeatReverse: true }}
-        style={{
-          position: 'absolute', width: 500, height: 500,
-          borderTopLeftRadius: 260,
-          borderTopRightRadius: 240,
-          borderBottomRightRadius: 280,
-          borderBottomLeftRadius: 220,
-          backgroundColor: theme === 'dark' ? 'rgba(218, 41, 28, 0.15)' : 'rgba(255, 182, 193, 0.3)',
-          top: '-20%', right: '-20%'
-        }}
+      <BackgroundOrb
+        radii={{ tl: 260, tr: 240, br: 280, bl: 220 }}
+        top="-20%" right="-20%"
       />
 
       <YStack zIndex={1} width="100%" alignItems="center">
@@ -44,10 +28,10 @@ export default function LoginPage() {
           <GlassCard width={340} padding="$6" alignItems="center" gap="$5">
             
             <YStack gap="$2" alignItems="center" marginBottom="$2">
-              <Text fontSize={32} fontWeight="800" color={theme === 'dark' ? '#FFFFFF' : '#111111'}>
+              <Text fontSize={32} fontWeight="800" color="#111111">
                 Welcome Back
               </Text>
-              <Text fontSize={15} color={theme === 'dark' ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)'}>
+              <Text fontSize={15} color="rgba(0,0,0,0.5)">
                 Sign in to your wealth dashboard
               </Text>
             </YStack>
@@ -55,27 +39,27 @@ export default function LoginPage() {
             <YStack width="100%" gap="$4">
               <Input
                 placeholder="Access ID"
-                placeholderTextColor={(theme === 'dark' ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.3)') as any}
+                placeholderTextColor={"rgba(0,0,0,0.3)" as any}
                 value={username}
                 onChangeText={setUsername}
                 size="$5"
-                backgroundColor={theme === 'dark' ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.7)'}
-                borderColor={theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}
-                color={theme === 'dark' ? '#FFF' : '#000'}
+                backgroundColor="rgba(255,255,255,0.7)"
+                borderColor="rgba(0,0,0,0.1)"
+                color="#000"
                 borderRadius={12}
                 borderWidth={1}
                 focusStyle={{ borderColor: '#DA291C' }}
               />
               <Input
                 placeholder="PIN"
-                placeholderTextColor={(theme === 'dark' ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.3)') as any}
+                placeholderTextColor={"rgba(0,0,0,0.3)" as any}
                 value={pin}
                 onChangeText={setPin}
                 secureTextEntry
                 size="$5"
-                backgroundColor={theme === 'dark' ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.7)'}
-                borderColor={theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}
-                color={theme === 'dark' ? '#FFF' : '#000'}
+                backgroundColor="rgba(255,255,255,0.7)"
+                borderColor="rgba(0,0,0,0.1)"
+                color="#000"
                 borderRadius={12}
                 borderWidth={1}
                 focusStyle={{ borderColor: '#DA291C' }}
@@ -98,9 +82,9 @@ export default function LoginPage() {
             </Button>
 
             <XStack alignItems="center" gap="$4" width="100%" marginVertical="$2">
-              <YStack flex={1} height={1} backgroundColor={theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
-              <Text fontSize={12} color={theme === 'dark' ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'}>OR</Text>
-              <YStack flex={1} height={1} backgroundColor={theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
+              <YStack flex={1} height={1} backgroundColor="rgba(0,0,0,0.1)" />
+              <Text fontSize={12} color="rgba(0,0,0,0.4)">OR</Text>
+              <YStack flex={1} height={1} backgroundColor="rgba(0,0,0,0.1)" />
             </XStack>
 
             <YStack alignItems="center" gap="$2">
@@ -108,15 +92,15 @@ export default function LoginPage() {
                 circular
                 width={70}
                 height={70}
-                backgroundColor={theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}
-                borderColor={theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}
+                backgroundColor="rgba(0,0,0,0.03)"
+                borderColor="rgba(0,0,0,0.1)"
                 borderWidth={1}
                 onPress={handleLogin}
                 pressStyle={{ scale: 0.95 }}
               >
                 <FontAwesome5 name="fingerprint" size={32} color="#DA291C" />
               </Button>
-              <Text fontSize={12} color={theme === 'dark' ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)'}>
+              <Text fontSize={12} color="rgba(0,0,0,0.5)">
                 Tap to use Biometrics
               </Text>
             </YStack>

@@ -2,11 +2,8 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 import { Feather } from '@expo/vector-icons';
 import { CustomTabBar } from '../../components/CustomTabBar';
-import { useTheme } from '../../hooks/ThemeContext';
 
 export default function TabLayout() {
-  const { theme } = useTheme();
-
   return (
     <Tabs
       tabBar={(props) => <CustomTabBar {...props} />}
