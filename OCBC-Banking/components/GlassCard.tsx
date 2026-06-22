@@ -22,10 +22,10 @@ export const GlassCard = forwardRef<any, GlassCardProps>(({ children, intensity 
       backgroundColor={backgroundColor}
       {...props}
     >
-      <BlurView 
-        intensity={intensity} 
+      <BlurView
+        intensity={intensity}
         tint="light"
-        style={StyleSheet.absoluteFill} 
+        style={StyleSheet.absoluteFill}
       />
       {children}
     </YStack>
