@@ -7,6 +7,16 @@ export const USER_TRAITS = [
 
 export const RECOMMENDED_PRODUCTS = [
   {
+    id: '4',
+    name: 'Smart Tracker Deposit',
+    category: 'Accounts',
+    description: "Let AI automatically manage your idle funds across different accounts and unlock new ways to grow your wealth.",
+    reason: "Counteract your 'Big Spender' habits by letting our AI securely sweep idle funds into growth channels.",
+    icon: 'robot',
+    iconLib: 'FontAwesome5',
+    color: '#E91E63',
+  },
+  {
     id: '1',
     name: 'High-Yield Family Savings Account',
     category: 'Deposits',
@@ -35,15 +45,5 @@ export const RECOMMENDED_PRODUCTS = [
     icon: 'chart-line',
     iconLib: 'FontAwesome5',
     color: '#9C27B0',
-  },
-  {
-    id: '4',
-    name: 'Smart Tracker Deposit',
-    category: 'Accounts',
-    description: "Let AI automatically manage your idle funds across different accounts and unlock new ways to grow your wealth.",
-    reason: "Counteract your 'Big Spender' habits by letting our AI securely sweep idle funds into growth channels.",
-    icon: 'robot',
-    iconLib: 'FontAwesome5',
-    color: '#E91E63',
   }
 ];

@@ -8,7 +8,7 @@ import { BlurView } from 'expo-blur';
 
 import { RECOMMENDED_PRODUCTS } from '../../constants/depositOwlData';
 import { FinancialProfile } from '../../components/deposit-owl/FinancialProfile';
-import { ProductCard } from '../../components/deposit-owl/ProductCard';
+import { ProductDeck } from '../../components/deposit-owl/ProductDeck';
 
 export default function DepositOwlPage() {
   return (
@@ -77,11 +77,7 @@ export default function DepositOwlPage() {
             Because you are planning for a family and saving consistently, Deposit Owl picked these tailored options just for you:
           </Text>
 
-          <YStack gap="$4">
-            {RECOMMENDED_PRODUCTS.map((product, index) => (
-              <ProductCard key={product.id} product={product} index={index} />
-            ))}
-          </YStack>
+          <ProductDeck products={RECOMMENDED_PRODUCTS} />
         </MotiView>
 
       </ScrollView>
