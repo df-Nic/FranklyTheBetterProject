@@ -2,7 +2,7 @@ import React from 'react';
 import { YStack, XStack, Text, Button } from 'tamagui';
 import { MotiView } from 'moti';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { GlassCard } from '../GlassCard';
+import { useRouter } from 'expo-router';
 
 type ProductCardProps = {
   product: {
@@ -19,6 +19,7 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product, index, animated = true }: ProductCardProps) {
+  const router = useRouter();
   const cardContent = (
     <YStack 
       height={280}
@@ -71,6 +72,7 @@ export function ProductCard({ product, index, animated = true }: ProductCardProp
           borderRadius={12} 
           height={40}
           pressStyle={{ opacity: 0.8 }}
+          onPress={() => router.push('/smart-deposit-details' as any)}
         >
           <Text color="white" fontWeight="600" fontSize={14}>View Details</Text>
         </Button>
