@@ -21,6 +21,11 @@ export function ProductDeck({ products }: { products: any[] }) {
   const [deck, setDeck] = useState(products);
   const [direction, setDirection] = useState<'next' | 'prev' | null>(null);
 
+  useEffect(() => {
+    setDeck(products);
+    setDirection(null);
+  }, [products]);
+
   const advance = () => {
     setDirection('next');
     setDeck((prev) => {
@@ -103,7 +108,7 @@ const DraggableCard = ({ product, index, total, onSwipeRight, onSwipeLeft, direc
   }, [index, isTop, direction]);
 
   const panGesture = Gesture.Pan()
-    .enabled(isTop)
+    .enabled(isTop && total > 1)
     .onUpdate((e) => {
       // Prevent top card from moving left visually
       translateX.value = Math.max(0, e.translationX);

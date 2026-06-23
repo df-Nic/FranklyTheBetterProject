@@ -39,11 +39,31 @@ export const RECOMMENDED_PRODUCTS = [
   {
     id: '3',
     name: 'Fixed Deposit Plan',
-    category: 'Accounts',
+    category: 'Deposits',
     description: "Put your high cash inflow to work by locking it in for 12 months at a guaranteed 4.5% p.a.",
     reason: "Your 'High Cash Inflow' indicates surplus funds that could be earning risk-free guaranteed returns.",
     icon: 'chart-line',
     iconLib: 'FontAwesome5',
-    color: '#9C27B0',
+    color: '#4CAF50',
+  },
+  {
+    id: '5',
+    name: 'Blue Chip Investment Plan',
+    category: 'Investments',
+    description: "Start investing in top-tier blue chip stocks with a low monthly commitment.",
+    reason: "Your consistent saving habits make this an ideal time to start building an investment portfolio.",
+    icon: 'chart-pie',
+    iconLib: 'FontAwesome5',
+    color: '#FF9800',
+  },
+  {
+    id: '6',
+    name: 'Eco-Care Renovation Loan',
+    category: 'Loans',
+    description: "Upgrade your home to be more energy-efficient with our special green loan rates.",
+    reason: "Based on your recent lifestyle spending, you might be considering home improvements.",
+    icon: 'leaf',
+    iconLib: 'FontAwesome5',
+    color: '#00BCD4',
   }
 ];
