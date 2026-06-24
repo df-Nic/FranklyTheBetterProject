@@ -72,7 +72,11 @@ export function ProductCard({ product, index, animated = true }: ProductCardProp
           borderRadius={12} 
           height={40}
           pressStyle={{ opacity: 0.8 }}
-          onPress={() => router.push('/smart-deposit-details' as any)}
+          onPress={() => {
+            if (product.name === 'Smart Tracker Deposit') {
+              router.push('/smart-deposit-details' as any);
+            }
+          }}
         >
           <Text color="white" fontWeight="600" fontSize={14}>View Details</Text>
         </Button>

@@ -2,14 +2,13 @@ import React from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { YStack, XStack, Text, Button } from 'tamagui';
-import { MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { MotiView } from 'moti';
 
 import { BackgroundOrb } from '../components/BackgroundOrb';
 import { DonutChart } from '../components/smart-deposit/DonutChart';
 import { GlassCard } from '../components/GlassCard';
-
 export default function SmartDepositDetailsPage() {
   const router = useRouter();
 
@@ -22,9 +21,24 @@ export default function SmartDepositDetailsPage() {
   const idleFunds = 40000;
 
   const allocationPlan = [
-    { title: 'Top up OCBC 360 Account', amount: 10000, description: 'Maximize bonus interest tiers (up to 4.45% p.a.).', color: '#DA291C' },
-    { title: 'OCBC 6-Month Fixed Deposit', amount: 20000, description: 'Lock in guaranteed returns at promotional rates.', color: '#4CAF50' },
-    { title: 'OCBC RoboInvest', amount: 10000, description: 'Diversified, low-risk Blue Chip portfolio for long-term growth.', color: '#2196F3' },
+    { 
+      title: 'Top up OCBC 360 Account', 
+      amount: 10000, 
+      text: "First, let's make sure your liquid cash is working its hardest. By moving $10,000 into your OCBC 360 Account, you'll immediately hit the next bonus tier. This means you'll earn up to 4.45% p.a. while keeping the money easily accessible!", 
+      color: '#DA291C' 
+    },
+    { 
+      title: 'OCBC 6-Month Fixed Deposit', 
+      amount: 20000, 
+      text: "Next, for the funds you won't need for daily expenses, predictability is key. Let's lock $20,000 into a 6-Month Fixed Deposit. It's virtually risk-free and secures a guaranteed promotional rate, shielding your money from market volatility.", 
+      color: '#4CAF50' 
+    },
+    { 
+      title: 'OCBC RoboInvest', 
+      amount: 10000, 
+      text: "Finally, let's think long-term. To actively beat inflation, I suggest putting the remaining $10,000 into OCBC RoboInvest. By choosing a low-risk Blue Chip portfolio, your wealth can grow steadily in the background.", 
+      color: '#2196F3' 
+    },
   ];
 
   return (
@@ -118,11 +132,11 @@ export default function SmartDepositDetailsPage() {
         {/* SECTION 3: Wealth Allocation Breakdown */}
         <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 300 }}>
           <Text fontSize={18} fontWeight="bold" color="black" marginBottom="$4">
-            Recommended Allocation
+            Deposit Owl&apos;s Guided Plan
           </Text>
 
           {/* Stacked Progress Bar */}
-          <YStack marginBottom="$5">
+          <YStack marginBottom="$6">
             <XStack height={12} borderRadius={6} overflow="hidden" backgroundColor="rgba(0,0,0,0.05)">
               {allocationPlan.map((plan, i) => (
                 <YStack 
@@ -138,51 +152,65 @@ export default function SmartDepositDetailsPage() {
               <Text fontSize={12} fontWeight="bold" color="black">$40,000 / $40,000</Text>
             </XStack>
           </YStack>
-
-          {/* Allocation Cards */}
-          <YStack gap="$3">
-            {allocationPlan.map((plan, i) => (
-              <GlassCard key={i} padding="$4" borderRadius={20}>
-                <XStack gap="$3" alignItems="flex-start" marginBottom="$3">
-                  <YStack backgroundColor={`${plan.color}15`} padding="$2" borderRadius={12}>
-                    <FontAwesome5 
-                      name={i === 0 ? "piggy-bank" : i === 1 ? "lock" : "chart-line"} 
-                      size={20} 
-                      color={plan.color} 
-                    />
-                  </YStack>
-                  <YStack flex={1}>
-                    <Text fontSize={16} fontWeight="bold" color="black" marginBottom="$1">
-                      {plan.title}
-                    </Text>
-                    <Text fontSize={13} color="rgba(0,0,0,0.6)" lineHeight={18}>
-                      {plan.description}
-                    </Text>
-                  </YStack>
-                  <YStack alignItems="flex-end">
-                    <Text fontSize={16} fontWeight="bold" color={plan.color}>
-                      ${plan.amount.toLocaleString()}
-                    </Text>
-                    <Text fontSize={11} color="rgba(0,0,0,0.4)" marginTop="$1">
-                      {((plan.amount / idleFunds) * 100)}%
-                    </Text>
-                  </YStack>
-                </XStack>
-                
-                <Button 
-                  backgroundColor="black"
-                  borderRadius={12}
-                  height={44}
-                  pressStyle={{ opacity: 0.8 }}
-                >
-                  <Text color="white" fontWeight="600" fontSize={14}>
-                    {i === 1 ? 'Set Up Transfer' : 'Allocate Funds'}
-                  </Text>
-                </Button>
-              </GlassCard>
-            ))}
-          </YStack>
         </MotiView>
+
+        {/* Conversational Allocation Timeline */}
+        <YStack gap="$5" paddingLeft="$1">
+          {allocationPlan.map((plan, i) => (
+            <MotiView 
+              key={i}
+              from={{ opacity: 0, translateX: 20, translateY: 10 }} 
+              animate={{ opacity: 1, translateX: 0, translateY: 0 }} 
+              transition={{ delay: 500 + (i * 200), type: 'spring' }}
+            >
+              <XStack gap="$3" alignItems="flex-start">
+                <YStack backgroundColor="#DA291C" padding="$2" borderRadius={16} marginTop="$2" shadowColor="#DA291C" shadowOffset={{ width: 0, height: 4 }} shadowOpacity={0.2} shadowRadius={8}>
+                  <MaterialCommunityIcons name="owl" size={20} color="white" />
+                </YStack>
+                <YStack flex={1}>
+                  {/* Chat Bubble */}
+                  <YStack 
+                    backgroundColor="white" 
+                    padding="$4" 
+                    borderRadius={20} 
+                    borderTopLeftRadius={4}
+                    borderWidth={1}
+                    borderColor="rgba(0,0,0,0.05)"
+                    shadowColor="black"
+                    shadowOffset={{ width: 0, height: 4 }}
+                    shadowOpacity={0.03}
+                    shadowRadius={12}
+                    elevation={2}
+                  >
+                    <XStack justifyContent="space-between" alignItems="center" marginBottom="$2">
+                      <Text fontSize={15} fontWeight="bold" color="black">
+                        {plan.title}
+                      </Text>
+                      <Text fontSize={15} fontWeight="bold" color={plan.color}>
+                        ${plan.amount.toLocaleString()}
+                      </Text>
+                    </XStack>
+                    <Text fontSize={14} color="rgba(0,0,0,0.7)" lineHeight={22} marginBottom="$4">
+                      {plan.text}
+                    </Text>
+                    
+                    {/* Action Button */}
+                    <Button 
+                      backgroundColor={plan.color}
+                      borderRadius={12}
+                      height={42}
+                      pressStyle={{ opacity: 0.8 }}
+                    >
+                      <Text color="white" fontWeight="600" fontSize={14}>
+                        {i === 1 ? 'Set Up Transfer' : 'Allocate Funds'}
+                      </Text>
+                    </Button>
+                  </YStack>
+                </YStack>
+              </XStack>
+            </MotiView>
+          ))}
+        </YStack>
 
       </ScrollView>
     </YStack>
