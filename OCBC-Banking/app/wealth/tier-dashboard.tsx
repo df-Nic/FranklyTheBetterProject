@@ -1,5 +1,5 @@
-import React from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { YStack, XStack, Text, Button } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { MotiView } from 'moti';
@@ -7,20 +7,21 @@ import { Feather } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { GlassCard } from '../../components/GlassCard';
 import { BackgroundOrb } from '../../components/BackgroundOrb';
-import { TierProgressRing } from '../../components/wealth/TierProgressRing';
+import { Easing } from 'react-native-reanimated';
 import { useWealth } from '../../components/wealth/WealthContext';
 import { TIER_CONFIG, CURRENT_AUM } from '../../components/wealth/mockData';
 
 const ACTION_CARDS = [
-  { id: 'grow', label: 'Grow Wealth', icon: 'trending-up', active: true, description: 'Invest and grow your AUM' },
-  { id: 'protect', label: 'Protect', icon: 'shield', active: false, description: 'Insurance & coverage' },
-  { id: 'save', label: 'Save', icon: 'dollar-sign', active: false, description: 'High-yield deposits' },
-  { id: 'plan', label: 'Plan', icon: 'calendar', active: false, description: 'Estate & retirement' },
+  { id: 'grow', label: 'Grow Wealth', icon: 'trending-up', description: 'Invest and grow your AUM' },
+  { id: 'protect', label: 'Protect', icon: 'shield', description: 'Insurance & coverage' },
+  { id: 'save', label: 'Save', icon: 'dollar-sign', description: 'High-yield deposits' },
+  { id: 'plan', label: 'Plan', icon: 'calendar', description: 'Estate & retirement' },
 ];
 
 export default function TierDashboardScreen() {
   const router = useRouter();
   const { state } = useWealth();
+  const [selectedCardId, setSelectedCardId] = useState('grow');
 
   const currentTier = TIER_CONFIG.find(t => t.id === 'basic')!;
   const targetTier = TIER_CONFIG.find(t => t.id === 'premier')!;
@@ -28,11 +29,7 @@ export default function TierDashboardScreen() {
   const amountLeft = targetTier.minAUM - CURRENT_AUM;
 
   const handleGrowWealthPress = () => {
-    if (state.hasCompletedOnboarding) {
-      router.push('/wealth/product-selection');
-    } else {
-      router.push('/wealth/onboarding');
-    }
+    router.push('/wealth/onboarding');
   };
 
   return (
@@ -70,60 +67,52 @@ export default function TierDashboardScreen() {
 
       <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 130, paddingBottom: 100 }}>
 
-        {/* Tier Progress Hero */}
+        {/* AUM Wave Card */}
         <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 100 }}>
-          <GlassCard padding="$6" marginBottom="$5" alignItems="center">
-            <Text fontSize={13} fontWeight="600" color="rgba(0,0,0,0.5)" marginBottom="$4" letterSpacing={0.5}>
-              YOUR BANKING TIER JOURNEY
-            </Text>
+          <GlassCard padding={0} marginBottom="$6" overflow="hidden" position="relative" height={180} justifyContent="center" alignItems="center">
+            
+            {/* Wave Background Fill */}
+            <MotiView
+              from={{ translateY: 180 }}
+              animate={{ translateY: 180 - (180 * progress) }}
+              transition={{ type: 'timing', duration: 1500, delay: 100 }}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: -425, // Center a very large squircle for a gentle wave
+                width: 1200,
+                height: 1200,
+              }}
+            >
+              <MotiView
+                from={{ rotate: '0deg' }}
+                animate={{ rotate: '360deg' }}
+                transition={{
+                  type: 'timing',
+                  duration: 8000,
+                  loop: true,
+                  repeatReverse: false,
+                  easing: Easing.linear,
+                }}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  backgroundColor: 'rgba(218,41,28,0.12)',
+                  borderRadius: 560,
+                }}
+              />
+            </MotiView>
 
-            <TierProgressRing
-              progress={progress}
-              size={180}
-              currentLabel={currentTier.name}
-              targetLabel={targetTier.name}
-              amountLeft={`SGD ${amountLeft.toLocaleString()}`}
-            />
-
-            <YStack marginTop="$5" alignItems="center" gap="$1">
-              <Text fontSize={14} color="rgba(0,0,0,0.5)">
-                Current AUM
+            {/* Foreground Content */}
+            <YStack alignItems="center" zIndex={10}>
+              <Text fontSize={13} fontWeight="700" color="rgba(0,0,0,0.5)" letterSpacing={1} marginBottom="$2">
+                YOUR TOTAL AUM
               </Text>
-              <Text fontSize={28} fontWeight="900" color="black">
+              <Text fontSize={36} fontWeight="900" color="black">
                 SGD {CURRENT_AUM.toLocaleString()}
               </Text>
-              <XStack alignItems="center" gap="$2" marginTop="$2" backgroundColor="rgba(218,41,28,0.08)" paddingHorizontal="$4" paddingVertical="$2" borderRadius={20}>
-                <Feather name="target" size={14} color="#DA291C" />
-                <Text fontSize={13} color="#DA291C" fontWeight="600">
-                  SGD {amountLeft.toLocaleString()} more to {targetTier.name}
-                </Text>
-              </XStack>
             </YStack>
           </GlassCard>
-        </MotiView>
-
-        {/* Premier Benefits Preview */}
-        <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 200 }}>
-          <Text fontSize={16} fontWeight="700" color="black" marginBottom="$3">
-            Unlock with Premier Banking
-          </Text>
-          <XStack gap="$3" marginBottom="$5" flexWrap="wrap">
-            {targetTier.benefits.map((benefit, i) => (
-              <MotiView key={i} from={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 250 + i * 50 }}>
-                <XStack
-                  backgroundColor="rgba(218,41,28,0.06)"
-                  paddingHorizontal="$3"
-                  paddingVertical="$2"
-                  borderRadius={20}
-                  alignItems="center"
-                  gap="$2"
-                >
-                  <Feather name="check-circle" size={13} color="#DA291C" />
-                  <Text fontSize={12} color="#DA291C" fontWeight="500">{benefit}</Text>
-                </XStack>
-              </MotiView>
-            ))}
-          </XStack>
         </MotiView>
 
         {/* Action Cards */}
@@ -132,7 +121,9 @@ export default function TierDashboardScreen() {
             How would you like to grow?
           </Text>
           <XStack gap="$3" flexWrap="wrap">
-            {ACTION_CARDS.map((card, i) => (
+            {ACTION_CARDS.map((card, i) => {
+              const isActive = selectedCardId === card.id;
+              return (
               <MotiView
                 key={card.id}
                 from={{ opacity: 0, scale: 0.9 }}
@@ -140,32 +131,34 @@ export default function TierDashboardScreen() {
                 transition={{ delay: 350 + i * 60, type: 'spring' }}
                 style={{ width: '47%' }}
               >
-                <GlassCard
-                  padding="$4"
-                  borderColor={card.active ? 'rgba(218,41,28,0.3)' : 'rgba(255,255,255,0.8)'}
-                  backgroundColor={card.active ? 'rgba(218,41,28,0.05)' : 'rgba(255,255,255,0.6)'}
-                  opacity={card.active ? 1 : 0.5}
-                >
-                  <YStack gap="$2">
-                    <YStack
-                      width={40} height={40}
-                      borderRadius={12}
-                      backgroundColor={card.active ? 'rgba(218,41,28,0.12)' : 'rgba(0,0,0,0.05)'}
-                      alignItems="center"
-                      justifyContent="center"
-                    >
-                      <Feather name={card.icon as any} size={20} color={card.active ? '#DA291C' : '#999'} />
+                <TouchableOpacity onPress={() => setSelectedCardId(card.id)} activeOpacity={0.8}>
+                  <GlassCard
+                    padding="$4"
+                    borderColor={isActive ? 'rgba(218,41,28,0.3)' : 'rgba(255,255,255,0.8)'}
+                    backgroundColor={isActive ? 'rgba(218,41,28,0.05)' : 'rgba(255,255,255,0.6)'}
+                    opacity={isActive ? 1 : 0.6}
+                  >
+                    <YStack gap="$2">
+                      <YStack
+                        width={40} height={40}
+                        borderRadius={12}
+                        backgroundColor={isActive ? 'rgba(218,41,28,0.12)' : 'rgba(0,0,0,0.05)'}
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <Feather name={card.icon as any} size={20} color={isActive ? '#DA291C' : '#888'} />
+                      </YStack>
+                      <Text fontSize={14} fontWeight="700" color={isActive ? 'black' : '#666'}>
+                        {card.label}
+                      </Text>
+                      <Text fontSize={11} color={isActive ? 'rgba(0,0,0,0.5)' : '#999'}>
+                        {card.description}
+                      </Text>
                     </YStack>
-                    <Text fontSize={14} fontWeight="700" color={card.active ? 'black' : '#999'}>
-                      {card.label}
-                    </Text>
-                    <Text fontSize={11} color={card.active ? 'rgba(0,0,0,0.5)' : '#bbb'}>
-                      {card.active ? card.description : 'Coming soon'}
-                    </Text>
-                  </YStack>
-                </GlassCard>
+                  </GlassCard>
+                </TouchableOpacity>
               </MotiView>
-            ))}
+            )})}
           </XStack>
         </MotiView>
 

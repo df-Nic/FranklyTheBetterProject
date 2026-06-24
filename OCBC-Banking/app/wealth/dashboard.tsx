@@ -7,7 +7,7 @@ import { Feather, FontAwesome5 } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { GlassCard } from '../../components/GlassCard';
 import { BackgroundOrb } from '../../components/BackgroundOrb';
-import { TierProgressRing } from '../../components/wealth/TierProgressRing';
+import { Easing } from 'react-native-reanimated';
 import { useWealth } from '../../components/wealth/WealthContext';
 import {
   CURRENT_AUM,
@@ -70,54 +70,65 @@ export default function DashboardScreen() {
 
       <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 130, paddingBottom: 100 }}>
 
-        {/* Tier Progression Widget */}
+        {/* Investment Summary Widget */}
         <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 100 }}>
-          <GlassCard padding="$5" marginBottom="$5" borderColor="rgba(218,41,28,0.2)">
-            <XStack gap="$5" alignItems="center">
-              <TierProgressRing
-                progress={progress}
-                size={110}
-                strokeWidth={10}
-                currentLabel="OCBC 360"
-                targetLabel="Premier"
-                amountLeft={`SGD ${amountLeft.toLocaleString()}`}
+          <GlassCard padding={0} marginBottom="$6" borderColor="rgba(218,41,28,0.2)" overflow="hidden" position="relative">
+            {/* Wave Background Fill */}
+            <MotiView
+              from={{ translateY: 150 }}
+              animate={{ translateY: 150 - (150 * progress) }}
+              transition={{ type: 'timing', duration: 1500, delay: 100 }}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: -425, // Center a very large squircle for a gentle wave
+                width: 1200,
+                height: 1200,
+              }}
+            >
+              <MotiView
+                from={{ rotate: '0deg' }}
+                animate={{ rotate: '360deg' }}
+                transition={{
+                  type: 'timing',
+                  duration: 8000,
+                  loop: true,
+                  repeatReverse: false,
+                  easing: Easing.linear,
+                }}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  backgroundColor: 'rgba(218,41,28,0.12)',
+                  borderRadius: 560,
+                }}
               />
-              <YStack flex={1} gap="$2">
-                <Text fontSize={13} fontWeight="700" color="rgba(0,0,0,0.45)">TIER PROGRESS</Text>
-                <Text fontSize={18} fontWeight="900" color="black">
-                  SGD {newAUM.toLocaleString()}
-                </Text>
-                <Text fontSize={12} color="rgba(0,0,0,0.5)">Total AUM</Text>
-                {amountLeft > 0 ? (
-                  <XStack alignItems="center" gap="$1" backgroundColor="rgba(218,41,28,0.08)" paddingHorizontal="$3" paddingVertical="$1" borderRadius={20} alignSelf="flex-start">
-                    <Feather name="target" size={12} color="#DA291C" />
-                    <Text fontSize={11} color="#DA291C" fontWeight="700">
-                      SGD {amountLeft.toLocaleString()} to Premier
-                    </Text>
-                  </XStack>
-                ) : (
-                  <XStack alignItems="center" gap="$1" backgroundColor="rgba(76,175,80,0.1)" paddingHorizontal="$3" paddingVertical="$1" borderRadius={20} alignSelf="flex-start">
-                    <Feather name="check-circle" size={12} color="#4CAF50" />
-                    <Text fontSize={11} color="#4CAF50" fontWeight="700">Premier Unlocked!</Text>
-                  </XStack>
-                )}
-              </YStack>
-            </XStack>
-          </GlassCard>
-        </MotiView>
+            </MotiView>
 
-        {/* AI Nudge */}
-        <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 200 }}>
-          <GlassCard padding="$4" marginBottom="$5" borderColor="rgba(218,41,28,0.25)" backgroundColor="rgba(218,41,28,0.03)">
-            <XStack gap="$3" alignItems="flex-start">
-              <YStack backgroundColor="rgba(218,41,28,0.1)" padding="$3" borderRadius={12}>
-                <Feather name={AI_NUDGE.icon as any} size={20} color="#DA291C" />
-              </YStack>
-              <YStack flex={1}>
-                <Text fontSize={15} fontWeight="800" color="black" marginBottom={4}>{AI_NUDGE.headline}</Text>
-                <Text fontSize={13} color="rgba(0,0,0,0.6)" lineHeight={20}>{AI_NUDGE.body}</Text>
-              </YStack>
-            </XStack>
+            <YStack padding="$5" zIndex={10}>
+              <XStack justifyContent="space-between" alignItems="flex-start">
+                <YStack gap="$1">
+                  <Text fontSize={14} fontWeight="700" color="rgba(0,0,0,0.5)">TOTAL INVESTMENTS</Text>
+                  <Text fontSize={32} fontWeight="900" color="black">
+                    SGD {newAUM.toLocaleString()}
+                  </Text>
+                </YStack>
+                <YStack backgroundColor="rgba(76,175,80,0.1)" padding="$2" borderRadius={12}>
+                  <Feather name="trending-up" size={20} color="#4CAF50" />
+                </YStack>
+              </XStack>
+              
+              <XStack gap="$5" marginTop="$2" paddingTop="$3" borderTopWidth={1} borderColor="rgba(0,0,0,0.05)">
+                <YStack>
+                  <Text fontSize={12} color="rgba(0,0,0,0.5)" marginBottom={2}>Total Profit / Loss</Text>
+                  <Text fontSize={16} fontWeight="800" color="#4CAF50">+ SGD 8,450.00</Text>
+                </YStack>
+                <YStack>
+                  <Text fontSize={12} color="rgba(0,0,0,0.5)" marginBottom={2}>All-Time Returns</Text>
+                  <Text fontSize={16} fontWeight="800" color="#4CAF50">+ 6.41%</Text>
+                </YStack>
+              </XStack>
+            </YStack>
           </GlassCard>
         </MotiView>
 
@@ -128,30 +139,32 @@ export default function DashboardScreen() {
           {/* Latest investment */}
           {selectedFund && (
             <MotiView from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 350, type: 'spring' }}>
-              <GlassCard padding="$4" marginBottom="$3" borderColor="rgba(218,41,28,0.3)">
+              <YStack position="relative">
                 <YStack position="absolute" top={-10} right={16} backgroundColor="#DA291C" paddingHorizontal={8} paddingVertical={4} borderRadius={8} zIndex={10} shadowColor="#DA291C" shadowOpacity={0.4} shadowRadius={6} elevation={4}>
                   <Text fontSize={10} fontWeight="800" color="white" letterSpacing={1}>NEW</Text>
                 </YStack>
-                <XStack justifyContent="space-between" alignItems="center">
-                  <XStack gap="$3" alignItems="center" flex={1}>
-                    <YStack backgroundColor="rgba(218,41,28,0.1)" padding="$3" borderRadius={12}>
-                      <Feather name="pie-chart" size={18} color="#DA291C" />
-                    </YStack>
-                    <YStack flex={1}>
-                      <XStack gap="$2" alignItems="center" marginBottom={2}>
-                        <Text fontSize={14} fontWeight="800" color="black" flexShrink={1} numberOfLines={2}>
-                          {selectedFund.name}
-                        </Text>
-                      </XStack>
-                      <Text fontSize={12} color="rgba(0,0,0,0.5)">{selectedFund.assetClass}</Text>
+                <GlassCard padding="$4" marginBottom="$3" borderColor="rgba(218,41,28,0.3)">
+                  <XStack justifyContent="space-between" alignItems="center">
+                    <XStack gap="$3" alignItems="center" flex={1}>
+                      <YStack backgroundColor="rgba(218,41,28,0.1)" padding="$3" borderRadius={12}>
+                        <Feather name="pie-chart" size={18} color="#DA291C" />
+                      </YStack>
+                      <YStack flex={1}>
+                        <XStack gap="$2" alignItems="center" marginBottom={2}>
+                          <Text fontSize={14} fontWeight="800" color="black" flexShrink={1} numberOfLines={2}>
+                            {selectedFund.name}
+                          </Text>
+                        </XStack>
+                        <Text fontSize={12} color="rgba(0,0,0,0.5)">{selectedFund.assetClass}</Text>
+                      </YStack>
+                    </XStack>
+                    <YStack alignItems="flex-end">
+                      <Text fontSize={16} fontWeight="900" color="black">SGD {(investmentAmount).toLocaleString()}</Text>
+                      <Text fontSize={12} color="#4CAF50" fontWeight="600">{selectedFund.ytd} YTD</Text>
                     </YStack>
                   </XStack>
-                  <YStack alignItems="flex-end">
-                    <Text fontSize={16} fontWeight="900" color="black">SGD {(investmentAmount).toLocaleString()}</Text>
-                    <Text fontSize={12} color="#4CAF50" fontWeight="600">{selectedFund.ytd} YTD</Text>
-                  </YStack>
-                </XStack>
-              </GlassCard>
+                </GlassCard>
+              </YStack>
             </MotiView>
           )}
 
@@ -235,9 +248,10 @@ export default function DashboardScreen() {
         <XStack flex={1} alignItems="center" justifyContent="space-around" paddingHorizontal="$2">
           {[
             { name: 'Home', icon: 'home', route: '/' },
-            { name: 'Wealth', icon: 'pie-chart', route: '/wealth', active: true },
-            { name: 'Pay', icon: 'credit-card', route: '/pay' },
-            { name: 'More', icon: 'menu', route: '/more' },
+            { name: 'Plan', icon: 'trending-up', route: '/plan' },
+            { name: 'Pay & Transfer', icon: 'repeat', route: '/pay' },
+            { name: 'Rewards', icon: 'gift', route: '/rewards' },
+            { name: 'More', icon: 'more-horizontal', route: '/more', active: true },
           ].map((tab) => (
             <TouchableOpacity
               key={tab.name}

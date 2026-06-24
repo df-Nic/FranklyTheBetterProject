@@ -1,4 +1,5 @@
 import React from 'react';
+import { Easing } from 'react-native-reanimated';
 import { YStack, XStack, Text } from 'tamagui';
 import { MotiView } from 'moti';
 
@@ -34,19 +35,37 @@ export function TierProgressRing({
         overflow="hidden"
         position="relative"
       >
-        {/* Progress fill — bottom half fills upward */}
+        {/* Progress fill — dynamic water wave effect */}
         <MotiView
-          from={{ height: 0 }}
-          animate={{ height: `${pct}%` }}
-          transition={{ type: 'timing', duration: 1200, delay: 300 }}
+          from={{ translateY: size }}
+          animate={{ translateY: size - (size * (pct / 100)) }}
+          transition={{ type: 'timing', duration: 1500, delay: 100 }}
           style={{
             position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            backgroundColor: 'rgba(218,41,28,0.18)',
+            top: 0,
+            left: -size / 2,
+            width: size * 2,
+            height: size * 2,
           }}
-        />
+        >
+          <MotiView
+            from={{ rotate: '0deg' }}
+            animate={{ rotate: '360deg' }}
+            transition={{
+              type: 'timing',
+              duration: 6000,
+              loop: true,
+              repeatReverse: false,
+              easing: Easing.linear,
+            }}
+            style={{
+              width: '100%',
+              height: '100%',
+              backgroundColor: 'rgba(218,41,28,0.22)',
+              borderRadius: size * 0.85,
+            }}
+          />
+        </MotiView>
 
         {/* Center text */}
         <YStack alignItems="center" zIndex={10}>

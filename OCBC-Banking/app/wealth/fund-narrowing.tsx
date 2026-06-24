@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, Modal, KeyboardAvoidingView, Platform, Dimensions } from 'react-native';
-import { YStack, XStack, Text, Button, Spinner, Input, Avatar } from 'tamagui';
+import { ScrollView, StyleSheet, TouchableOpacity, Modal, KeyboardAvoidingView, Platform, Dimensions, View, Animated } from 'react-native';
+import { YStack, XStack, Text, Button, Spinner, Input, Avatar, Sheet } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { MotiView } from 'moti';
 import { Feather } from '@expo/vector-icons';
@@ -195,145 +195,136 @@ export default function FundNarrowingScreen() {
         )}
       </ScrollView>
 
-      {/* Ask About This — Modal (no portal needed) */}
-      <Modal
-        visible={modalOpen}
-        transparent
-        animationType="slide"
-        statusBarTranslucent
-        onRequestClose={() => setModalOpen(false)}
+      {/* Ask About This — Sheet */}
+      <Sheet
+        modal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        snapPoints={[85]}
+        dismissOnSnapToBottom
+        position={0}
+        zIndex={100000}
       >
-        <YStack flex={1} backgroundColor="rgba(0,0,0,0.4)" justifyContent="flex-end">
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ width: '100%' }}>
-            <YStack
-              backgroundColor="#F5F5F7"
-              borderTopLeftRadius={24}
-              borderTopRightRadius={24}
-              height={Dimensions.get('window').height * 0.72}
-              overflow="hidden"
+        <Sheet.Overlay enterStyle={{ opacity: 0 }} exitStyle={{ opacity: 0 }} backgroundColor="rgba(0,0,0,0.4)" />
+        <Sheet.Handle backgroundColor="rgba(0,0,0,0.15)" />
+        <Sheet.Frame backgroundColor="#F5F5F7" borderTopLeftRadius={24} borderTopRightRadius={24}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+            {/* Header */}
+            <XStack
+              paddingHorizontal={20}
+              paddingVertical={14}
+              justifyContent="space-between"
+              alignItems="center"
+              backgroundColor="white"
+              borderBottomWidth={1}
+              borderColor="rgba(0,0,0,0.06)"
             >
-              {/* Handle */}
-              <YStack alignItems="center" paddingTop={12} paddingBottom={4} backgroundColor="white">
-                <YStack width={36} height={4} borderRadius={2} backgroundColor="rgba(0,0,0,0.15)" />
-              </YStack>
-
-              {/* Header */}
-              <XStack
-                paddingHorizontal={20}
-                paddingVertical={14}
-                justifyContent="space-between"
-                alignItems="center"
-                backgroundColor="white"
-                borderBottomWidth={1}
-                borderColor="rgba(0,0,0,0.06)"
-              >
-                <XStack alignItems="center" gap="$3" flex={1}>
-                  <YStack width={36} height={36} borderRadius={18} backgroundColor="rgba(218,41,28,0.1)" alignItems="center" justifyContent="center">
-                    <Feather name="bar-chart-2" size={16} color="#DA291C" />
-                  </YStack>
-                  <YStack flex={1}>
-                    <Text fontSize={15} fontWeight="800" color="black" numberOfLines={1}>{modalFund?.name}</Text>
-                    <Text fontSize={12} color="#DA291C" fontWeight="600">Fund Assistant</Text>
-                  </YStack>
-                </XStack>
-                <Button circular size="$3" backgroundColor="rgba(0,0,0,0.05)" onPress={() => setModalOpen(false)}>
-                  <Feather name="x" size={16} color="black" />
-                </Button>
+              <XStack alignItems="center" gap="$3" flex={1}>
+                <YStack width={36} height={36} borderRadius={18} backgroundColor="rgba(218,41,28,0.1)" alignItems="center" justifyContent="center">
+                  <Feather name="bar-chart-2" size={16} color="#DA291C" />
+                </YStack>
+                <YStack flex={1}>
+                  <Text fontSize={15} fontWeight="800" color="black" numberOfLines={1}>{modalFund?.name}</Text>
+                  <Text fontSize={12} color="#DA291C" fontWeight="600">Fund Assistant</Text>
+                </YStack>
               </XStack>
+              <Button circular size="$3" backgroundColor="rgba(0,0,0,0.05)" onPress={() => setModalOpen(false)}>
+                <Feather name="x" size={16} color="black" />
+              </Button>
+            </XStack>
 
-              {/* Chat */}
-              <ScrollView
-                ref={scrollViewRef}
-                onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
-                style={{ flex: 1, paddingHorizontal: 20 }}
-                contentContainerStyle={{ gap: 16, paddingVertical: 20 }}
-                keyboardShouldPersistTaps="handled"
-              >
-                {chatHistory.map((msg, i) => {
-                  const isUser = msg.role === 'user';
-                  return (
-                    <XStack key={i} justifyContent={isUser ? 'flex-end' : 'flex-start'} gap="$2" alignItems="flex-end">
-                      {!isUser && (
-                        <YStack width={28} height={28} borderRadius={14} backgroundColor="#DA291C" alignItems="center" justifyContent="center">
-                          <Feather name="cpu" size={14} color="white" />
+                {/* Chat */}
+                <ScrollView
+                  ref={scrollViewRef}
+                  onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+                  style={{ flex: 1, paddingHorizontal: 20 }}
+                  contentContainerStyle={{ gap: 16, paddingVertical: 20 }}
+                  keyboardShouldPersistTaps="handled"
+                >
+                  {chatHistory.map((msg, i) => {
+                    const isUser = msg.role === 'user';
+                    return (
+                      <XStack key={i} justifyContent={isUser ? 'flex-end' : 'flex-start'} gap="$2" alignItems="flex-end">
+                        {!isUser && (
+                          <YStack width={28} height={28} borderRadius={14} backgroundColor="#DA291C" alignItems="center" justifyContent="center">
+                            <Feather name="cpu" size={14} color="white" />
+                          </YStack>
+                        )}
+                        <YStack
+                          backgroundColor={isUser ? '#DA291C' : 'white'}
+                          paddingHorizontal={16}
+                          paddingVertical={12}
+                          borderRadius={20}
+                          borderBottomRightRadius={isUser ? 4 : 20}
+                          borderBottomLeftRadius={!isUser ? 4 : 20}
+                          maxWidth="80%"
+                          shadowColor="#000"
+                          shadowOpacity={0.04}
+                          shadowRadius={8}
+                          elevation={2}
+                        >
+                          <Text fontSize={14} color={isUser ? 'white' : 'black'} lineHeight={22}>
+                            {msg.content}
+                          </Text>
                         </YStack>
-                      )}
+                      </XStack>
+                    );
+                  })}
+                  {aiTyping && (
+                    <XStack justifyContent="flex-start" gap="$2" alignItems="flex-end">
+                      <YStack width={28} height={28} borderRadius={14} backgroundColor="#DA291C" alignItems="center" justifyContent="center">
+                        <Feather name="cpu" size={14} color="white" />
+                      </YStack>
                       <YStack
-                        backgroundColor={isUser ? '#DA291C' : 'white'}
+                        backgroundColor="white"
                         paddingHorizontal={16}
                         paddingVertical={12}
                         borderRadius={20}
-                        borderBottomRightRadius={isUser ? 4 : 20}
-                        borderBottomLeftRadius={!isUser ? 4 : 20}
-                        maxWidth="80%"
+                        borderBottomLeftRadius={4}
                         shadowColor="#000"
                         shadowOpacity={0.04}
                         shadowRadius={8}
-                        elevation={2}
                       >
-                        <Text fontSize={14} color={isUser ? 'white' : 'black'} lineHeight={22}>
-                          {msg.content}
-                        </Text>
+                        <XStack gap="$2" alignItems="center">
+                          <Spinner size="small" color="#DA291C" />
+                          <Text fontSize={13} color="rgba(0,0,0,0.5)">Typing...</Text>
+                        </XStack>
                       </YStack>
                     </XStack>
-                  );
-                })}
-                {aiTyping && (
-                  <XStack justifyContent="flex-start" gap="$2" alignItems="flex-end">
-                    <YStack width={28} height={28} borderRadius={14} backgroundColor="#DA291C" alignItems="center" justifyContent="center">
-                      <Feather name="cpu" size={14} color="white" />
-                    </YStack>
-                    <YStack
-                      backgroundColor="white"
-                      paddingHorizontal={16}
-                      paddingVertical={12}
-                      borderRadius={20}
-                      borderBottomLeftRadius={4}
-                      shadowColor="#000"
-                      shadowOpacity={0.04}
-                      shadowRadius={8}
-                    >
-                      <XStack gap="$2" alignItems="center">
-                        <Spinner size="small" color="#DA291C" />
-                        <Text fontSize={13} color="rgba(0,0,0,0.5)">Typing...</Text>
-                      </XStack>
-                    </YStack>
-                  </XStack>
-                )}
-              </ScrollView>
+                  )}
+                </ScrollView>
 
-              <YStack backgroundColor="white" paddingTop={12} paddingBottom={Platform.OS === 'ios' ? 34 : 48} paddingHorizontal={20} borderTopWidth={1} borderColor="rgba(0,0,0,0.06)">
-                <XStack
-                  gap="$3"
-                  backgroundColor="#F5F5F7"
-                  borderRadius={24}
-                  paddingHorizontal={16}
-                  paddingVertical={8}
-                  alignItems="center"
-                  borderWidth={1}
-                  borderColor="rgba(0,0,0,0.05)"
-                >
-                  <Input
-                    flex={1}
-                    placeholder="Ask about this fund..."
-                    value={chatInput}
-                    onChangeText={setChatInput}
-                    backgroundColor="transparent"
-                    borderWidth={0}
-                    paddingHorizontal={0}
-                    fontSize={15}
-                    onSubmitEditing={handleSendMessage}
-                    returnKeyType="send"
-                  />
-                  <Button circular size="$3" backgroundColor={chatInput.trim() ? '#DA291C' : 'rgba(0,0,0,0.1)'} pressStyle={{ opacity: 0.8 }} onPress={handleSendMessage}>
-                    <Feather name="arrow-up" size={18} color="white" />
-                  </Button>
-                </XStack>
-              </YStack>
-            </YStack>
+                <YStack backgroundColor="white" paddingTop={12} paddingBottom={Platform.OS === 'ios' ? 34 : 48} paddingHorizontal={20} borderTopWidth={1} borderColor="rgba(0,0,0,0.06)">
+                  <XStack
+                    gap="$3"
+                    backgroundColor="#F5F5F7"
+                    borderRadius={24}
+                    paddingHorizontal={16}
+                    paddingVertical={8}
+                    alignItems="center"
+                    borderWidth={1}
+                    borderColor="rgba(0,0,0,0.05)"
+                  >
+                    <Input
+                      flex={1}
+                      placeholder="Ask about this fund..."
+                      value={chatInput}
+                      onChangeText={setChatInput}
+                      backgroundColor="transparent"
+                      borderWidth={0}
+                      paddingHorizontal={0}
+                      fontSize={15}
+                      onSubmitEditing={handleSendMessage}
+                      returnKeyType="send"
+                    />
+                    <Button circular size="$3" backgroundColor={chatInput.trim() ? '#DA291C' : 'rgba(0,0,0,0.1)'} pressStyle={{ opacity: 0.8 }} onPress={handleSendMessage}>
+                      <Feather name="arrow-up" size={18} color="white" />
+                    </Button>
+                  </XStack>
+                </YStack>
           </KeyboardAvoidingView>
-        </YStack>
-      </Modal>
+        </Sheet.Frame>
+      </Sheet>
     </YStack>
   );
 }

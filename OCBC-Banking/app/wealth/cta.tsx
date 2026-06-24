@@ -182,20 +182,7 @@ export default function CTAScreen() {
                   SGD {formatCurrency(projectedAUM)}
                 </Text>
               </XStack>
-              <YStack
-                backgroundColor={willUnlock ? 'rgba(76,175,80,0.08)' : 'rgba(218,41,28,0.06)'}
-                borderRadius={12}
-                padding="$3"
-              >
-                <XStack gap="$2" alignItems="center">
-                  <Feather name={willUnlock ? 'unlock' : 'clock'} size={15} color={willUnlock ? '#4CAF50' : '#DA291C'} />
-                  <Text fontSize={13} fontWeight="700" color={willUnlock ? '#4CAF50' : '#DA291C'}>
-                    {willUnlock
-                      ? `Premier Banking unlocked in ~${projectionYears} years! 🎉`
-                      : `Premier Banking in ~${yearsToPremier} years — invest more to unlock faster`}
-                  </Text>
-                </XStack>
-              </YStack>
+
               <Text fontSize={11} color="rgba(0,0,0,0.35)">
                 Based on {riskProfile} profile ({Math.round((GROWTH_RATE[riskProfile] ?? 0.06) * 100)}% p.a. avg). Not a guarantee.
               </Text>
