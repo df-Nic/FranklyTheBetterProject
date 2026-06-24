@@ -17,6 +17,7 @@ export default function WealthLayout() {
           <Stack.Screen name="cta" />
           <Stack.Screen name="dashboard" />
         </Stack>
+        <AIAssistantSheet />
       </YStack>
     </WealthProvider>
   );

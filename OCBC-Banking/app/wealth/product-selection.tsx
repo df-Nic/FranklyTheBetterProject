@@ -15,9 +15,9 @@ import {
 } from '../../components/wealth/mockData';
 
 const RISK_LABELS = [
-  { range: [0, 2], label: 'Conservative', emoji: '🛡️', description: 'You prefer stability and capital protection over high returns.' },
-  { range: [3, 5], label: 'Balanced', emoji: '⚖️', description: 'You\'re comfortable with moderate risk for steady growth.' },
-  { range: [6, 8], label: 'Growth', emoji: '🚀', description: 'You embrace volatility for the potential of higher long-term returns.' },
+  { range: [0, 2], label: 'Conservative', icon: 'shield', color: '#0D1B3E', bgColor: 'rgba(13,27,62,0.12)', description: 'You prefer stability and capital protection over high returns.' },
+  { range: [3, 5], label: 'Balanced', icon: 'pie-chart', color: '#F5A623', bgColor: 'rgba(245,166,35,0.15)', description: 'You\'re comfortable with moderate risk for steady growth.' },
+  { range: [6, 8], label: 'Growth', icon: 'trending-up', color: '#DA291C', bgColor: 'rgba(218,41,28,0.12)', description: 'You embrace volatility for the potential of higher long-term returns.' },
 ];
 
 export default function ProductSelectionScreen() {
@@ -71,7 +71,6 @@ export default function ProductSelectionScreen() {
           </Button>
           <YStack alignItems="center">
             <Text fontSize={17} fontWeight="700" color="black">Choose Your Product</Text>
-            <Text fontSize={12} color="#DA291C" fontWeight="600">Profile: {riskProfile}</Text>
           </YStack>
           <YStack width={36} />
         </XStack>
@@ -98,13 +97,22 @@ export default function ProductSelectionScreen() {
             shadowRadius={12}
             elevation={4}
           >
-            <Text fontSize={48} marginBottom="$3">{profileDetails.emoji}</Text>
-            <Text fontSize={11} fontWeight="800" color="#DA291C" letterSpacing={1} marginBottom="$1">
+            <YStack
+              backgroundColor={profileDetails.bgColor}
+              padding={16}
+              borderRadius={100}
+              marginBottom="$4"
+            >
+              <Feather name={profileDetails.icon as any} size={40} color={profileDetails.color} />
+            </YStack>
+            <Text fontSize={11} fontWeight="800" color="rgba(0,0,0,0.4)" letterSpacing={1} marginBottom="$2">
               YOUR RISK PROFILE
             </Text>
-            <Text fontSize={24} fontWeight="900" color="black" marginBottom="$2">
-              {profileDetails.label}
-            </Text>
+            <YStack backgroundColor={profileDetails.color} paddingHorizontal={14} paddingVertical={6} borderRadius={20} marginBottom="$3">
+              <Text fontSize={15} fontWeight="800" color="white" textTransform="uppercase" letterSpacing={0.5}>
+                {profileDetails.label}
+              </Text>
+            </YStack>
             <Text fontSize={14} color="rgba(0,0,0,0.6)" textAlign="center" lineHeight={20}>
               {profileDetails.description}
             </Text>

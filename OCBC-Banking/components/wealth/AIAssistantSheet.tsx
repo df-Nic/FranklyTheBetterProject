@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Modal, ScrollView, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { Modal, ScrollView, KeyboardAvoidingView, Platform, StyleSheet, Dimensions } from 'react-native';
 import { YStack, XStack, Text, Button, Input, Spinner } from 'tamagui';
 import { Feather, FontAwesome5 } from '@expo/vector-icons';
 import { MotiView } from 'moti';
@@ -17,6 +17,7 @@ export function AIAssistantSheet() {
   const { state, dispatch } = useWealth();
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const QUICK_QUESTIONS = [
     'How close am I to Premier?',
@@ -59,7 +60,7 @@ export function AIAssistantSheet() {
             backgroundColor="#FAFAFA"
             borderTopLeftRadius={24}
             borderTopRightRadius={24}
-            maxHeight="72%"
+            height={Dimensions.get('window').height * 0.72}
             overflow="hidden"
           >
             {/* Drag handle */}
@@ -124,6 +125,8 @@ export function AIAssistantSheet() {
 
             {/* Chat messages */}
             <ScrollView
+              ref={scrollViewRef}
+              onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
               style={{ flex: 1, paddingHorizontal: 20 }}
               contentContainerStyle={{ gap: 12, paddingVertical: 16 }}
               keyboardShouldPersistTaps="handled"
@@ -170,7 +173,7 @@ export function AIAssistantSheet() {
               gap="$3"
               paddingHorizontal={20}
               paddingVertical={14}
-              paddingBottom={Platform.OS === 'ios' ? 34 : 20}
+              paddingBottom={Platform.OS === 'ios' ? 34 : 48}
               borderTopWidth={1}
               borderColor="rgba(0,0,0,0.06)"
             >

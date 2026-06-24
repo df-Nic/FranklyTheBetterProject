@@ -65,15 +65,25 @@ export default function CTAScreen() {
         <MotiView
           from={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: 'spring', damping: 10 }}
+          transition={{ type: 'timing', duration: 300 }}
           style={{ alignItems: 'center' }}
         >
           <MotiView
-            from={{ rotate: '0deg' }}
-            animate={{ rotate: '360deg' }}
-            transition={{ type: 'timing', duration: 800, loop: true, repeatReverse: false }}
+            from={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'timing', duration: 400, delay: 200 }}
           >
-            <Text fontSize={64}>🎉</Text>
+            <YStack
+              backgroundColor="rgba(76,175,80,0.15)"
+              width={100}
+              height={100}
+              borderRadius={50}
+              alignItems="center"
+              justifyContent="center"
+              marginBottom="$2"
+            >
+              <Feather name="check" size={50} color="#4CAF50" />
+            </YStack>
           </MotiView>
           <Text fontSize={26} fontWeight="900" color="black" marginTop="$4" textAlign="center">
             Investment Placed!

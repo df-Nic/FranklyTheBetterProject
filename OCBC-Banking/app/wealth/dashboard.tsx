@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { YStack, XStack, Text, Button } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { MotiView } from 'moti';
@@ -129,6 +129,9 @@ export default function DashboardScreen() {
           {selectedFund && (
             <MotiView from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 350, type: 'spring' }}>
               <GlassCard padding="$4" marginBottom="$3" borderColor="rgba(218,41,28,0.3)">
+                <YStack position="absolute" top={-10} right={16} backgroundColor="#DA291C" paddingHorizontal={8} paddingVertical={4} borderRadius={8} zIndex={10} shadowColor="#DA291C" shadowOpacity={0.4} shadowRadius={6} elevation={4}>
+                  <Text fontSize={10} fontWeight="800" color="white" letterSpacing={1}>NEW</Text>
+                </YStack>
                 <XStack justifyContent="space-between" alignItems="center">
                   <XStack gap="$3" alignItems="center" flex={1}>
                     <YStack backgroundColor="rgba(218,41,28,0.1)" padding="$3" borderRadius={12}>
@@ -136,10 +139,9 @@ export default function DashboardScreen() {
                     </YStack>
                     <YStack flex={1}>
                       <XStack gap="$2" alignItems="center" marginBottom={2}>
-                        <Text fontSize={14} fontWeight="800" color="black">{selectedFund.name}</Text>
-                        <YStack backgroundColor="rgba(218,41,28,0.1)" paddingHorizontal="$2" paddingVertical={2} borderRadius={6}>
-                          <Text fontSize={10} fontWeight="700" color="#DA291C">NEW</Text>
-                        </YStack>
+                        <Text fontSize={14} fontWeight="800" color="black" flexShrink={1} numberOfLines={2}>
+                          {selectedFund.name}
+                        </Text>
                       </XStack>
                       <Text fontSize={12} color="rgba(0,0,0,0.5)">{selectedFund.assetClass}</Text>
                     </YStack>
@@ -210,6 +212,53 @@ export default function DashboardScreen() {
           Prototype for demonstration only. Not financial advice. No real transactions are made.
         </Text>
       </ScrollView>
+
+      {/* Mock Footer Nav to Exit Flow */}
+      <XStack
+        position="absolute"
+        bottom={30}
+        left={20}
+        right={20}
+        height={70}
+        borderRadius={35}
+        overflow="hidden"
+        borderWidth={1}
+        borderColor="rgba(255,255,255,0.8)"
+        backgroundColor="rgba(255,255,255,0.7)"
+        elevation={10}
+        shadowColor="#000"
+        shadowRadius={20}
+        shadowOpacity={0.1}
+        zIndex={100}
+      >
+        <BlurView intensity={80} tint="light" style={StyleSheet.absoluteFill} />
+        <XStack flex={1} alignItems="center" justifyContent="space-around" paddingHorizontal="$2">
+          {[
+            { name: 'Home', icon: 'home', route: '/' },
+            { name: 'Wealth', icon: 'pie-chart', route: '/wealth', active: true },
+            { name: 'Pay', icon: 'credit-card', route: '/pay' },
+            { name: 'More', icon: 'menu', route: '/more' },
+          ].map((tab) => (
+            <TouchableOpacity
+              key={tab.name}
+              onPress={() => {
+                if (!tab.active) {
+                  router.dismissAll();
+                  router.replace(tab.route as any);
+                }
+              }}
+              style={{ flex: 1, alignItems: 'center', justifyContent: 'center', height: '100%' }}
+            >
+              <YStack alignItems="center" gap="$1">
+                <Feather name={tab.icon as any} size={20} color={tab.active ? '#DA291C' : 'rgba(0,0,0,0.5)'} />
+                <Text fontSize={10} fontWeight={tab.active ? 'bold' : 'normal'} color={tab.active ? '#DA291C' : 'rgba(0,0,0,0.5)'}>
+                  {tab.name}
+                </Text>
+              </YStack>
+            </TouchableOpacity>
+          ))}
+        </XStack>
+      </XStack>
     </YStack>
   );
 }
