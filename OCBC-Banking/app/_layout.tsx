@@ -32,6 +32,7 @@ export default function RootLayout() {
           <Stack.Screen name="landing" options={{ headerShown: false }} />
           <Stack.Screen name="login" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false, animation: 'fade' }} />
+          <Stack.Screen name="wealth" options={{ headerShown: false, animation: 'slide_from_bottom' }} />
         </Stack>
         <StatusBar style="dark" />
       </NavigationThemeProvider>
