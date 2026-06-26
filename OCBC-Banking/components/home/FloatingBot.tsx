@@ -1,14 +1,18 @@
 import React, { useRef } from 'react';
-import { Animated, PanResponder } from 'react-native';
+import { Animated, PanResponder, Image } from 'react-native';
 import { Button } from 'tamagui';
 import { MotiView } from 'moti';
-import { FontAwesome5 } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
 export function FloatingBot() {
+  const router = useRouter();
   const pan = useRef(new Animated.ValueXY()).current;
   const panResponder = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        return Math.abs(gestureState.dx) > 5 || Math.abs(gestureState.dy) > 5;
+      },
       onPanResponderGrant: () => {
         pan.setOffset({
           x: (pan.x as any)._value,
@@ -19,8 +23,11 @@ export function FloatingBot() {
         [null, { dx: pan.x, dy: pan.y }],
         { useNativeDriver: false }
       ),
-      onPanResponderRelease: () => {
+      onPanResponderRelease: (e, gestureState) => {
         pan.flattenOffset();
+        if (Math.abs(gestureState.dx) < 5 && Math.abs(gestureState.dy) < 5) {
+          router.push('/owl-tiering');
+        }
       }
     })
   ).current;
@@ -43,13 +50,31 @@ export function FloatingBot() {
       >
         <Button
           circular
-          size="$6"
-          backgroundColor="#DA291C"
+          width={65}
+          height={65}
+          backgroundColor="white"
           elevation={10}
-          shadowColor="#DA291C"
+          shadowColor="#000"
           shadowRadius={10}
+          padding={0}
+          onPress={() => router.push('/owl-tiering')}
+          style={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            overflow: 'hidden',
+            borderWidth: 1.5,
+            borderColor: '#DA291C',
+          }}
         >
-          <FontAwesome5 name="robot" size={24} color="white" />
+          <Image
+            source={require('../../assets/images/OCBC Owl.jpg')}
+            style={{
+              width: 58,
+              height: 58,
+              borderRadius: 29,
+            }}
+            resizeMode="contain"
+          />
         </Button>
       </MotiView>
     </Animated.View>

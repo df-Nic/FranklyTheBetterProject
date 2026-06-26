@@ -9,6 +9,7 @@ import { MILESTONES, OWLS, PALETTE, SCENE_ASPECT, Milestone, OwlProduct } from "
 import { MilestoneNode } from "../components/journey/MilestoneNode";
 import { OwlCard } from "../components/journey/OwlCard";
 import { TotalAssetsChip } from "../components/journey/TotalAssetsChip";
+import { getHasBypassedLandingPage, setHasBypassedLandingPage } from "../components/wealth/navigationState";
 
 export default function OwlTieringScreen() {
   const router = useRouter();
@@ -21,6 +22,19 @@ export default function OwlTieringScreen() {
   const handleOwl = useCallback((owl: OwlProduct) => {
     if (owl.id === "planning") {
       router.push("/(tabs)/planning-owl");
+      return;
+    }
+    if (owl.id === "deposit") {
+      router.push("/smart-deposit-details");
+      return;
+    }
+    if (owl.id === "investment") {
+      if (!getHasBypassedLandingPage()) {
+        setHasBypassedLandingPage(true);
+        router.push("/wealth/onboarding");
+      } else {
+        router.push("/wealth/dashboard");
+      }
       return;
     }
     Alert.alert("Coming soon", "This Owl module will be available in a future prototype pass.");
