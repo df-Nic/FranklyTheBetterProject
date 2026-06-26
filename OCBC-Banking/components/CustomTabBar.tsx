@@ -6,6 +6,8 @@ import { XStack, YStack, Text } from 'tamagui';
 import { MotiView } from 'moti';
 
 export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const visibleRoutes = state.routes.filter((route) => route.name !== 'planning-owl');
+
   return (
     <XStack
       position="absolute"
@@ -29,8 +31,9 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
         style={StyleSheet.absoluteFill}
       />
       <XStack flex={1} alignItems="center" justifyContent="space-around" paddingHorizontal="$2">
-        {state.routes.map((route, index) => {
+        {visibleRoutes.map((route) => {
           const { options } = descriptors[route.key];
+          const index = state.routes.findIndex((item) => item.key === route.key);
           const isFocused = state.index === index;
           const label =
             options.tabBarLabel !== undefined

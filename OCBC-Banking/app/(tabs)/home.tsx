@@ -219,6 +219,7 @@ export default function HomePage() {
             elevation={10}
             shadowColor="#DA291C"
             shadowRadius={10}
+            onPress={() => router.push('/owl-tiering')}
           >
             <FontAwesome5 name="robot" size={24} color="white" />
           </Button>
