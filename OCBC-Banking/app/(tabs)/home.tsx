@@ -20,6 +20,7 @@ export default function HomePage() {
 
   // Speech bubble states
   const [bubbleState, setBubbleState] = useState<'hidden1' | 'show1' | 'hidden2' | 'show2'>('hidden1');
+  const [bubbleText, setBubbleText] = useState("Hoot! Want your idle funds to work harder for you?");
 
   const tabs = ['Accounts', 'Investments', 'Cards', 'Loans'];
 
@@ -35,6 +36,7 @@ export default function HomePage() {
     const runSequence = () => {
       // 1. Initial 3s delay (hidden1)
       timer = setTimeout(() => {
+        setBubbleText("Hoot! Want your idle funds to work harder for you?");
         setBubbleState('show1');
 
         // 2. Show String 1 for 6s
@@ -43,6 +45,7 @@ export default function HomePage() {
 
           // 3. Wait 3s before String 2 (hidden2)
           timer = setTimeout(() => {
+            setBubbleText("Hoot hoot! Looking for a smarter way to grow your balance?");
             setBubbleState('show2');
 
             // 4. Show String 2 for 6s
@@ -63,9 +66,6 @@ export default function HomePage() {
   }, [selectedTab]);
 
   const showBubble = bubbleState === 'show1' || bubbleState === 'show2';
-  const bubbleText = bubbleState === 'show2' || bubbleState === 'hidden2'
-    ? "Looking for a smarter way to grow your balance?"
-    : "Want your idle funds to work harder for you?";
 
   return (
     <YStack flex={1} backgroundColor="#F5F5F7">
@@ -232,10 +232,11 @@ export default function HomePage() {
         <AnimatePresence>
           {selectedTab === 'Accounts' && (
             <MotiView
-              from={{ opacity: 0, scale: 0.9, translateY: 10 }}
+              key="mascot-container"
+              from={{ opacity: 0, scale: 0.95, translateY: 5 }}
               animate={{ opacity: 1, scale: 1, translateY: 0 }}
-              exit={{ opacity: 0, scale: 0.9, translateY: 10 }}
-              transition={{ type: 'spring', damping: 20 }}
+              exit={{ opacity: 0, scale: 0.95, translateY: 5 }}
+              transition={{ type: 'timing', duration: 250 }}
             >
               <TouchableOpacity
                 activeOpacity={0.9}
@@ -264,12 +265,14 @@ export default function HomePage() {
                   <Image
                     source={require('../../assets/images/Deposit Owl.jpg')}
                     style={{
-                      width: 60,
-                      height: 60,
-                      borderRadius: 30,
+                      width: 75,
+                      height: 75,
+                      borderRadius: 37.5,
                       borderWidth: 2,
                       borderColor: 'white',
+                      backgroundColor: 'white',
                     }}
+                    resizeMode="contain"
                     alt="Deposit Owl Mascot"
                     accessibilityLabel="Deposit Owl Mascot"
                   />
