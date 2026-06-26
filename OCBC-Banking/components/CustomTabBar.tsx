@@ -4,13 +4,8 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { BlurView } from 'expo-blur';
 import { XStack, YStack, Text } from 'tamagui';
 import { MotiView } from 'moti';
-import { useRouter } from 'expo-router';
-
-let hasSeenLandingPage = false;
 
 export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
-  const router = useRouter();
-
   return (
     <XStack
       position="absolute"
@@ -45,16 +40,6 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
               : route.name;
 
           const onPress = () => {
-            if (route.name === 'more') {
-              if (!hasSeenLandingPage) {
-                hasSeenLandingPage = true;
-                router.push('/wealth/tier-dashboard');
-              } else {
-                router.push('/wealth/dashboard');
-              }
-              return;
-            }
-
             const event = navigation.emit({
               type: 'tabPress',
               target: route.key,
