@@ -26,6 +26,14 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="planning-owl"
+        options={{
+          title: 'Planning Owl',
+          href: null,
+          tabBarIcon: ({ color, size }) => <Feather name="target" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="pay"
         options={{
           title: 'Pay & Transfer',
