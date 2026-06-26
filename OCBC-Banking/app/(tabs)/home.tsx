@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { YStack, XStack, Text, Button } from 'tamagui';
 import { BackgroundOrb } from '../../components/BackgroundOrb';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
+import { AnimatePresence, MotiView } from 'moti';
 
 import { HeroSection } from '../../components/home/HeroSection';
 import { ActionPills } from '../../components/home/ActionPills';
@@ -17,7 +18,54 @@ export default function HomePage() {
   const [isMasked, setIsMasked] = useState(true);
   const [selectedTab, setSelectedTab] = useState('Accounts');
 
+  // Speech bubble states
+  const [bubbleState, setBubbleState] = useState<'hidden1' | 'show1' | 'hidden2' | 'show2'>('hidden1');
+
   const tabs = ['Accounts', 'Investments', 'Cards', 'Loans'];
+
+  // Animation cycle logic for speech bubble
+  useEffect(() => {
+    if (selectedTab !== 'Accounts') {
+      setBubbleState('hidden1');
+      return;
+    }
+
+    let timer: any;
+
+    const runSequence = () => {
+      // 1. Initial 3s delay (hidden1)
+      timer = setTimeout(() => {
+        setBubbleState('show1');
+
+        // 2. Show String 1 for 6s
+        timer = setTimeout(() => {
+          setBubbleState('hidden2');
+
+          // 3. Wait 3s before String 2 (hidden2)
+          timer = setTimeout(() => {
+            setBubbleState('show2');
+
+            // 4. Show String 2 for 6s
+            timer = setTimeout(() => {
+              setBubbleState('hidden1');
+              runSequence(); // Restart cycle recursively
+            }, 6000);
+          }, 3000);
+        }, 6000);
+      }, 3000);
+    };
+
+    runSequence();
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [selectedTab]);
+
+  const showBubble = bubbleState === 'show1' || bubbleState === 'show2';
+  const bubbleText = bubbleState === 'show2' || bubbleState === 'hidden2'
+    ? "Looking for a smarter way to grow your balance?"
+    : "Want your idle funds to work harder for you?";
 
   return (
     <YStack flex={1} backgroundColor="#F5F5F7">
@@ -179,6 +227,112 @@ export default function HomePage() {
             })}
           </ScrollView>
         </XStack>
+
+        {/* Mascot + Speech Bubble Container (rendered only when Accounts is active) */}
+        <AnimatePresence>
+          {selectedTab === 'Accounts' && (
+            <MotiView
+              from={{ opacity: 0, scale: 0.9, translateY: 10 }}
+              animate={{ opacity: 1, scale: 1, translateY: 0 }}
+              exit={{ opacity: 0, scale: 0.9, translateY: 10 }}
+              transition={{ type: 'spring', damping: 20 }}
+            >
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => router.push('/smart-deposit-details')}
+                accessibilityLabel="Learn about the Smart Tracker Deposit feature"
+                accessibilityRole="button"
+                style={{
+                  marginVertical: 12,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingRight: 10,
+                  position: 'relative',
+                  cursor: 'pointer', // Web hover helper
+                }}
+              >
+                {/* Mascot Image with Shadow */}
+                <YStack
+                  style={{
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 4,
+                    elevation: 2,
+                  }}
+                >
+                  <Image
+                    source={require('../../assets/images/Deposit Owl.jpg')}
+                    style={{
+                      width: 60,
+                      height: 60,
+                      borderRadius: 30,
+                      borderWidth: 2,
+                      borderColor: 'white',
+                    }}
+                    alt="Deposit Owl Mascot"
+                    accessibilityLabel="Deposit Owl Mascot"
+                  />
+                </YStack>
+
+                {/* Speech Bubble */}
+                <MotiView
+                  animate={{
+                    opacity: showBubble ? 1 : 0,
+                    translateX: showBubble ? 0 : -8,
+                    scale: showBubble ? 1 : 0.95,
+                  }}
+                  transition={{
+                    type: 'timing',
+                    duration: 400,
+                  }}
+                  style={{
+                    flex: 1,
+                    marginLeft: 16,
+                    backgroundColor: 'white',
+                    borderRadius: 14,
+                    paddingHorizontal: 14,
+                    paddingVertical: 10,
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.08,
+                    shadowRadius: 5,
+                    elevation: 3,
+                    borderWidth: 1,
+                    borderColor: 'rgba(0,0,0,0.05)',
+                    position: 'relative',
+                  }}
+                >
+                  {/* Triangle Arrow/Tail pointing toward the mascot */}
+                  <YStack
+                    style={{
+                      position: 'absolute',
+                      left: -6,
+                      top: '50%',
+                      marginTop: -6,
+                      width: 12,
+                      height: 12,
+                      backgroundColor: 'white',
+                      borderLeftWidth: 1,
+                      borderBottomWidth: 1,
+                      borderColor: 'rgba(0,0,0,0.05)',
+                      transform: [{ rotate: '45deg' }],
+                    }}
+                  />
+
+                  <Text
+                    fontSize={13}
+                    fontWeight="600"
+                    color="#DA291C"
+                    lineHeight={18}
+                  >
+                    {bubbleText}
+                  </Text>
+                </MotiView>
+              </TouchableOpacity>
+            </MotiView>
+          )}
+        </AnimatePresence>
 
         {/* Dynamic content cards based on selected pill */}
         <DynamicContent selectedTab={selectedTab} isMasked={isMasked} />
