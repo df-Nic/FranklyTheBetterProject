@@ -31,3 +31,5 @@ export const GlassCard = forwardRef<any, GlassCardProps>(({ children, intensity 
     </YStack>
   );
 });
+
+GlassCard.displayName = 'GlassCard';

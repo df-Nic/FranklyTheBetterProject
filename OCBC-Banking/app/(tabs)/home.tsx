@@ -376,6 +376,36 @@ export default function HomePage() {
         <DynamicContent selectedTab={selectedTab} isMasked={isMasked} />
       </ScrollView>
 
+      {/* Floating Draggable AI Bot */}
+      <Animated.View
+        {...panResponder.panHandlers}
+        style={{
+          position: 'absolute',
+          bottom: 120,
+          right: 30,
+          transform: [{ translateX: pan.x }, { translateY: pan.y }],
+          zIndex: 1000,
+        }}
+      >
+        <MotiView
+          from={{ scale: 0.95 }}
+          animate={{ scale: 1.05 }}
+          transition={{ type: 'timing', duration: 1500, loop: true }}
+        >
+          <Button
+            circular
+            size="$6"
+            backgroundColor="#DA291C"
+            elevation={10}
+            shadowColor="#DA291C"
+            shadowRadius={10}
+            onPress={() => router.push('/owl-tiering')}
+          >
+            <FontAwesome5 name="robot" size={24} color="white" />
+          </Button>
+        </MotiView>
+      </Animated.View>
+
       {/* Untouched Floating Chat Bot Overlay */}
       <FloatingBot />
     </YStack>
