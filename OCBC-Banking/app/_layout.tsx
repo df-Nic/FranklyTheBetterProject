@@ -5,6 +5,7 @@ import 'react-native-reanimated';
 import { useEffect } from 'react';
 import * as SystemUI from 'expo-system-ui';
 import { TamaguiProvider } from 'tamagui';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import tamaguiConfig from '../tamagui.config';
 
 export const unstable_settings = {
@@ -25,16 +26,19 @@ export default function RootLayout() {
   };
 
   return (
-    <TamaguiProvider config={tamaguiConfig} defaultTheme="light">
-      <NavigationThemeProvider value={navTheme}>
-        <Stack screenOptions={{ contentStyle: { backgroundColor: '#F5F5F7' } }}>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="landing" options={{ headerShown: false }} />
-          <Stack.Screen name="login" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false, animation: 'fade' }} />
-        </Stack>
-        <StatusBar style="dark" />
-      </NavigationThemeProvider>
-    </TamaguiProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <TamaguiProvider config={tamaguiConfig} defaultTheme="light">
+        <NavigationThemeProvider value={navTheme}>
+          <Stack screenOptions={{ contentStyle: { backgroundColor: '#F5F5F7' } }}>
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="landing" options={{ headerShown: false }} />
+            <Stack.Screen name="login" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false, animation: 'fade' }} />
+            <Stack.Screen name="recommendations" options={{ headerShown: false, animation: 'slide_from_right' }} />
+          </Stack>
+          <StatusBar style="dark" />
+        </NavigationThemeProvider>
+      </TamaguiProvider>
+    </GestureHandlerRootView>
   );
 }
