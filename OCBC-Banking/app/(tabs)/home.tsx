@@ -248,7 +248,7 @@ export default function HomePage() {
         </XStack>
 
         {/* Mascot + Speech Bubble Container (rendered for Accounts or Investments) */}
-        <AnimatePresence mode="wait">
+        <AnimatePresence exitBeforeEnter>
           {(selectedTab === 'Accounts' || selectedTab === 'Investments') && (
             <MotiView
               key="mascot-container"

@@ -9,6 +9,7 @@ import { GlassCard } from '../../components/GlassCard';
 import { BackgroundOrb } from '../../components/BackgroundOrb';
 import { Easing } from 'react-native-reanimated';
 import { useWealth } from '../../components/wealth/WealthContext';
+import { DonutChart } from '../../components/smart-deposit/DonutChart';
 import {
   CURRENT_AUM,
   TIER_CONFIG,
@@ -18,9 +19,9 @@ import {
 } from '../../components/wealth/mockData';
 
 const MOCK_HOLDINGS = [
-  { label: 'Unit Trust', value: 85000, change: '+7.4%', icon: 'pie-chart', positive: true },
-  { label: 'Fixed Deposit', value: 50000, change: '+3.1%', icon: 'dollar-sign', positive: true },
-  { label: 'Savings Account', value: 13000, change: '+0.4%', icon: 'credit-card', positive: true },
+  { label: 'Unit Trust', value: 85000, change: '+7.4%', icon: 'pie-chart', positive: true, color: '#DA291C' },
+  { label: 'Equities', value: 45000, change: '+9.2%', icon: 'activity', positive: true, color: '#FFB81C' },
+  { label: 'Bonds & Fixed Income', value: 18000, change: '+3.8%', icon: 'shield', positive: true, color: '#0D1B3E' },
 ];
 
 const AI_NUDGE = {
@@ -38,10 +39,24 @@ export default function DashboardScreen() {
   const selectedProduct = WEALTH_PRODUCTS.find(p => p.id === state.selectedProduct);
   const selectedFund = state.selectedFund;
 
-  const newAUM = CURRENT_AUM + investmentAmount;
+  const newAUM = selectedFund ? CURRENT_AUM + investmentAmount : CURRENT_AUM;
   const targetAUM = TIER_CONFIG.find(t => t.id === 'premier')!.minAUM;
   const progress = Math.min(newAUM / targetAUM, 1);
   const amountLeft = Math.max(targetAUM - newAUM, 0);
+
+  const chartData = [
+    { label: 'Unit Trust', value: 85000, color: '#DA291C' },
+    { label: 'Equities', value: 45000, color: '#FFB81C' },
+    { label: 'Bonds & Fixed Income', value: 18000, color: '#0D1B3E' },
+  ];
+
+  if (selectedFund) {
+    chartData.push({
+      label: selectedFund.name,
+      color: '#4CAF50',
+      value: investmentAmount,
+    });
+  }
 
   return (
     <YStack flex={1} backgroundColor="#F5F5F7">
@@ -132,6 +147,35 @@ export default function DashboardScreen() {
           </GlassCard>
         </MotiView>
 
+        {/* Portfolio Breakdown (Doughnut Chart) */}
+        <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 200 }}>
+          <GlassCard padding="$4" marginBottom="$6">
+            <Text fontSize={16} fontWeight="800" color="black" marginBottom="$4">Portfolio Breakdown</Text>
+            <XStack justifyContent="space-between" alignItems="center" gap="$4">
+              <DonutChart
+                data={chartData}
+                size={140}
+                strokeWidth={16}
+                totalText={`$${(newAUM / 1000).toFixed(0)}k`}
+                subText="Total AUM"
+              />
+              <YStack flex={1} gap="$2.5">
+                {chartData.map((item) => (
+                  <XStack key={item.label} alignItems="center" gap="$2.5">
+                    <YStack width={10} height={10} borderRadius={5} backgroundColor={item.color} />
+                    <YStack flex={1}>
+                      <Text fontSize={13} fontWeight="700" color="black" numberOfLines={1}>{item.label}</Text>
+                      <Text fontSize={11} color="rgba(0,0,0,0.5)">
+                        SGD {item.value.toLocaleString()} ({((item.value / newAUM) * 100).toFixed(1)}%)
+                      </Text>
+                    </YStack>
+                  </XStack>
+                ))}
+              </YStack>
+            </XStack>
+          </GlassCard>
+        </MotiView>
+
         {/* Holdings */}
         <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 300 }}>
           <Text fontSize={18} fontWeight="800" color="black" marginBottom="$3">Your Holdings</Text>
@@ -146,8 +190,8 @@ export default function DashboardScreen() {
                 <GlassCard padding="$4" marginBottom="$3" borderColor="rgba(218,41,28,0.3)">
                   <XStack justifyContent="space-between" alignItems="center">
                     <XStack gap="$3" alignItems="center" flex={1}>
-                      <YStack backgroundColor="rgba(218,41,28,0.1)" padding="$3" borderRadius={12}>
-                        <Feather name="pie-chart" size={18} color="#DA291C" />
+                      <YStack backgroundColor="rgba(76,175,80,0.1)" padding="$3" borderRadius={12}>
+                        <Feather name="pie-chart" size={18} color="#4CAF50" />
                       </YStack>
                       <YStack flex={1}>
                         <XStack gap="$2" alignItems="center" marginBottom={2}>
@@ -180,8 +224,8 @@ export default function DashboardScreen() {
                 <GlassCard padding="$4">
                   <XStack justifyContent="space-between" alignItems="center">
                     <XStack gap="$3" alignItems="center">
-                      <YStack backgroundColor="rgba(0,0,0,0.05)" padding="$3" borderRadius={12}>
-                        <Feather name={holding.icon as any} size={18} color="#555" />
+                      <YStack backgroundColor={`${holding.color}10`} padding="$3" borderRadius={12}>
+                        <Feather name={holding.icon as any} size={18} color={holding.color} />
                       </YStack>
                       <YStack>
                         <Text fontSize={14} fontWeight="700" color="black">{holding.label}</Text>
@@ -247,11 +291,11 @@ export default function DashboardScreen() {
         <BlurView intensity={80} tint="light" style={StyleSheet.absoluteFill} />
         <XStack flex={1} alignItems="center" justifyContent="space-around" paddingHorizontal="$2">
           {[
-            { name: 'Home', icon: 'home', route: '/' },
-            { name: 'Plan', icon: 'trending-up', route: '/plan' },
-            { name: 'Pay & Transfer', icon: 'repeat', route: '/pay' },
-            { name: 'Rewards', icon: 'gift', route: '/rewards' },
-            { name: 'More', icon: 'more-horizontal', route: '/more', active: true },
+            { name: 'Home', icon: 'home', route: '/', active: false },
+            { name: 'Plan', icon: 'trending-up', route: '/plan', active: false },
+            { name: 'Pay & Transfer', icon: 'repeat', route: '/pay', active: false },
+            { name: 'Rewards', icon: 'gift', route: '/rewards', active: false },
+            { name: 'More', icon: 'more-horizontal', route: '/more', active: false },
           ].map((tab) => (
             <TouchableOpacity
               key={tab.name}
