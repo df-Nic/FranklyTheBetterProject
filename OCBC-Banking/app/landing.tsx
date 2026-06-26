@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { GlassCard } from '../components/GlassCard';
 import { BackgroundOrb } from '../components/BackgroundOrb';
 import { MotiView } from 'moti';
+import { CarouselItem } from '../components/landing/CarouselItem';
 
 const CAROUSEL_DATA = [
   {
@@ -92,14 +93,7 @@ export default function LandingPage() {
               scrollEventThrottle={16}
             >
               {CAROUSEL_DATA.map((item, index) => (
-                <YStack key={index} width={cardWidth} padding="$6" gap="$4">
-                  <Text fontSize={26} fontWeight="700" color="#111111">
-                    {item.title}
-                  </Text>
-                  <Text fontSize={16} color="rgba(0,0,0,0.6)" lineHeight={24}>
-                    {item.description}
-                  </Text>
-                </YStack>
+                <CarouselItem key={index} item={item} cardWidth={cardWidth} />
               ))}
             </ScrollView>
             
