@@ -8,6 +8,7 @@ import { MotiView } from 'moti';
 
 import { BackgroundOrb } from '../components/BackgroundOrb';
 import { DonutChart } from '../components/smart-deposit/DonutChart';
+import { LiquidityAreaChart } from '../components/smart-deposit/LiquidityAreaChart';
 import { GlassCard } from '../components/GlassCard';
 export default function SmartDepositDetailsPage() {
   const router = useRouter();
@@ -110,6 +111,19 @@ export default function SmartDepositDetailsPage() {
               </YStack>
             </XStack>
           </YStack>
+        </MotiView>
+
+        {/* Cash Flow & Liquidity Graph */}
+        <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 150 }}>
+          <GlassCard padding="$4" marginBottom="$6" borderRadius={16}>
+            <YStack gap="$3">
+              <YStack gap="$1">
+                <Text fontSize={16} fontWeight="bold" color="black">Liquidity & Cash Flow</Text>
+                <Text fontSize={12} color="rgba(0,0,0,0.5)">Comparing monthly deposits against spending</Text>
+              </YStack>
+              <LiquidityAreaChart />
+            </YStack>
+          </GlassCard>
         </MotiView>
 
         {/* SECTION 2: Deposit Owl AI Insight Banner */}
