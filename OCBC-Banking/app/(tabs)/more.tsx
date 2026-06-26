@@ -49,7 +49,7 @@ export default function MoreMenuPage() {
 
   return (
     <YStack flex={1} backgroundColor="#F5F5F7">
-      
+
       {/* Dynamic Background Elements */}
       <BackgroundOrb
         size={400}
@@ -101,21 +101,21 @@ export default function MoreMenuPage() {
       </YStack>
 
       <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 130, paddingBottom: 110 }} showsVerticalScrollIndicator={false}>
-        
+
         {/* User Quick Profile Info Card */}
-        <MotiView 
-          from={{ opacity: 0, translateY: 15 }} 
+        <MotiView
+          from={{ opacity: 0, translateY: 15 }}
           animate={{ opacity: 1, translateY: 0 }}
           transition={{ delay: 100 }}
         >
           <GlassCard padding="$4" marginBottom="$5" borderColor="rgba(255,255,255,0.7)">
             <XStack alignItems="center" gap="$3.5">
-              <YStack 
-                width={50} 
-                height={50} 
-                borderRadius={25} 
-                backgroundColor="rgba(218, 41, 28, 0.1)" 
-                alignItems="center" 
+              <YStack
+                width={50}
+                height={50}
+                borderRadius={25}
+                backgroundColor="rgba(218, 41, 28, 0.1)"
+                alignItems="center"
                 justifyContent="center"
               >
                 <Feather name="user" size={24} color="#DA291C" />
@@ -143,13 +143,13 @@ export default function MoreMenuPage() {
               <Text fontSize={15} fontWeight="bold" color="black" marginBottom="$2.5" paddingLeft="$1">
                 {section.title}
               </Text>
-              
+
               <GlassCard borderColor="rgba(255,255,255,0.7)">
                 <YStack>
                   {section.items.map((item, i) => (
                     <TouchableOpacity
                       key={item.name}
-                      onPress={() => {}}
+                      onPress={() => { }}
                       activeOpacity={0.7}
                       style={{
                         padding: 16,

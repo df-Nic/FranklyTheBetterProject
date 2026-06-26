@@ -12,6 +12,7 @@ import { ActionPills } from '../../components/home/ActionPills';
 import { DynamicContent } from '../../components/home/DynamicContent';
 import { FloatingBot } from '../../components/home/FloatingBot';
 import { GlassCard } from '../../components/GlassCard';
+import { getHasBypassedLandingPage, setHasBypassedLandingPage } from '../../components/wealth/navigationState';
 
 export default function HomePage() {
   const router = useRouter();
@@ -24,10 +25,11 @@ export default function HomePage() {
 
   const tabs = ['Accounts', 'Investments', 'Cards', 'Loans'];
 
-  // Animation cycle logic for speech bubble
+  // Animation cycle logic for speech bubbles
   useEffect(() => {
-    if (selectedTab !== 'Accounts') {
-      setBubbleState('hidden1');
+    // Reset state first
+    setBubbleState('hidden1');
+    if (selectedTab !== 'Accounts' && selectedTab !== 'Investments') {
       return;
     }
 
@@ -36,7 +38,11 @@ export default function HomePage() {
     const runSequence = () => {
       // 1. Initial 3s delay (hidden1)
       timer = setTimeout(() => {
-        setBubbleText("Hoot! Want your idle funds to work harder for you?");
+        if (selectedTab === 'Accounts') {
+          setBubbleText("Hoot! Want your idle funds to work harder for you?");
+        } else {
+          setBubbleText("Ready to start growing your wealth?");
+        }
         setBubbleState('show1');
 
         // 2. Show String 1 for 6s
@@ -45,7 +51,11 @@ export default function HomePage() {
 
           // 3. Wait 3s before String 2 (hidden2)
           timer = setTimeout(() => {
-            setBubbleText("Hoot hoot! Looking for a smarter way to grow your balance?");
+            if (selectedTab === 'Accounts') {
+              setBubbleText("Hoot hoot! Looking for a smarter way to grow your balance?");
+            } else {
+              setBubbleText("Let's build a portfolio that fits your goals!");
+            }
             setBubbleState('show2');
 
             // 4. Show String 2 for 6s
@@ -66,6 +76,15 @@ export default function HomePage() {
   }, [selectedTab]);
 
   const showBubble = bubbleState === 'show1' || bubbleState === 'show2';
+
+  const handleInvestmentMascotPress = () => {
+    if (!getHasBypassedLandingPage()) {
+      setHasBypassedLandingPage(true);
+      router.push('/wealth/onboarding');
+    } else {
+      router.push('/wealth/dashboard');
+    }
+  };
 
   return (
     <YStack flex={1} backgroundColor="#F5F5F7">
@@ -228,9 +247,9 @@ export default function HomePage() {
           </ScrollView>
         </XStack>
 
-        {/* Mascot + Speech Bubble Container (rendered only when Accounts is active) */}
-        <AnimatePresence>
-          {selectedTab === 'Accounts' && (
+        {/* Mascot + Speech Bubble Container (rendered for Accounts or Investments) */}
+        <AnimatePresence exitBeforeEnter>
+          {(selectedTab === 'Accounts' || selectedTab === 'Investments') && (
             <MotiView
               key="mascot-container"
               from={{ opacity: 0, scale: 0.95, translateY: 5 }}
@@ -240,8 +259,16 @@ export default function HomePage() {
             >
               <TouchableOpacity
                 activeOpacity={0.9}
-                onPress={() => router.push('/smart-deposit-details')}
-                accessibilityLabel="Learn about the Smart Tracker Deposit feature"
+                onPress={
+                  selectedTab === 'Accounts'
+                    ? () => router.push('/smart-deposit-details')
+                    : handleInvestmentMascotPress
+                }
+                accessibilityLabel={
+                  selectedTab === 'Accounts'
+                    ? "Learn about the Smart Tracker Deposit feature"
+                    : "Learn about Investments"
+                }
                 accessibilityRole="button"
                 style={{
                   marginVertical: 12,
@@ -263,7 +290,11 @@ export default function HomePage() {
                   }}
                 >
                   <Image
-                    source={require('../../assets/images/Deposit Owl.jpg')}
+                    source={
+                      selectedTab === 'Accounts'
+                        ? require('../../assets/images/Deposit Owl.jpg')
+                        : require('../../assets/images/Invest Owl.jpg')
+                    }
                     style={{
                       width: 75,
                       height: 75,
@@ -273,8 +304,8 @@ export default function HomePage() {
                       backgroundColor: 'white',
                     }}
                     resizeMode="contain"
-                    alt="Deposit Owl Mascot"
-                    accessibilityLabel="Deposit Owl Mascot"
+                    alt={selectedTab === 'Accounts' ? "Deposit Owl Mascot" : "Investment Owl Mascot"}
+                    accessibilityLabel={selectedTab === 'Accounts' ? "Deposit Owl Mascot" : "Investment Owl Mascot"}
                   />
                 </YStack>
 
@@ -308,20 +339,24 @@ export default function HomePage() {
                 >
                   {/* Triangle Arrow/Tail pointing toward the mascot */}
                   <YStack
-                    style={{
-                      position: 'absolute',
-                      left: -6,
-                      top: '50%',
-                      marginTop: -6,
-                      width: 12,
-                      height: 12,
-                      backgroundColor: 'white',
-                      borderLeftWidth: 1,
-                      borderBottomWidth: 1,
-                      borderColor: 'rgba(0,0,0,0.05)',
-                      transform: [{ rotate: '45deg' }],
-                    }}
-                  />
+                    position="absolute"
+                    left={-6}
+                    top={0}
+                    bottom={0}
+                    justifyContent="center"
+                  >
+                    <YStack
+                      style={{
+                        width: 12,
+                        height: 12,
+                        backgroundColor: 'white',
+                        borderLeftWidth: 1,
+                        borderBottomWidth: 1,
+                        borderColor: 'rgba(0,0,0,0.05)',
+                        transform: [{ rotate: '45deg' }],
+                      }}
+                    />
+                  </YStack>
 
                   <Text
                     fontSize={13}
