@@ -31,11 +31,6 @@ const QUESTIONS = [
     options: ['Mortgage', 'Car loan', 'Personal loan', 'None'],
   },
   {
-    id: 'targetTierTimeline',
-    label: 'When do you want to reach Premier Banking?',
-    options: ['1–3 years', '3–5 years', '5+ years'],
-  },
-  {
     id: 'marketPreference',
     label: 'Which markets interest you most?',
     options: ['Singapore', 'Asia', 'Global', 'No preference'],
@@ -64,7 +59,7 @@ export default function OnboardingScreen() {
         incomeRange: answers.incomeRange,
         investAmount: answers.investAmount,
         loans: answers.loans,
-        targetTierTimeline: answers.targetTierTimeline,
+        targetTierTimeline: '3–5 years',
         marketPreference: answers.marketPreference,
         riskProfile: null,
       },
@@ -112,10 +107,15 @@ export default function OnboardingScreen() {
         </YStack>
       </YStack>
 
-      <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 140, paddingBottom: 120 }}>
-        <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 100 }}>
+      <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 110, paddingBottom: 120 }}>
+        <MotiView
+          from={{ opacity: 0, translateY: 10 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ delay: 100 }}
+          style={{ marginTop: 24 }}
+        >
           <Text fontSize={14} color="rgba(0,0,0,0.5)" lineHeight={20} marginBottom="$6">
-            Help us understand your financial situation so we can build a personalised investment plan to reach Premier Banking.
+            Help us understand your financial situation so we can build a personalised investment plan.
           </Text>
         </MotiView>
 

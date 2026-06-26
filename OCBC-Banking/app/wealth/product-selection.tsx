@@ -84,39 +84,47 @@ export default function ProductSelectionScreen() {
           animate={{ opacity: 1, translateY: 0 }}
           transition={{ type: 'timing', duration: 400 }}
         >
-          <YStack
-            backgroundColor="white"
-            borderRadius={24}
-            padding="$6"
-            marginBottom="$5"
-            alignItems="center"
-            borderWidth={1}
-            borderColor="rgba(218,41,28,0.2)"
-            shadowColor="#000"
-            shadowOpacity={0.06}
-            shadowRadius={12}
-            elevation={4}
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => router.push('/wealth/risk-swipe')}
           >
             <YStack
-              backgroundColor={profileDetails.bgColor}
-              padding={16}
-              borderRadius={100}
-              marginBottom="$4"
+              backgroundColor="white"
+              borderRadius={24}
+              padding="$6"
+              marginBottom="$5"
+              alignItems="center"
+              borderWidth={1}
+              borderColor="rgba(218,41,28,0.2)"
+              shadowColor="#000"
+              shadowOpacity={0.06}
+              shadowRadius={12}
+              elevation={4}
             >
-              <Feather name={profileDetails.icon as any} size={40} color={profileDetails.color} />
-            </YStack>
-            <Text fontSize={11} fontWeight="800" color="rgba(0,0,0,0.4)" letterSpacing={1} marginBottom="$2">
-              YOUR RISK PROFILE
-            </Text>
-            <YStack backgroundColor={profileDetails.color} paddingHorizontal={14} paddingVertical={6} borderRadius={20} marginBottom="$3">
-              <Text fontSize={15} fontWeight="800" color="white" textTransform="uppercase" letterSpacing={0.5}>
-                {profileDetails.label}
+              <YStack
+                backgroundColor={profileDetails.bgColor}
+                padding={16}
+                borderRadius={100}
+                marginBottom="$4"
+              >
+                <Feather name={profileDetails.icon as any} size={40} color={profileDetails.color} />
+              </YStack>
+              <Text fontSize={11} fontWeight="800" color="rgba(0,0,0,0.4)" letterSpacing={1} marginBottom="$2">
+                YOUR RISK PROFILE
+              </Text>
+              <YStack backgroundColor={profileDetails.color} paddingHorizontal={14} paddingVertical={6} borderRadius={20} marginBottom="$3">
+                <Text fontSize={15} fontWeight="800" color="white" textTransform="uppercase" letterSpacing={0.5}>
+                  {profileDetails.label}
+                </Text>
+              </YStack>
+              <Text fontSize={14} color="rgba(0,0,0,0.6)" textAlign="center" lineHeight={20}>
+                {profileDetails.description}
+              </Text>
+              <Text fontSize={11} color="#DA291C" fontWeight="800" marginTop="$3" textTransform="uppercase" letterSpacing={0.5}>
+                Tap to reassess
               </Text>
             </YStack>
-            <Text fontSize={14} color="rgba(0,0,0,0.6)" textAlign="center" lineHeight={20}>
-              {profileDetails.description}
-            </Text>
-          </YStack>
+          </TouchableOpacity>
         </MotiView>
 
         {/* AI Result Banner */}

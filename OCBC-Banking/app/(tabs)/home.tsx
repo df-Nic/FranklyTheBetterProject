@@ -23,16 +23,13 @@ export default function HomePage() {
   const [bubbleState, setBubbleState] = useState<'hidden1' | 'show1' | 'hidden2' | 'show2'>('hidden1');
   const [bubbleText, setBubbleText] = useState("Hoot! Want your idle funds to work harder for you?");
 
-  // Investments speech bubble states
-  const [investBubbleState, setInvestBubbleState] = useState<'hidden1' | 'show1' | 'hidden2' | 'show2'>('hidden1');
-  const [investBubbleText, setInvestBubbleText] = useState("Ready to start growing your wealth?");
-
   const tabs = ['Accounts', 'Investments', 'Cards', 'Loans'];
 
-  // Animation cycle logic for speech bubble
+  // Animation cycle logic for speech bubbles
   useEffect(() => {
-    if (selectedTab !== 'Accounts') {
-      setBubbleState('hidden1');
+    // Reset state first
+    setBubbleState('hidden1');
+    if (selectedTab !== 'Accounts' && selectedTab !== 'Investments') {
       return;
     }
 
@@ -41,7 +38,11 @@ export default function HomePage() {
     const runSequence = () => {
       // 1. Initial 3s delay (hidden1)
       timer = setTimeout(() => {
-        setBubbleText("Hoot! Want your idle funds to work harder for you?");
+        if (selectedTab === 'Accounts') {
+          setBubbleText("Hoot! Want your idle funds to work harder for you?");
+        } else {
+          setBubbleText("Ready to start growing your wealth?");
+        }
         setBubbleState('show1');
 
         // 2. Show String 1 for 6s
@@ -50,7 +51,11 @@ export default function HomePage() {
 
           // 3. Wait 3s before String 2 (hidden2)
           timer = setTimeout(() => {
-            setBubbleText("Hoot hoot! Looking for a smarter way to grow your balance?");
+            if (selectedTab === 'Accounts') {
+              setBubbleText("Hoot hoot! Looking for a smarter way to grow your balance?");
+            } else {
+              setBubbleText("Let's build a portfolio that fits your goals!");
+            }
             setBubbleState('show2');
 
             // 4. Show String 2 for 6s
@@ -70,49 +75,7 @@ export default function HomePage() {
     };
   }, [selectedTab]);
 
-  // Animation cycle logic for Investments speech bubble
-  useEffect(() => {
-    if (selectedTab !== 'Investments') {
-      setInvestBubbleState('hidden1');
-      return;
-    }
-
-    let timer: any;
-
-    const runSequence = () => {
-      // 1. Initial 3s delay (hidden1)
-      timer = setTimeout(() => {
-        setInvestBubbleText("Ready to start growing your wealth?");
-        setInvestBubbleState('show1');
-
-        // 2. Show String 1 for 6s
-        timer = setTimeout(() => {
-          setInvestBubbleState('hidden2');
-
-          // 3. Wait 3s before String 2 (hidden2)
-          timer = setTimeout(() => {
-            setInvestBubbleText("Let's build a portfolio that fits your goals!");
-            setInvestBubbleState('show2');
-
-            // 4. Show String 2 for 6s
-            timer = setTimeout(() => {
-              setInvestBubbleState('hidden1');
-              runSequence(); // Restart cycle recursively
-            }, 6000);
-          }, 3000);
-        }, 6000);
-      }, 3000);
-    };
-
-    runSequence();
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [selectedTab]);
-
   const showBubble = bubbleState === 'show1' || bubbleState === 'show2';
-  const showInvestBubble = investBubbleState === 'show1' || investBubbleState === 'show2';
 
   const handleInvestmentMascotPress = () => {
     if (!getHasBypassedLandingPage()) {
@@ -284,9 +247,9 @@ export default function HomePage() {
           </ScrollView>
         </XStack>
 
-        {/* Mascot + Speech Bubble Container (rendered only when Accounts is active) */}
-        <AnimatePresence>
-          {selectedTab === 'Accounts' && (
+        {/* Mascot + Speech Bubble Container (rendered for Accounts or Investments) */}
+        <AnimatePresence mode="wait">
+          {(selectedTab === 'Accounts' || selectedTab === 'Investments') && (
             <MotiView
               key="mascot-container"
               from={{ opacity: 0, scale: 0.95, translateY: 5 }}
@@ -296,8 +259,16 @@ export default function HomePage() {
             >
               <TouchableOpacity
                 activeOpacity={0.9}
-                onPress={() => router.push('/smart-deposit-details')}
-                accessibilityLabel="Learn about the Smart Tracker Deposit feature"
+                onPress={
+                  selectedTab === 'Accounts'
+                    ? () => router.push('/smart-deposit-details')
+                    : handleInvestmentMascotPress
+                }
+                accessibilityLabel={
+                  selectedTab === 'Accounts'
+                    ? "Learn about the Smart Tracker Deposit feature"
+                    : "Learn about Investments"
+                }
                 accessibilityRole="button"
                 style={{
                   marginVertical: 12,
@@ -319,7 +290,11 @@ export default function HomePage() {
                   }}
                 >
                   <Image
-                    source={require('../../assets/images/Deposit Owl.jpg')}
+                    source={
+                      selectedTab === 'Accounts'
+                        ? require('../../assets/images/Deposit Owl.jpg')
+                        : require('../../assets/images/Invest Owl.jpg')
+                    }
                     style={{
                       width: 75,
                       height: 75,
@@ -329,8 +304,8 @@ export default function HomePage() {
                       backgroundColor: 'white',
                     }}
                     resizeMode="contain"
-                    alt="Deposit Owl Mascot"
-                    accessibilityLabel="Deposit Owl Mascot"
+                    alt={selectedTab === 'Accounts' ? "Deposit Owl Mascot" : "Investment Owl Mascot"}
+                    accessibilityLabel={selectedTab === 'Accounts' ? "Deposit Owl Mascot" : "Investment Owl Mascot"}
                   />
                 </YStack>
 
@@ -364,20 +339,24 @@ export default function HomePage() {
                 >
                   {/* Triangle Arrow/Tail pointing toward the mascot */}
                   <YStack
-                    style={{
-                      position: 'absolute',
-                      left: -6,
-                      top: '50%',
-                      marginTop: -6,
-                      width: 12,
-                      height: 12,
-                      backgroundColor: 'white',
-                      borderLeftWidth: 1,
-                      borderBottomWidth: 1,
-                      borderColor: 'rgba(0,0,0,0.05)',
-                      transform: [{ rotate: '45deg' }],
-                    }}
-                  />
+                    position="absolute"
+                    left={-6}
+                    top={0}
+                    bottom={0}
+                    justifyContent="center"
+                  >
+                    <YStack
+                      style={{
+                        width: 12,
+                        height: 12,
+                        backgroundColor: 'white',
+                        borderLeftWidth: 1,
+                        borderBottomWidth: 1,
+                        borderColor: 'rgba(0,0,0,0.05)',
+                        transform: [{ rotate: '45deg' }],
+                      }}
+                    />
+                  </YStack>
 
                   <Text
                     fontSize={13}
@@ -386,115 +365,6 @@ export default function HomePage() {
                     lineHeight={18}
                   >
                     {bubbleText}
-                  </Text>
-                </MotiView>
-              </TouchableOpacity>
-            </MotiView>
-          )}
-        </AnimatePresence>
-
-        {/* Mascot + Speech Bubble Container (rendered only when Investments is active) */}
-        <AnimatePresence>
-          {selectedTab === 'Investments' && (
-            <MotiView
-              key="investments-mascot-container"
-              from={{ opacity: 0, scale: 0.95, translateY: 5 }}
-              animate={{ opacity: 1, scale: 1, translateY: 0 }}
-              exit={{ opacity: 0, scale: 0.95, translateY: 5 }}
-              transition={{ type: 'timing', duration: 250 }}
-            >
-              <TouchableOpacity
-                activeOpacity={0.9}
-                onPress={handleInvestmentMascotPress}
-                accessibilityLabel="Learn about Investments"
-                accessibilityRole="button"
-                style={{
-                  marginVertical: 12,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingRight: 10,
-                  position: 'relative',
-                  cursor: 'pointer', // Web hover helper
-                }}
-              >
-                {/* Mascot Image with Shadow */}
-                <YStack
-                  style={{
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 4,
-                    elevation: 2,
-                  }}
-                >
-                  <Image
-                    source={require('../../assets/images/Invest Owl.jpg')}
-                    style={{
-                      width: 75,
-                      height: 75,
-                      borderRadius: 37.5,
-                      borderWidth: 2,
-                      borderColor: 'white',
-                      backgroundColor: 'white',
-                    }}
-                    resizeMode="contain"
-                    alt="Investment Owl Mascot"
-                    accessibilityLabel="Investment Owl Mascot"
-                  />
-                </YStack>
-
-                {/* Speech Bubble */}
-                <MotiView
-                  animate={{
-                    opacity: showInvestBubble ? 1 : 0,
-                    translateX: showInvestBubble ? 0 : -8,
-                    scale: showInvestBubble ? 1 : 0.95,
-                  }}
-                  transition={{
-                    type: 'timing',
-                    duration: 400,
-                  }}
-                  style={{
-                    flex: 1,
-                    marginLeft: 16,
-                    backgroundColor: 'white',
-                    borderRadius: 14,
-                    paddingHorizontal: 14,
-                    paddingVertical: 10,
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.08,
-                    shadowRadius: 5,
-                    elevation: 3,
-                    borderWidth: 1,
-                    borderColor: 'rgba(0,0,0,0.05)',
-                    position: 'relative',
-                  }}
-                >
-                  {/* Triangle Arrow/Tail pointing toward the mascot */}
-                  <YStack
-                    style={{
-                      position: 'absolute',
-                      left: -6,
-                      top: '50%',
-                      marginTop: -6,
-                      width: 12,
-                      height: 12,
-                      backgroundColor: 'white',
-                      borderLeftWidth: 1,
-                      borderBottomWidth: 1,
-                      borderColor: 'rgba(0,0,0,0.05)',
-                      transform: [{ rotate: '45deg' }],
-                    }}
-                  />
-
-                  <Text
-                    fontSize={13}
-                    fontWeight="600"
-                    color="#DA291C"
-                    lineHeight={18}
-                  >
-                    {investBubbleText}
                   </Text>
                 </MotiView>
               </TouchableOpacity>
