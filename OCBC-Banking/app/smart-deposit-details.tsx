@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, Image } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { YStack, XStack, Text, Button } from 'tamagui';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -114,13 +114,22 @@ export default function SmartDepositDetailsPage() {
 
         {/* SECTION 2: Deposit Owl AI Insight Banner */}
         <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 200 }}>
-          <GlassCard padding={0} marginBottom="$6" borderRadius={20} overflow="hidden">
-            <XStack backgroundColor="#DA291C" paddingVertical="$3" paddingHorizontal="$4" alignItems="center" gap="$2">
-              <MaterialCommunityIcons name="owl" size={20} color="white" />
-              <Text color="white" fontWeight="bold" fontSize={14}>Deposit Owl Insight</Text>
-            </XStack>
-            <XStack padding="$4" gap="$4" alignItems="center">
+          <GlassCard 
+            padding="$4" 
+            marginBottom="$6" 
+            borderRadius={16} 
+            borderLeftWidth={4}
+            borderLeftColor="#DA291C"
+            borderColor="rgba(255,255,255,0.7)"
+          >
+            <XStack gap="$3" alignItems="flex-start">
+              <YStack backgroundColor="rgba(218, 41, 28, 0.08)" padding="$2" borderRadius={10} marginTop="$0.5">
+                <MaterialCommunityIcons name="lightbulb-on" size={20} color="#DA291C" />
+              </YStack>
               <YStack flex={1}>
+                <Text fontSize={12} color="#DA291C" fontWeight="bold" letterSpacing={0.5} textTransform="uppercase" marginBottom="$1">
+                  Deposit Owl Insight
+                </Text>
                 <Text fontSize={14} color="black" lineHeight={22}>
                   I noticed <Text fontWeight="bold" color="#DA291C">$40,000</Text> of your total balance is sitting in basic accounts earning less than 0.05% interest. These are your <Text fontWeight="bold">&quot;Idle Funds&quot;</Text>. Let&apos;s put that money to work to beat inflation.
                 </Text>
@@ -164,8 +173,27 @@ export default function SmartDepositDetailsPage() {
               transition={{ delay: 500 + (i * 200), type: 'spring' }}
             >
               <XStack gap="$3" alignItems="flex-start">
-                <YStack backgroundColor="#DA291C" padding="$2" borderRadius={16} marginTop="$2" shadowColor="#DA291C" shadowOffset={{ width: 0, height: 4 }} shadowOpacity={0.2} shadowRadius={8}>
-                  <MaterialCommunityIcons name="owl" size={20} color="white" />
+                <YStack 
+                  marginTop="$2"
+                  shadowColor="#DA291C" 
+                  shadowOffset={{ width: 0, height: 4 }} 
+                  shadowOpacity={0.15} 
+                  shadowRadius={6}
+                  style={{ elevation: 2 }}
+                >
+                  <Image 
+                    source={require('../assets/images/Deposit Owl.jpg')} 
+                    style={{ 
+                      width: 36, 
+                      height: 36, 
+                      borderRadius: 18, 
+                      borderWidth: 2, 
+                      borderColor: 'white',
+                      backgroundColor: 'white'
+                    }}
+                    resizeMode="contain"
+                    alt="Deposit Owl Avatar"
+                  />
                 </YStack>
                 <YStack flex={1}>
                   {/* Chat Bubble */}
@@ -211,6 +239,56 @@ export default function SmartDepositDetailsPage() {
             </MotiView>
           ))}
         </YStack>
+
+        {/* SECTION 4: Explore More Products Promotion */}
+        <MotiView 
+          from={{ opacity: 0, translateY: 20 }} 
+          animate={{ opacity: 1, translateY: 0 }} 
+          transition={{ delay: 1100, type: 'spring' }}
+        >
+          <GlassCard
+            marginTop="$7"
+            padding="$4.5"
+            borderColor="rgba(218, 41, 28, 0.2)"
+            backgroundColor="rgba(255, 255, 255, 0.75)"
+          >
+            <XStack gap="$3" alignItems="center" marginBottom="$3">
+              <Image 
+                source={require('../assets/images/Deposit Owl.jpg')} 
+                style={{ 
+                  width: 44, 
+                  height: 44, 
+                  borderRadius: 22, 
+                  borderWidth: 1.5, 
+                  borderColor: 'rgba(218, 41, 28, 0.2)',
+                  backgroundColor: 'white'
+                }}
+                resizeMode="contain"
+                alt="Deposit Owl Mascot"
+              />
+              <YStack flex={1}>
+                <Text fontSize={15} fontWeight="bold" color="black">
+                  Explore More Tailored Products
+                </Text>
+                <Text fontSize={12} color="rgba(0,0,0,0.5)">
+                  Deposit Owl has curated other financial growth options for you.
+                </Text>
+              </YStack>
+            </XStack>
+            
+            <Button
+              backgroundColor="#DA291C"
+              borderRadius={12}
+              height={46}
+              onPress={() => router.push('/recommendations')}
+              pressStyle={{ opacity: 0.8 }}
+            >
+              <Text color="white" fontWeight="bold" fontSize={14}>
+                Explore More Products
+              </Text>
+            </Button>
+          </GlassCard>
+        </MotiView>
 
       </ScrollView>
     </YStack>

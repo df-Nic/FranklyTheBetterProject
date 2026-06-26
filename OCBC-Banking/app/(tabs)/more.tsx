@@ -1,38 +1,51 @@
-import React, { useState, useMemo } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import React from 'react';
+import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { YStack, XStack, Text } from 'tamagui';
 import { BackgroundOrb } from '../../components/BackgroundOrb';
 import { MotiView } from 'moti';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import { GlassCard } from '../../components/GlassCard';
 
-import { RECOMMENDED_PRODUCTS } from '../../constants/depositOwlData';
-import { FinancialProfile } from '../../components/deposit-owl/FinancialProfile';
-import { ProductDeck } from '../../components/deposit-owl/ProductDeck';
-
-export default function DepositOwlPage() {
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-
-  const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    RECOMMENDED_PRODUCTS.forEach(p => {
-      counts[p.category] = (counts[p.category] || 0) + 1;
-    });
-    return Object.entries(counts).map(([name, count]) => ({ name, count }));
-  }, []);
-
-  const filteredProducts = useMemo(() => {
-    if (selectedCategories.length === 0) return RECOMMENDED_PRODUCTS;
-    return RECOMMENDED_PRODUCTS.filter(p => selectedCategories.includes(p.category));
-  }, [selectedCategories]);
-
-  const toggleCategory = (category: string) => {
-    setSelectedCategories(prev => 
-      prev.includes(category) 
-        ? prev.filter(c => c !== category)
-        : [...prev, category]
-    );
-  };
+export default function MoreMenuPage() {
+  const menuSections = [
+    {
+      title: 'Account Services',
+      icon: 'file-text',
+      items: [
+        { name: 'Manage e-Statements', sub: 'View and download paperless statements' },
+        { name: 'Account Settings', sub: 'Update nicknames and display preferences' },
+        { name: 'Manage Alerts', sub: 'Customize push notifications and SMS alerts' },
+      ],
+    },
+    {
+      title: 'Security Settings',
+      icon: 'shield',
+      items: [
+        { name: 'Daily Transaction Limits', sub: 'Adjust transfer limits and card limits' },
+        { name: 'Card Activation & Security', sub: 'Lock/unlock cards or report lost cards' },
+        { name: 'Reset PIN', sub: 'Change online banking PIN or ATM PINs' },
+      ],
+    },
+    {
+      title: 'Help & Support',
+      icon: 'help-circle',
+      items: [
+        { name: 'Locate Branch / ATM', sub: 'Find nearest branches and banking lobbies' },
+        { name: 'Contact Us', sub: 'Get in touch with customer hotlines' },
+        { name: 'Help Center & FAQs', sub: 'Browse articles and quick answers' },
+      ],
+    },
+    {
+      title: 'Legal & Rates',
+      icon: 'info',
+      items: [
+        { name: 'Interest Rates', sub: 'Check deposit rates and loan interest rates' },
+        { name: 'Terms & Conditions', sub: 'View standard banking agreements' },
+        { name: 'Privacy Policy', sub: 'Manage your data consent settings' },
+      ],
+    },
+  ];
 
   return (
     <YStack flex={1} backgroundColor="#F5F5F7">
@@ -40,17 +53,17 @@ export default function DepositOwlPage() {
       {/* Dynamic Background Elements */}
       <BackgroundOrb
         size={400}
-        color="rgba(218, 41, 28, 0.15)"
+        color="rgba(218, 41, 28, 0.08)"
         top="-10%" left="-20%"
-        fromOpacity={0.4}
-        toOpacity={0.8}
+        fromOpacity={0.3}
+        toOpacity={0.6}
       />
       <BackgroundOrb
         size={300}
-        color="rgba(33, 150, 243, 0.15)"
+        color="rgba(33, 150, 243, 0.08)"
         bottom="-10%" right="-10%"
-        fromOpacity={0.3}
-        toOpacity={0.6}
+        fromOpacity={0.2}
+        toOpacity={0.5}
       />
 
       {/* Persistent Glass Header */}
@@ -74,70 +87,95 @@ export default function DepositOwlPage() {
           borderColor="rgba(0,0,0,0.05)"
         >
           <YStack backgroundColor="#DA291C" padding="$2" borderRadius={12}>
-            <MaterialCommunityIcons name="owl" size={24} color="white" />
+            <Feather name="menu" size={22} color="white" />
           </YStack>
           <YStack flex={1}>
             <Text fontSize={20} fontWeight="bold" color="black">
-              Deposit Owl Recommendations
+              More Options
             </Text>
             <Text fontSize={12} color="rgba(0,0,0,0.5)">
-              These products are tailored to your financial habits.
+              Manage profile, accounts, security, and services.
             </Text>
           </YStack>
         </XStack>
       </YStack>
 
-      <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 130, paddingBottom: 100 }}>
-
-        <FinancialProfile />
-
-        {/* Recommended Products Grid */}
-        <MotiView from={{ translateY: 30, opacity: 0 }} animate={{ translateY: 0, opacity: 1 }} transition={{ delay: 200 }}>
-          <Text fontSize={18} fontWeight="bold" color="black" marginBottom="$1">
-            Curated For You
-          </Text>
-          <Text fontSize={13} color="rgba(0,0,0,0.6)" marginBottom="$4" lineHeight={18}>
-            Because you are planning for a family and saving consistently, Deposit Owl picked these tailored options just for you:
-          </Text>
-
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16, marginHorizontal: -24 }} contentContainerStyle={{ paddingHorizontal: 24 }}>
-            <XStack gap="$2">
-              {categoryCounts.map(({ name, count }) => {
-                const isSelected = selectedCategories.includes(name);
-                return (
-                  <YStack 
-                    key={name}
-                    onPress={() => toggleCategory(name)}
-                    backgroundColor={isSelected ? '#DA291C' : 'white'}
-                    borderWidth={1}
-                    borderColor={isSelected ? '#DA291C' : 'rgba(0,0,0,0.1)'}
-                    borderRadius={20}
-                    paddingHorizontal="$3"
-                    paddingVertical="$2"
-                    pressStyle={{ opacity: 0.7 }}
-                    cursor="pointer"
-                  >
-                    <Text 
-                      color={isSelected ? 'white' : 'black'} 
-                      fontSize={13} 
-                      fontWeight="600"
-                    >
-                      {name} ({count})
-                    </Text>
-                  </YStack>
-                );
-              })}
+      <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 130, paddingBottom: 110 }} showsVerticalScrollIndicator={false}>
+        
+        {/* User Quick Profile Info Card */}
+        <MotiView 
+          from={{ opacity: 0, translateY: 15 }} 
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ delay: 100 }}
+        >
+          <GlassCard padding="$4" marginBottom="$5" borderColor="rgba(255,255,255,0.7)">
+            <XStack alignItems="center" gap="$3.5">
+              <YStack 
+                width={50} 
+                height={50} 
+                borderRadius={25} 
+                backgroundColor="rgba(218, 41, 28, 0.1)" 
+                alignItems="center" 
+                justifyContent="center"
+              >
+                <Feather name="user" size={24} color="#DA291C" />
+              </YStack>
+              <YStack flex={1}>
+                <Text fontSize={16} fontWeight="bold" color="black">Support Team 2</Text>
+                <Text fontSize={12} color="rgba(0,0,0,0.5)">Access level: Administrator</Text>
+              </YStack>
+              <TouchableOpacity style={{ backgroundColor: 'rgba(0,0,0,0.04)', padding: 8, borderRadius: 18 }}>
+                <Feather name="edit-2" size={14} color="black" />
+              </TouchableOpacity>
             </XStack>
-          </ScrollView>
-
-          {filteredProducts.length > 0 ? (
-            <ProductDeck products={filteredProducts} />
-          ) : (
-            <YStack height={380} alignItems="center" justifyContent="center">
-              <Text color="rgba(0,0,0,0.5)">No products found for selected filters.</Text>
-            </YStack>
-          )}
+          </GlassCard>
         </MotiView>
+
+        {/* Menu Sections List */}
+        <YStack gap="$5">
+          {menuSections.map((section, index) => (
+            <MotiView
+              key={section.title}
+              from={{ opacity: 0, translateY: 20 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ delay: 150 + index * 100 }}
+            >
+              <Text fontSize={15} fontWeight="bold" color="black" marginBottom="$2.5" paddingLeft="$1">
+                {section.title}
+              </Text>
+              
+              <GlassCard borderColor="rgba(255,255,255,0.7)">
+                <YStack>
+                  {section.items.map((item, i) => (
+                    <TouchableOpacity
+                      key={item.name}
+                      onPress={() => {}}
+                      activeOpacity={0.7}
+                      style={{
+                        padding: 16,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        borderBottomWidth: i === section.items.length - 1 ? 0 : 1,
+                        borderColor: 'rgba(0,0,0,0.04)',
+                      }}
+                    >
+                      <YStack flex={1} paddingRight="$4">
+                        <Text fontSize={14} fontWeight="600" color="black">
+                          {item.name}
+                        </Text>
+                        <Text fontSize={11} color="rgba(0,0,0,0.4)" marginTop="$0.5">
+                          {item.sub}
+                        </Text>
+                      </YStack>
+                      <Feather name="chevron-right" size={16} color="rgba(0,0,0,0.3)" />
+                    </TouchableOpacity>
+                  ))}
+                </YStack>
+              </GlassCard>
+            </MotiView>
+          ))}
+        </YStack>
 
       </ScrollView>
 
