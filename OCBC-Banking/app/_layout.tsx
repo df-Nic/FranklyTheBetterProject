@@ -35,6 +35,8 @@ export default function RootLayout() {
             <Stack.Screen name="login" options={{ headerShown: false }} />
             <Stack.Screen name="owl-tiering" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false, animation: 'fade' }} />
+            <Stack.Screen name="planning-owl-sandbox" options={{ headerShown: false, animation: 'slide_from_right' }} />
+            <Stack.Screen name="planning-owl-sandbox-handoff" options={{ headerShown: false, animation: 'slide_from_right' }} />
             <Stack.Screen name="recommendations" options={{ headerShown: false, animation: 'slide_from_right' }} />
             <Stack.Screen name="wealth" options={{ headerShown: false }} />
             <Stack.Screen name="smart-deposit-details" options={{ headerShown: false }} />
