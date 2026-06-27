@@ -11,6 +11,7 @@ import { useWealth } from '../../components/wealth/WealthContext';
 import {
   WEALTH_PRODUCTS,
   MOCK_FUNDS,
+  getFundPersonalRationale,
 } from '../../components/wealth/mockData';
 
 const OTHER_MOCK_FUNDS = [
@@ -178,6 +179,24 @@ export default function FundNarrowingScreen() {
                       <Text fontSize={13} color="rgba(0,0,0,0.6)" lineHeight={20}>
                         {fund.reason}
                       </Text>
+
+                      {/* Rationale Bubble */}
+                      <YStack
+                        backgroundColor="rgba(218,41,28,0.04)"
+                        borderWidth={1}
+                        borderColor="rgba(218,41,28,0.12)"
+                        borderRadius={16}
+                        padding="$3.5"
+                        marginVertical="$2"
+                      >
+                        <XStack gap="$2" alignItems="flex-start" marginBottom="$1">
+                          <Feather name="info" size={13} color="#DA291C" style={{ marginTop: 1 }} />
+                          <Text fontSize={11} fontWeight="800" color="#DA291C" letterSpacing={0.5}>WHY THIS MATCHES YOU</Text>
+                        </XStack>
+                        <Text fontSize={12.5} color="rgba(0,0,0,0.65)" lineHeight={17}>
+                          {getFundPersonalRationale(fund.name, state.userProfile as any)}
+                        </Text>
+                      </YStack>
 
                       <TouchableOpacity onPress={() => handleSelectFund(fund)} activeOpacity={0.8}>
                         <YStack

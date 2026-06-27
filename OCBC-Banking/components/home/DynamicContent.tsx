@@ -17,10 +17,10 @@ export function DynamicContent({ selectedTab, isMasked }: DynamicContentProps) {
 
   const renderAccounts = () => (
     <MotiView
-      from={{ opacity: 0, translateY: 15 }}
-      animate={{ opacity: 1, translateY: 0 }}
-      exit={{ opacity: 0, translateY: -15 }}
-      transition={{ type: 'spring', damping: 20 }}
+      from={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ type: 'timing', duration: 150 }}
     >
       {/* 360 Account Card */}
       <GlassCard marginBottom="$4" padding="$4" borderColor="rgba(255,255,255,0.7)">
@@ -138,10 +138,10 @@ export function DynamicContent({ selectedTab, isMasked }: DynamicContentProps) {
 
   const renderInvestments = () => (
     <MotiView
-      from={{ opacity: 0, translateY: 15 }}
-      animate={{ opacity: 1, translateY: 0 }}
-      exit={{ opacity: 0, translateY: -15 }}
-      transition={{ type: 'spring', damping: 20 }}
+      from={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ type: 'timing', duration: 150 }}
     >
       {/* Wealth Portfolio Grid */}
       <XStack gap="$4" marginBottom="$4">
@@ -208,10 +208,10 @@ export function DynamicContent({ selectedTab, isMasked }: DynamicContentProps) {
 
   const renderCards = () => (
     <MotiView
-      from={{ opacity: 0, translateY: 15 }}
-      animate={{ opacity: 1, translateY: 0 }}
-      exit={{ opacity: 0, translateY: -15 }}
-      transition={{ type: 'spring', damping: 20 }}
+      from={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ type: 'timing', duration: 150 }}
     >
       {/* Credit Card */}
       <GlassCard marginBottom="$4" padding="$4" borderColor="rgba(255,255,255,0.7)">
@@ -317,10 +317,10 @@ export function DynamicContent({ selectedTab, isMasked }: DynamicContentProps) {
 
   const renderLoans = () => (
     <MotiView
-      from={{ opacity: 0, translateY: 15 }}
-      animate={{ opacity: 1, translateY: 0 }}
-      exit={{ opacity: 0, translateY: -15 }}
-      transition={{ type: 'spring', damping: 20 }}
+      from={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ type: 'timing', duration: 150 }}
     >
       {/* Home Loan */}
       <GlassCard marginBottom="$4" padding="$4" borderColor="rgba(255,255,255,0.7)">

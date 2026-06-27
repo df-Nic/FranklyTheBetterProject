@@ -428,3 +428,40 @@ export function getTopPicks(riskProfile: 'Conservative' | 'Balanced' | 'Growth')
     return ['roboinvest', 'blue-chip', 'unit-trust'];
   }
 }
+
+export function getFundPersonalRationale(
+  fundName: string,
+  profile: {
+    ageRange: string;
+    incomeRange: string;
+    investAmount: string;
+    loans: string;
+    marketPreference: string;
+    riskProfile: string;
+    knowledgeLevel: string;
+  }
+): string {
+  const risk = profile.riskProfile ?? 'Balanced';
+  const knowledge = profile.knowledgeLevel ?? 'Basic';
+  const market = profile.marketPreference || 'Global';
+  const age = profile.ageRange || 'your age';
+
+  const rationales: Record<string, string> = {
+    // Conservative
+    'Nikko AM Shenton Short Term Bond Fund': `Fits your Conservative profile and ${knowledge} knowledge level. It prioritizes low volatility and capital preservation, which is suitable for building a secure foundation.`,
+    'LionGlobal SGD Enhanced Liquidity Fund': `Excellent liquidity options match your profile. It allows you to invest your target amount of ${profile.investAmount || 'capital'} safely without lock-in periods.`,
+    'Fullerton SGD Bond Fund': `Matches your preferred ${market} focus with high-quality local bonds, offering a steady income stream aligned with your safety needs.`,
+
+    // Balanced
+    'Nikko AM Shenton Global Opportunities Fund': `Gives you broad exposure to ${market} markets, fitting your Balanced risk profile. Designed to capture long-term equity growth with moderated swings.`,
+    'LionGlobal All Seasons Fund': `An all-weather mix of stocks and bonds designed to match your age bracket (${age}) and Balanced profile, cushioning against market drawdowns.`,
+    'Fullerton Asian Bonds & Currencies Fund': `Provides exposure to Asian credit yields. This aligns with your Balanced profile and intermediate fixed-income strategy.`,
+
+    // Growth
+    'Nikko AM Asia Ex-Japan Equity Fund': `Matches your preference for ${market} equities with a high growth target. Captures key APAC corporate growth.`,
+    'LionGlobal Technology & Innovation Fund': `A great fit for your ${knowledge} level, focusing on high-beta tech leaders for long-term compounding growth.`,
+    'Fullerton Global Equity Fund': `Designed for capital maximization. Ideal for investing your target of ${profile.investAmount || 'savings'} with a Growth risk mandate.`,
+  };
+
+  return rationales[fundName] ?? `Aligned with your ${risk} risk profile and investment preferences.`;
+}
