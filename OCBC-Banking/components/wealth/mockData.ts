@@ -40,48 +40,144 @@ export const RISK_CARDS = [
     headline: 'New Business Investment',
     description: 'A new café opens near you. You invest SGD 5,000 in their first funding round knowing 3 in 5 such cafés close within two years.',
     riskSeekingAnswer: 'right', // swipe right = risk-seeking
+    Basic: {
+      headline: 'Cafe Investment',
+      description: 'A new neighborhood cafe opens. You invest $5,000 in it, knowing that most new cafes close down within two years.',
+    },
+    Intermediate: {
+      headline: 'New Business Investment',
+      description: 'A local cafe is raising capital. You invest SGD 5,000 in their first funding round knowing 3 in 5 such cafés close within two years.',
+    },
+    Advanced: {
+      headline: 'Early-Stage Café Venture',
+      description: 'You allocate SGD 5,000 of early-stage venture capital in a local café startup, accepting high seed-stage default rates in search of equity alpha.',
+    },
   },
   {
     id: 2,
     headline: 'Market Downturn',
     description: 'Your fund dropped 15% this month due to global news. You hold and wait rather than cutting your losses.',
     riskSeekingAnswer: 'right',
+    Basic: {
+      headline: 'Market Dropping',
+      description: 'Your investment account falls 15% in value this month due to bad news. You choose to wait it out instead of selling at a loss.',
+    },
+    Intermediate: {
+      headline: 'Market Downturn',
+      description: 'Your fund dropped 15% this month due to global news. You hold and wait rather than cutting your losses.',
+    },
+    Advanced: {
+      headline: 'Equity Market Drawdown',
+      description: 'Your equity-heavy fund experiences a 15% mark-to-market drawdown this month. You maintain your strategic allocation rather than crystallizing losses.',
+    },
   },
   {
     id: 3,
     headline: 'Locked Savings',
     description: 'You lock away SGD 10,000 for 5 years at a guaranteed 3% p.a. with no early withdrawal option.',
     riskSeekingAnswer: 'left', // swipe left = risk-seeking (prefers guaranteed)
+    Basic: {
+      headline: 'Locked Account',
+      description: 'You put $10,000 into a locked savings account for 5 years at a guaranteed 3% interest, knowing you cannot touch it early.',
+    },
+    Intermediate: {
+      headline: 'Locked Savings',
+      description: 'You lock away SGD 10,000 for 5 years at a guaranteed 3% p.a. with no early withdrawal option.',
+    },
+    Advanced: {
+      headline: 'Illiquid Fixed Income',
+      description: 'You allocate SGD 10,000 to an illiquid 5-year fixed debt instrument yielding 3.0% p.a., sacrificing asset liquidity for principal protection.',
+    },
   },
   {
     id: 4,
     headline: 'Index Fund Bet',
     description: 'An index fund has returned 8% annually for 10 years. You put in half your savings.',
     riskSeekingAnswer: 'right',
+    Basic: {
+      headline: 'Safe Stock Fund',
+      description: 'A stock market fund has earned 8% a year for the last 10 years. You put half of your total savings into it.',
+    },
+    Intermediate: {
+      headline: 'Index Fund Bet',
+      description: 'An index fund has returned 8% annually for 10 years. You put in half your savings.',
+    },
+    Advanced: {
+      headline: 'Equity Index Allocation',
+      description: 'A broad-market equity index ETF demonstrates historical returns of 8% CAGR over 10 years. You allocate 50% of your current liquid assets to it.',
+    },
   },
   {
     id: 5,
     headline: 'Tech Stock Double',
     description: 'A tech stock you own doubles in a week. You sell half to lock in gains.',
     riskSeekingAnswer: 'left',
+    Basic: {
+      headline: 'Tech Stock Rise',
+      description: 'A technology stock you bought doubles in value in just one week. You immediately sell half to secure your profit.',
+    },
+    Intermediate: {
+      headline: 'Tech Stock Double',
+      description: 'A tech stock you own doubles in a week. You sell half to lock in gains.',
+    },
+    Advanced: {
+      headline: 'High-Beta Equity Harvest',
+      description: 'A technology position in your portfolio rises 100% in a week. You harvest 50% of the position to secure capital gains and rebalance.',
+    },
   },
   {
     id: 6,
     headline: 'Flat Portfolio',
     description: 'Your portfolio is flat for 18 months with no growth. You stay invested and do not move funds.',
     riskSeekingAnswer: 'right',
+    Basic: {
+      headline: 'No Account Growth',
+      description: 'Your investments do not gain any value for 18 months. You leave your money exactly where it is and wait.',
+    },
+    Intermediate: {
+      headline: 'Flat Portfolio',
+      description: 'Your portfolio is flat for 18 months with no growth. You stay invested and do not move funds.',
+    },
+    Advanced: {
+      headline: 'Sideways Market Patience',
+      description: 'Your portfolio experiences a sideways consolidation phase with zero net growth for 18 months. You remain fully allocated to your long-term strategy.',
+    },
   },
   {
     id: 7,
     headline: 'Crypto Opportunity',
     description: 'A colleague made 40% on crypto last year. You allocate 10% of your savings to try it.',
     riskSeekingAnswer: 'right',
+    Basic: {
+      headline: 'Crypto Investment',
+      description: 'A coworker made 40% profit on cryptocurrency last year. You put 10% of your savings into it to try and get the same results.',
+    },
+    Intermediate: {
+      headline: 'Crypto Opportunity',
+      description: 'A colleague made 40% on crypto last year. You allocate 10% of your savings to try it.',
+    },
+    Advanced: {
+      headline: 'Speculative Asset Allocation',
+      description: 'A colleague reports a 40% return on digital assets. You allocate a 10% satellite position to highly volatile cryptocurrencies.',
+    },
   },
   {
     id: 8,
     headline: 'Guaranteed vs Uncertain',
     description: 'You choose a lower but guaranteed return over a higher but uncertain one.',
     riskSeekingAnswer: 'left',
+    Basic: {
+      headline: 'Guaranteed Returns',
+      description: 'You prefer a smaller, guaranteed investment return over a much larger but risky return.',
+    },
+    Intermediate: {
+      headline: 'Guaranteed vs Uncertain',
+      description: 'You choose a lower but guaranteed return over a higher but uncertain one.',
+    },
+    Advanced: {
+      headline: 'Risk Premium Trade-Off',
+      description: 'You prioritize risk-free yields over equity risk premiums, choosing asset safety over high-beta upside.',
+    },
   },
 ];
 
@@ -280,3 +376,92 @@ export const AMOUNT_MIDPOINT: Record<string, number> = {
   'SGD 20–50k': 35000,
   'SGD 50k+': 75000,
 };
+
+// ─── Dynamic Product Selection & Rationale ──────────────────────────────────
+export function getRankingExplanation(productId: string, riskProfile: 'Conservative' | 'Balanced' | 'Growth'): string {
+  const mapping: Record<string, Record<string, string>> = {
+    'unit-trust': {
+      Conservative: 'Higher risk than your profile — shown here for diversification and capital appreciation.',
+      Balanced: 'Ranked #3: Matches your profile with balanced equity and bond exposure.',
+      Growth: 'Ranked #1: Excellent match for your growth profile to maximize long-term equity returns.',
+    },
+    'blue-chip': {
+      Conservative: 'Higher risk than your profile, but offers stable dividends from top Singapore companies.',
+      Balanced: 'Ranked #2: Steady monthly contributions align with your balanced accumulation goals.',
+      Growth: 'Ranked #2: Helps build core equity exposure in blue-chip Singapore corporates.',
+    },
+    'roboinvest': {
+      Conservative: 'Low-Medium risk. A solid option for automated, low-cost theme diversification.',
+      Balanced: 'Ranked #1: Matches your profile with automated risk-balancing and theme selection.',
+      Growth: 'Ranked #3: Moderate risk with automated themed portfolios for satellite growth.',
+    },
+    'precious-metals': {
+      Conservative: 'A stable choice to diversify your capital and hedge against inflation.',
+      Balanced: 'Good for diversification, though growth potential is lower than your balanced target.',
+      Growth: 'Lower growth potential than your profile, but acts as a solid hedge during high volatility.',
+    },
+    'sgs': {
+      Conservative: 'Ranked #1: Near risk-free Singapore Government backing matches your safety priority.',
+      Balanced: 'Lower yield than your profile target, but provides a risk-free foundation for your assets.',
+      Growth: 'Lower risk and yield than your growth profile — shown for defensive capital allocation.',
+    },
+    'structured-deposits': {
+      Conservative: 'Ranked #2: Capital-protected structure offering stable returns with index upside.',
+      Balanced: 'Protects principal capital while offering equity-linked growth potential.',
+      Growth: 'Very conservative choice, but useful if you want to protect your principal capital.',
+    },
+    'e-securities': {
+      Conservative: 'Ranked #3: Fixed income payments offer stable and predictable capital growth.',
+      Balanced: 'Provides steady yield, helping buffer equity volatility in your portfolio.',
+      Growth: 'Provides steady yield, but with lower capital appreciation than your growth profile.',
+    },
+  };
+  return mapping[productId]?.[riskProfile] ?? 'Selected based on your preferences.';
+}
+
+export function getTopPicks(riskProfile: 'Conservative' | 'Balanced' | 'Growth'): string[] {
+  if (riskProfile === 'Conservative') {
+    return ['sgs', 'structured-deposits', 'e-securities'];
+  } else if (riskProfile === 'Growth') {
+    return ['unit-trust', 'blue-chip', 'roboinvest'];
+  } else {
+    return ['roboinvest', 'blue-chip', 'unit-trust'];
+  }
+}
+
+export function getFundPersonalRationale(
+  fundName: string,
+  profile: {
+    ageRange: string;
+    incomeRange: string;
+    investAmount: string;
+    loans: string;
+    marketPreference: string;
+    riskProfile: string;
+    knowledgeLevel: string;
+  }
+): string {
+  const risk = profile.riskProfile ?? 'Balanced';
+  const knowledge = profile.knowledgeLevel ?? 'Basic';
+  const market = profile.marketPreference || 'Global';
+  const age = profile.ageRange || 'your age';
+
+  const rationales: Record<string, string> = {
+    // Conservative
+    'Nikko AM Shenton Short Term Bond Fund': `Fits your Conservative profile and ${knowledge} knowledge level. It prioritizes low volatility and capital preservation, which is suitable for building a secure foundation.`,
+    'LionGlobal SGD Enhanced Liquidity Fund': `Excellent liquidity options match your profile. It allows you to invest your target amount of ${profile.investAmount || 'capital'} safely without lock-in periods.`,
+    'Fullerton SGD Bond Fund': `Matches your preferred ${market} focus with high-quality local bonds, offering a steady income stream aligned with your safety needs.`,
+
+    // Balanced
+    'Nikko AM Shenton Global Opportunities Fund': `Gives you broad exposure to ${market} markets, fitting your Balanced risk profile. Designed to capture long-term equity growth with moderated swings.`,
+    'LionGlobal All Seasons Fund': `An all-weather mix of stocks and bonds designed to match your age bracket (${age}) and Balanced profile, cushioning against market drawdowns.`,
+    'Fullerton Asian Bonds & Currencies Fund': `Provides exposure to Asian credit yields. This aligns with your Balanced profile and intermediate fixed-income strategy.`,
+
+    // Growth
+    'Nikko AM Asia Ex-Japan Equity Fund': `Matches your preference for ${market} equities with a high growth target. Captures key APAC corporate growth.`,
+    'LionGlobal Technology & Innovation Fund': `A great fit for your ${knowledge} level, focusing on high-beta tech leaders for long-term compounding growth.`,
+    'Fullerton Global Equity Fund': `Designed for capital maximization. Ideal for investing your target of ${profile.investAmount || 'savings'} with a Growth risk mandate.`,
+  };
+
+  return rationales[fundName] ?? `Aligned with your ${risk} risk profile and investment preferences.`;
+}

@@ -98,7 +98,7 @@ export default function RecommendationsPage() {
             </Text>
           </YStack>
           <Image 
-            source={require('../assets/images/Deposit Owl.jpg')} 
+            source={require('../assets/images/owl-deposit.png')} 
             style={{ width: 42, height: 42, borderRadius: 21, borderWidth: 1.5, borderColor: '#DA291C', backgroundColor: 'white' }}
             resizeMode="contain"
             alt="Deposit Owl Avatar"
@@ -116,7 +116,7 @@ export default function RecommendationsPage() {
           <GlassCard padding="$4" marginBottom="$5" borderColor="rgba(218, 41, 28, 0.15)" backgroundColor="rgba(255,255,255,0.7)">
             <XStack gap="$3" alignItems="center">
               <Image 
-                source={require('../assets/images/Deposit Owl.jpg')} 
+                source={require('../assets/images/owl-deposit.png')} 
                 style={{ width: 50, height: 50, borderRadius: 25, borderWidth: 1.5, borderColor: '#DA291C', backgroundColor: 'white' }}
                 resizeMode="contain"
                 alt="Deposit Owl Mascot"
