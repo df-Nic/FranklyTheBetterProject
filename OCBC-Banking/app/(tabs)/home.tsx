@@ -12,7 +12,7 @@ import { ActionPills } from '../../components/home/ActionPills';
 import { DynamicContent } from '../../components/home/DynamicContent';
 import { FloatingBot } from '../../components/home/FloatingBot';
 import { GlassCard } from '../../components/GlassCard';
-import { getHasBypassedLandingPage, setHasBypassedLandingPage } from '../../components/wealth/navigationState';
+import { getHasCompletedOwlQuiz, setHasCompletedOwlQuiz, setPendingOwlDestination } from '../../components/wealth/navigationState';
 
 export default function HomePage() {
   const router = useRouter();
@@ -77,12 +77,14 @@ export default function HomePage() {
 
   const showBubble = bubbleState === 'show1' || bubbleState === 'show2';
 
-  const handleInvestmentMascotPress = () => {
-    if (!getHasBypassedLandingPage()) {
-      setHasBypassedLandingPage(true);
-      router.push('/wealth/onboarding');
+  /** Shared quiz gate used by both owl mascots on the home page. */
+  const handleOwlPress = (destination: string) => {
+    if (getHasCompletedOwlQuiz()) {
+      router.push(destination as any);
     } else {
-      router.push('/wealth/dashboard');
+      setHasCompletedOwlQuiz(true);
+      setPendingOwlDestination(destination);
+      router.push('/wealth/onboarding');
     }
   };
 
@@ -261,8 +263,8 @@ export default function HomePage() {
                 activeOpacity={0.9}
                 onPress={
                   selectedTab === 'Accounts'
-                    ? () => router.push('/smart-deposit-details')
-                    : handleInvestmentMascotPress
+                    ? () => handleOwlPress('/smart-deposit-details')
+                    : () => handleOwlPress('/wealth/dashboard')
                 }
                 accessibilityLabel={
                   selectedTab === 'Accounts'

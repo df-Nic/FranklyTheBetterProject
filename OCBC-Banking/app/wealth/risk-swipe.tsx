@@ -9,6 +9,7 @@ import { BackgroundOrb } from '../../components/BackgroundOrb';
 import { SwipeCard } from '../../components/wealth/SwipeCard';
 import { useWealth } from '../../components/wealth/WealthContext';
 import { RISK_CARDS } from '../../components/wealth/mockData';
+import { getPendingOwlDestination } from '../../components/wealth/navigationState';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.35;
@@ -56,7 +57,10 @@ export default function RiskSwipeScreen() {
     if (nextIndex >= currentRiskCards.length) {
       const profile = getRiskProfile(newScore);
       dispatch({ type: 'SET_RISK_PROFILE', riskProfile: profile.label as any });
-      router.push('/wealth/product-selection');
+      // Replace (not push) so risk-swipe is removed from the back stack.
+      // - First-time quiz: back from destination → owl-tiering / home
+      // - Retake from product-selection: back → wealth/dashboard
+      router.replace(getPendingOwlDestination() as any);
     } else {
       setScore(newScore);
       setCurrentIndex(nextIndex);

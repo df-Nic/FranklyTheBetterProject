@@ -9,7 +9,7 @@ import { MILESTONES, OWLS, PALETTE, SCENE_ASPECT, Milestone, OwlProduct } from "
 import { MilestoneNode } from "../components/journey/MilestoneNode";
 import { OwlCard } from "../components/journey/OwlCard";
 import { TotalAssetsChip } from "../components/journey/TotalAssetsChip";
-import { getHasBypassedLandingPage, setHasBypassedLandingPage } from "../components/wealth/navigationState";
+import { getHasCompletedOwlQuiz, setHasCompletedOwlQuiz, setPendingOwlDestination } from "../components/wealth/navigationState";
 
 export default function OwlTieringScreen() {
   const router = useRouter();
@@ -19,25 +19,36 @@ export default function OwlTieringScreen() {
     console.log("milestone", m.id, m.state);
   }, []);
 
+  /**
+   * Determine the real destination for each owl, then either:
+   *  - Route straight there (quiz already done), or
+   *  - Store the destination and start the quiz (first time).
+   */
   const handleOwl = useCallback((owl: OwlProduct) => {
+    let destination: string | null = null;
+
     if (owl.id === "planning") {
-      router.push("/(tabs)/planning-owl");
+      destination = "/(tabs)/planning-owl";
+    } else if (owl.id === "deposit") {
+      destination = "/smart-deposit-details";
+    } else if (owl.id === "investment") {
+      destination = "/wealth/dashboard";
+    }
+
+    if (destination === null) {
+      Alert.alert("Coming soon", "This Owl module will be available in a future prototype pass.");
       return;
     }
-    if (owl.id === "deposit") {
-      router.push("/smart-deposit-details");
-      return;
+
+    if (getHasCompletedOwlQuiz()) {
+      // Quiz already done — go straight to the destination.
+      router.push(destination as any);
+    } else {
+      // First time hitting any owl — run the quiz first, then redirect.
+      setHasCompletedOwlQuiz(true);
+      setPendingOwlDestination(destination);
+      router.push("/wealth/onboarding");
     }
-    if (owl.id === "investment") {
-      if (!getHasBypassedLandingPage()) {
-        setHasBypassedLandingPage(true);
-        router.push("/wealth/onboarding");
-      } else {
-        router.push("/wealth/dashboard");
-      }
-      return;
-    }
-    Alert.alert("Coming soon", "This Owl module will be available in a future prototype pass.");
   }, [router]);
 
   return (

@@ -74,7 +74,9 @@ export default function OnboardingScreen() {
         knowledgeLevel: kl,
       },
     });
-    router.push('/wealth/risk-swipe');
+    // Replace (not push) so onboarding is removed from the back stack.
+    // After the quiz the user can go back without stepping through onboarding again.
+    router.replace('/wealth/risk-swipe');
   };
 
   return (

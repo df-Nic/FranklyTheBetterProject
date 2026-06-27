@@ -8,6 +8,7 @@ import { BlurView } from 'expo-blur';
 import { GlassCard } from '../../components/GlassCard';
 import { BackgroundOrb } from '../../components/BackgroundOrb';
 import { useWealth } from '../../components/wealth/WealthContext';
+import { setPendingOwlDestination } from '../../components/wealth/navigationState';
 import {
   WEALTH_PRODUCTS,
   SELECT_FOR_ME,
@@ -74,7 +75,13 @@ export default function ProductSelectionScreen() {
         >
           <TouchableOpacity
             activeOpacity={0.85}
-            onPress={() => router.push('/wealth/risk-swipe')}
+            onPress={() => {
+              // Replace (not push) so product-selection exits the stack during the quiz.
+              // When risk-swipe finishes it replaces itself with /wealth/product-selection,
+              // meaning back from product-selection → dashboard (not back into the quiz).
+              setPendingOwlDestination('/wealth/product-selection');
+              router.replace('/wealth/risk-swipe');
+            }}
           >
             <YStack
               backgroundColor="white"
@@ -147,12 +154,17 @@ export default function ProductSelectionScreen() {
                   <Feather name={recommendedProduct.icon as any} size={22} color="#DA291C" />
                 </YStack>
                 <YStack flex={1}>
-                  <XStack justifyContent="space-between" alignItems="center">
-                    <Text fontSize={16} fontWeight="800" color="black">{recommendedProduct.name}</Text>
-                    <YStack backgroundColor="rgba(218,41,28,0.1)" paddingHorizontal="$2.5" paddingVertical={3} borderRadius={8}>
-                      <Text fontSize={10} fontWeight="800" color="#DA291C" letterSpacing={0.5}>BEST MATCH</Text>
-                    </YStack>
-                  </XStack>
+                  <YStack
+                    backgroundColor="rgba(218,41,28,0.1)"
+                    paddingHorizontal="$2.5"
+                    paddingVertical={3}
+                    borderRadius={8}
+                    alignSelf="flex-start"
+                    marginBottom="$1"
+                  >
+                    <Text fontSize={10} fontWeight="800" color="#DA291C" letterSpacing={0.5}>BEST MATCH</Text>
+                  </YStack>
+                  <Text fontSize={16} fontWeight="800" color="black">{recommendedProduct.name}</Text>
                   <XStack gap="$3" marginTop="$1">
                     <XStack gap="$1" alignItems="center">
                       <Feather name="trending-up" size={11} color="#4CAF50" />
