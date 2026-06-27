@@ -1,7 +1,7 @@
-import React from 'react';
-import { ScrollView, StyleSheet, Image } from 'react-native';
+import React, { useState } from 'react';
+import { ScrollView, StyleSheet, Image, Alert, TouchableOpacity } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
-import { YStack, XStack, Text, Button } from 'tamagui';
+import { YStack, XStack, Text, Button, Input } from 'tamagui';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { MotiView } from 'moti';
@@ -11,6 +11,7 @@ import { DonutChart } from '../components/smart-deposit/DonutChart';
 import { LiquidityAreaChart } from '../components/smart-deposit/LiquidityAreaChart';
 import { GlassCard } from '../components/GlassCard';
 import { StandaloneNavBar } from '../components/StandaloneNavBar';
+import { CustomSlider } from '../components/smart-deposit/CustomSlider';
 export default function SmartDepositDetailsPage() {
   const router = useRouter();
 
@@ -20,25 +21,45 @@ export default function SmartDepositDetailsPage() {
     { label: 'UOB', value: 19500, color: '#2196F3' },
   ];
 
-  const idleFunds = 40000;
+  const [bufferMonths, setBufferMonths] = useState(3);
+  const [averageExpense, setAverageExpense] = useState(3050);
+  const [isEditingExpense, setIsEditingExpense] = useState(false);
+  const [expenseInputText, setExpenseInputText] = useState('3050');
+  
+  // Custom deposit amount
+  const [customDepositAmount, setCustomDepositAmount] = useState('');
+  const [hasUserModifiedDeposit, setHasUserModifiedDeposit] = useState(false);
+
+  const totalCashBalance = balanceData.reduce((sum, item) => sum + item.value, 0);
+  const targetBufferAmount = averageExpense * bufferMonths;
+  const safeToDeposit = Math.max(0, totalCashBalance - targetBufferAmount);
+  const bufferDeficit = Math.max(0, targetBufferAmount - totalCashBalance);
+  
+  const idleFunds = hasUserModifiedDeposit 
+    ? (parseFloat(customDepositAmount) || 0) 
+    : safeToDeposit;
+
+  const amount1 = Math.round(idleFunds * 0.25);
+  const amount2 = Math.round(idleFunds * 0.50);
+  const amount3 = Math.max(0, idleFunds - amount1 - amount2);
 
   const allocationPlan = [
     { 
       title: 'Top up OCBC 360 Account', 
-      amount: 10000, 
-      text: "First, let's make sure your liquid cash is working its hardest. By moving $10,000 into your OCBC 360 Account, you'll immediately hit the next bonus tier. This means you'll earn up to 4.45% p.a. while keeping the money easily accessible!", 
+      amount: amount1, 
+      text: `First, let's make sure your liquid cash is working its hardest. By moving $${amount1.toLocaleString()} into your OCBC 360 Account, you'll immediately hit the next bonus tier. This means you'll earn up to 4.45% p.a. while keeping the money easily accessible!`, 
       color: '#DA291C' 
     },
     { 
       title: 'OCBC 6-Month Fixed Deposit', 
-      amount: 20000, 
-      text: "Next, for the funds you won't need for daily expenses, predictability is key. Let's lock $20,000 into a 6-Month Fixed Deposit. It's virtually risk-free and secures a guaranteed promotional rate, shielding your money from market volatility.", 
+      amount: amount2, 
+      text: `Next, for the funds you won't need for daily expenses, predictability is key. Let's lock $${amount2.toLocaleString()} into a 6-Month Fixed Deposit. It's virtually risk-free and secures a guaranteed promotional rate, shielding your money from market volatility.`, 
       color: '#4CAF50' 
     },
     { 
       title: 'OCBC RoboInvest', 
-      amount: 10000, 
-      text: "Finally, let's think long-term. To actively beat inflation, I suggest putting the remaining $10,000 into OCBC RoboInvest. By choosing a low-risk Blue Chip portfolio, your wealth can grow steadily in the background.", 
+      amount: amount3, 
+      text: `Finally, let's think long-term. To actively beat inflation, I suggest putting the remaining $${amount3.toLocaleString()} into OCBC RoboInvest. By choosing a low-risk Blue Chip portfolio, your wealth can grow steadily in the background.`, 
       color: '#2196F3' 
     },
   ];
@@ -127,6 +148,147 @@ export default function SmartDepositDetailsPage() {
           </GlassCard>
         </MotiView>
 
+        {/* NEW SECTION: Liquidity Buffer Configurator */}
+        <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 175 }}>
+          <GlassCard padding="$4.5" marginBottom="$6" borderRadius={16} borderColor="rgba(218, 41, 28, 0.15)">
+            <YStack gap="$4">
+              {isEditingExpense ? (
+                <YStack gap="$3" width="100%">
+                  <XStack justifyContent="space-between" alignItems="center">
+                    <YStack gap="$0.5">
+                      <Text fontSize={16} fontWeight="bold" color="black">Liquidity Buffer Configurator</Text>
+                      <Text fontSize={12} color="rgba(0,0,0,0.5)">Set your safety net based on monthly expenses</Text>
+                    </YStack>
+                  </XStack>
+                  <XStack 
+                    alignItems="center" 
+                    gap="$3" 
+                    backgroundColor="white" 
+                    borderWidth={1.5} 
+                    borderColor="#DA291C" 
+                    borderRadius={12} 
+                    paddingHorizontal="$3.5" 
+                    height={44}
+                    shadowColor="#DA291C"
+                    shadowOffset={{ width: 0, height: 2 }}
+                    shadowOpacity={0.08}
+                    shadowRadius={4}
+                    style={{ elevation: 3 }}
+                    width="100%"
+                  >
+                    <Text fontSize={16} fontWeight="bold" color="rgba(0,0,0,0.4)">$</Text>
+                    <Input
+                      unstyled
+                      flex={1}
+                      height="100%"
+                      fontSize={15}
+                      fontWeight="bold"
+                      color="black"
+                      keyboardType="numeric"
+                      value={expenseInputText}
+                      onChangeText={setExpenseInputText}
+                      onSubmitEditing={() => {
+                        const val = parseFloat(expenseInputText) || 0;
+                        setAverageExpense(val);
+                        setIsEditingExpense(false);
+                      }}
+                      autoFocus
+                    />
+                    <TouchableOpacity
+                      onPress={() => {
+                        const val = parseFloat(expenseInputText) || 0;
+                        setAverageExpense(val);
+                        setIsEditingExpense(false);
+                      }}
+                    >
+                      <MaterialCommunityIcons name="check-circle" size={22} color="#4CAF50" />
+                    </TouchableOpacity>
+                  </XStack>
+                </YStack>
+              ) : (
+                <XStack justifyContent="space-between" alignItems="center">
+                  <YStack gap="$0.5">
+                    <Text fontSize={16} fontWeight="bold" color="black">Liquidity Buffer Configurator</Text>
+                    <Text fontSize={12} color="rgba(0,0,0,0.5)">Set your safety net based on monthly expenses</Text>
+                  </YStack>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setExpenseInputText(averageExpense.toString());
+                      setIsEditingExpense(true);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <XStack 
+                      alignItems="center" 
+                      gap="$2" 
+                      backgroundColor="rgba(218, 41, 28, 0.05)" 
+                      borderWidth={1} 
+                      borderColor="rgba(218, 41, 28, 0.2)" 
+                      borderRadius={12} 
+                      paddingHorizontal="$3" 
+                      paddingVertical="$1.5"
+                    >
+                      <Text fontSize={13} fontWeight="bold" color="#DA291C">
+                        ${averageExpense.toLocaleString()}/mo
+                      </Text>
+                      <MaterialCommunityIcons name="pencil" size={12} color="#DA291C" />
+                    </XStack>
+                  </TouchableOpacity>
+                </XStack>
+              )}
+
+              <XStack justifyContent="space-between" alignItems="center" backgroundColor="rgba(0,0,0,0.02)" padding="$3" borderRadius={12}>
+                <YStack>
+                  <Text fontSize={11} color="rgba(0,0,0,0.5)" fontWeight="600">TARGET BUFFER</Text>
+                  <Text fontSize={18} fontWeight="bold" color="#DA291C">${targetBufferAmount.toLocaleString()}</Text>
+                </YStack>
+                
+                <YStack alignItems="flex-end">
+                  <Text fontSize={11} color="rgba(0,0,0,0.5)" fontWeight="600">SAFE TO DEPOSIT</Text>
+                  <Text fontSize={18} fontWeight="bold" color={safeToDeposit > 0 ? "#4CAF50" : "rgba(0,0,0,0.3)"}>
+                    ${safeToDeposit.toLocaleString()}
+                  </Text>
+                </YStack>
+              </XStack>
+
+              <YStack gap="$1.5">
+                <XStack height={14} borderRadius={7} overflow="hidden" backgroundColor="rgba(0,0,0,0.05)" width="100%">
+                  <YStack 
+                    height="100%" 
+                    width={`${Math.min(100, (targetBufferAmount / totalCashBalance) * 100)}%`} 
+                    backgroundColor="#DA291C" 
+                  />
+                  <YStack 
+                    height="100%" 
+                    width={`${Math.max(0, Math.min(100 - (targetBufferAmount / totalCashBalance) * 100, (safeToDeposit / totalCashBalance) * 100))}%`} 
+                    backgroundColor="#4CAF50" 
+                  />
+                </XStack>
+                <XStack justifyContent="space-between">
+                  <Text fontSize={10} color="rgba(0,0,0,0.4)" fontWeight="500">Reserved Buffer ({Math.round(Math.min(100, (targetBufferAmount / totalCashBalance) * 100))}% of cash)</Text>
+                  <Text fontSize={10} color="rgba(0,0,0,0.4)" fontWeight="500">Safe Spillover ({Math.round(Math.max(0, Math.min(100 - (targetBufferAmount / totalCashBalance) * 100, (safeToDeposit / totalCashBalance) * 100)))}%)</Text>
+                </XStack>
+              </YStack>
+
+              <YStack gap="$1.5">
+                <Text fontSize={12} color="rgba(0,0,0,0.6)" fontWeight="600">
+                  Select Safety Net: <Text color="#DA291C" fontWeight="bold">{bufferMonths} Months</Text>
+                </Text>
+                <CustomSlider 
+                  value={bufferMonths} 
+                  steps={[1, 2, 3, 6, 9, 12]} 
+                  onChange={(val) => {
+                    setBufferMonths(val);
+                    if (!hasUserModifiedDeposit) {
+                      setCustomDepositAmount('');
+                    }
+                  }} 
+                />
+              </YStack>
+            </YStack>
+          </GlassCard>
+        </MotiView>
+
         {/* SECTION 2: Deposit Owl AI Insight Banner */}
         <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 200 }}>
           <GlassCard 
@@ -146,7 +308,15 @@ export default function SmartDepositDetailsPage() {
                   Deposit Owl Insight
                 </Text>
                 <Text fontSize={14} color="black" lineHeight={22}>
-                  I noticed <Text fontWeight="bold" color="#DA291C">$40,000</Text> of your total balance is sitting in basic accounts earning less than 0.05% interest. These are your <Text fontWeight="bold">&quot;Idle Funds&quot;</Text>. Let&apos;s put that money to work to beat inflation.
+                  {safeToDeposit > 0 ? (
+                    <>
+                      Based on your <Text fontWeight="bold" color="#DA291C">{bufferMonths}-month</Text> safety net, you need <Text fontWeight="bold">${targetBufferAmount.toLocaleString()}</Text> as a liquidity buffer. This leaves <Text fontWeight="bold" color="#4CAF50">${safeToDeposit.toLocaleString()}</Text> of your cash safe to deposit/reallocate into higher-yield options!
+                    </>
+                  ) : (
+                    <>
+                      Your current cash of <Text fontWeight="bold">${totalCashBalance.toLocaleString()}</Text> is below your target safety buffer of <Text fontWeight="bold" color="#DA291C">${targetBufferAmount.toLocaleString()}</Text> ({bufferMonths} months). I recommend building up your savings before allocating funds to investments.
+                    </>
+                  )}
                 </Text>
               </YStack>
             </XStack>
@@ -155,10 +325,155 @@ export default function SmartDepositDetailsPage() {
 
         {/* SECTION 3: Wealth Allocation Breakdown */}
         <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 300 }}>
-          <Text fontSize={18} fontWeight="bold" color="black" marginBottom="$4">
+          <Text fontSize={18} fontWeight="bold" color="black" marginBottom="$2">
             Deposit Owl&apos;s Guided Plan
           </Text>
+        </MotiView>
 
+        {/* SECTION 3.5: Deposit Action Area (Moved up here!) */}
+        <MotiView 
+          from={{ opacity: 0, translateY: 20 }} 
+          animate={{ opacity: 1, translateY: 0 }} 
+          transition={{ delay: 320, type: 'spring' }}
+        >
+          <GlassCard padding="$4.5" marginBottom="$6" borderRadius={16} borderColor="rgba(0,0,0,0.05)">
+            <YStack gap="$4">
+              <YStack gap="$1">
+                <Text fontSize={16} fontWeight="bold" color="black">Execute Guided Allocation</Text>
+                <Text fontSize={12} color="rgba(0,0,0,0.5)">Specify how much you want to deposit into this plan</Text>
+              </YStack>
+
+              <XStack gap="$3" alignItems="center">
+                <Text fontSize={18} fontWeight="bold" color="black">$</Text>
+                <Input
+                  flex={1}
+                  height={46}
+                  borderRadius={12}
+                  borderWidth={1.5}
+                  borderColor="rgba(0,0,0,0.1)"
+                  fontSize={16}
+                  fontWeight="bold"
+                  keyboardType="numeric"
+                  placeholder={safeToDeposit.toString()}
+                  value={hasUserModifiedDeposit ? customDepositAmount : ''}
+                  onChangeText={(val) => {
+                    setHasUserModifiedDeposit(true);
+                    setCustomDepositAmount(val);
+                  }}
+                  disabled={safeToDeposit <= 0}
+                  backgroundColor={safeToDeposit <= 0 ? "rgba(0,0,0,0.02)" : "white"}
+                />
+                
+                {hasUserModifiedDeposit && (
+                  <Button
+                    size="$3"
+                    variant="outlined"
+                    borderColor="rgba(0,0,0,0.15)"
+                    borderRadius={10}
+                    onPress={() => {
+                      setHasUserModifiedDeposit(false);
+                      setCustomDepositAmount('');
+                    }}
+                  >
+                    <Text fontSize={12} fontWeight="600" color="rgba(0,0,0,0.6)">Reset</Text>
+                  </Button>
+                )}
+              </XStack>
+
+              {safeToDeposit <= 0 ? (
+                <XStack 
+                  backgroundColor="rgba(218, 41, 28, 0.08)" 
+                  padding="$3.5" 
+                  borderRadius={12} 
+                  alignItems="flex-start" 
+                  gap="$2.5"
+                >
+                  <MaterialCommunityIcons name="alert-circle" size={20} color="#DA291C" style={{ marginTop: 2 }} />
+                  <YStack flex={1}>
+                    <Text fontSize={13} fontWeight="bold" color="#DA291C">Buffer Unmet</Text>
+                    <Text fontSize={12} color="rgba(0,0,0,0.7)" lineHeight={18} marginTop="$1">
+                      Keep saving! You need ${bufferDeficit.toLocaleString()} more to fully fund your safety buffer before locking money.
+                    </Text>
+                  </YStack>
+                </XStack>
+              ) : parseFloat(customDepositAmount) > safeToDeposit ? (
+                <XStack 
+                  backgroundColor="rgba(255, 184, 28, 0.12)" 
+                  padding="$3.5" 
+                  borderRadius={12} 
+                  alignItems="flex-start" 
+                  gap="$2.5"
+                  borderWidth={1}
+                  borderColor="rgba(255, 184, 28, 0.3)"
+                >
+                  <MaterialCommunityIcons name="alert" size={20} color="#DA291C" style={{ marginTop: 2 }} />
+                  <YStack flex={1}>
+                    <Text fontSize={13} fontWeight="bold" color="#DA291C">Liquidity Warning</Text>
+                    <Text fontSize={12} color="rgba(0,0,0,0.7)" lineHeight={18} marginTop="$1">
+                      Exceeding your safe deposit limit of ${safeToDeposit.toLocaleString()} might compromise your target safety net for emergencies.
+                    </Text>
+                  </YStack>
+                </XStack>
+              ) : hasUserModifiedDeposit && parseFloat(customDepositAmount) > 0 ? (
+                <XStack 
+                  backgroundColor="rgba(76, 175, 80, 0.08)" 
+                  padding="$3.5" 
+                  borderRadius={12} 
+                  alignItems="flex-start" 
+                  gap="$2.5"
+                >
+                  <MaterialCommunityIcons name="check-circle" size={20} color="#4CAF50" style={{ marginTop: 2 }} />
+                  <YStack flex={1}>
+                    <Text fontSize={13} fontWeight="bold" color="#4CAF50">Liquidity Secured</Text>
+                    <Text fontSize={12} color="rgba(0,0,0,0.7)" lineHeight={18} marginTop="$1">
+                      Your custom allocation of ${parseFloat(customDepositAmount).toLocaleString()} is within the safe limit. Your ${targetBufferAmount.toLocaleString()} safety net is fully preserved.
+                    </Text>
+                  </YStack>
+                </XStack>
+              ) : (
+                <XStack 
+                  backgroundColor="rgba(76, 175, 80, 0.08)" 
+                  padding="$3.5" 
+                  borderRadius={12} 
+                  alignItems="flex-start" 
+                  gap="$2.5"
+                >
+                  <MaterialCommunityIcons name="check-circle" size={20} color="#4CAF50" style={{ marginTop: 2 }} />
+                  <YStack flex={1}>
+                    <Text fontSize={13} fontWeight="bold" color="#4CAF50">Liquidity Secured</Text>
+                    <Text fontSize={12} color="rgba(0,0,0,0.7)" lineHeight={18} marginTop="$1">
+                      Using recommended amount. Your safety net of ${targetBufferAmount.toLocaleString()} will remain fully funded in liquid accounts.
+                    </Text>
+                  </YStack>
+                </XStack>
+              )}
+
+              <Button
+                backgroundColor={safeToDeposit > 0 ? "#DA291C" : "rgba(0,0,0,0.1)"}
+                borderRadius={12}
+                height={48}
+                disabled={safeToDeposit <= 0}
+                pressStyle={{ opacity: 0.8 }}
+                onPress={() => {
+                  Alert.alert(
+                    "Review Deposit", 
+                    `Initiated allocation review for $${idleFunds.toLocaleString()}!\n\n` + 
+                    `- OCBC 360 Account: $${amount1.toLocaleString()}\n` +
+                    `- 6-Month Fixed Deposit: $${amount2.toLocaleString()}\n` + 
+                    `- RoboInvest: $${amount3.toLocaleString()}`
+                  );
+                }}
+              >
+                <Text color={safeToDeposit > 0 ? "white" : "rgba(0,0,0,0.3)"} fontWeight="bold" fontSize={15}>
+                  Review Deposit
+                </Text>
+              </Button>
+            </YStack>
+          </GlassCard>
+        </MotiView>
+
+        {/* SECTION 3.1: Wealth Allocation Visuals */}
+        <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 340 }}>
           {/* Stacked Progress Bar */}
           <YStack marginBottom="$6">
             <XStack height={12} borderRadius={6} overflow="hidden" backgroundColor="rgba(0,0,0,0.05)">
@@ -166,14 +481,16 @@ export default function SmartDepositDetailsPage() {
                 <YStack 
                   key={i} 
                   height="100%" 
-                  width={`${(plan.amount / idleFunds) * 100}%`} 
+                  width={`${idleFunds > 0 ? (plan.amount / idleFunds) * 100 : 0}%`} 
                   backgroundColor={plan.color}
                 />
               ))}
             </XStack>
             <XStack justifyContent="space-between" marginTop="$2">
-              <Text fontSize={12} color="rgba(0,0,0,0.5)">Idle Funds Reallocated</Text>
-              <Text fontSize={12} fontWeight="bold" color="black">$40,000 / $40,000</Text>
+              <Text fontSize={12} color="rgba(0,0,0,0.5)">Funds Recommended for Reallocation</Text>
+              <Text fontSize={12} fontWeight="bold" color="black">
+                ${idleFunds.toLocaleString()} / ${idleFunds.toLocaleString()}
+              </Text>
             </XStack>
           </YStack>
         </MotiView>
@@ -229,7 +546,7 @@ export default function SmartDepositDetailsPage() {
                       <Text fontSize={15} fontWeight="bold" color="black">
                         {plan.title}
                       </Text>
-                      <Text fontSize={15} fontWeight="bold" color={plan.color}>
+                      <Text fontSize={15} fontWeight="bold" color={idleFunds > 0 ? plan.color : 'rgba(0,0,0,0.3)'}>
                         ${plan.amount.toLocaleString()}
                       </Text>
                     </XStack>
@@ -239,12 +556,16 @@ export default function SmartDepositDetailsPage() {
                     
                     {/* Action Button */}
                     <Button 
-                      backgroundColor={plan.color}
+                      backgroundColor={idleFunds > 0 ? plan.color : 'rgba(0,0,0,0.08)'}
                       borderRadius={12}
                       height={42}
                       pressStyle={{ opacity: 0.8 }}
+                      disabled={idleFunds <= 0}
+                      onPress={() => {
+                        Alert.alert("Allocation", `Proceeding to allocate $${plan.amount.toLocaleString()} for ${plan.title}`);
+                      }}
                     >
-                      <Text color="white" fontWeight="600" fontSize={14}>
+                      <Text color={idleFunds > 0 ? "white" : "rgba(0,0,0,0.3)"} fontWeight="600" fontSize={14}>
                         {i === 1 ? 'Set Up Transfer' : 'Allocate Funds'}
                       </Text>
                     </Button>
@@ -254,6 +575,8 @@ export default function SmartDepositDetailsPage() {
             </MotiView>
           ))}
         </YStack>
+
+        {/* SECTION 3.5 was moved above */}
 
         {/* SECTION 4: Explore More Products Promotion */}
         <MotiView 
