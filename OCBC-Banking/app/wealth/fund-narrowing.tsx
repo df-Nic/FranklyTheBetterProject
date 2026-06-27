@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, Modal, KeyboardAvoidingView, Platform, Dimensions, View, Animated, Image, PanResponder } from 'react-native';
-import { YStack, XStack, Text, Button, Spinner, Input, Avatar, Sheet } from 'tamagui';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { YStack, XStack, Text, Button, Spinner, Input } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { MotiView } from 'moti';
 import { Feather } from '@expo/vector-icons';
@@ -11,15 +11,7 @@ import { useWealth } from '../../components/wealth/WealthContext';
 import {
   WEALTH_PRODUCTS,
   MOCK_FUNDS,
-  MOCK_AI_REPLIES,
-  DEFAULT_AI_REPLY,
 } from '../../components/wealth/mockData';
-
-function getMockReply(question: string): string {
-  const lower = question.toLowerCase();
-  const match = MOCK_AI_REPLIES.find(r => r.keywords.some(kw => lower.includes(kw)));
-  return match?.reply ?? DEFAULT_AI_REPLY;
-}
 
 const OTHER_MOCK_FUNDS = [
   {
@@ -63,105 +55,10 @@ export default function FundNarrowingScreen() {
   const [loading, setLoading] = useState(true);
   const [funds, setFunds] = useState<Array<{ name: string; assetClass: string; reason: string; ytd: string }>>([]);
 
-  // Modal state
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalFund, setModalFund] = useState<{ name: string } | null>(null);
-  const [chatInput, setChatInput] = useState('');
-  const [chatHistory, setChatHistory] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
-  const [aiTyping, setAiTyping] = useState(false);
-  const scrollViewRef = useRef<ScrollView>(null);
-
   // Explore more states
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [showAllOtherFunds, setShowAllOtherFunds] = useState(false);
-
-  // Floating draggable owl states
-  const [bubbleVisible, setBubbleVisible] = useState(true);
-  const [bubbleOnRight, setBubbleOnRight] = useState(false);
-  const pan = useRef(new Animated.ValueXY()).current;
-  const isDragging = useRef(false);
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => false,
-      onMoveShouldSetPanResponder: (evt, gestureState) => {
-        // Only trigger dragging if moved more than 5px to allow clicking
-        return Math.abs(gestureState.dx) > 5 || Math.abs(gestureState.dy) > 5;
-      },
-      onPanResponderGrant: () => {
-        isDragging.current = true;
-        setBubbleVisible(false);
-        pan.setOffset({
-          x: (pan.x as any)._value,
-          y: (pan.y as any)._value
-        });
-      },
-      onPanResponderMove: (evt, gestureState) => {
-        const screenWidth = Dimensions.get('window').width;
-        const screenHeight = Dimensions.get('window').height;
-        const padding = 20;
-        const owlSize = 64;
-
-        // Horizontal boundaries relative to starting position (right: 20)
-        const minX = 2 * padding + owlSize - screenWidth;
-        const maxX = 0;
-
-        // Vertical boundaries relative to starting position (bottom: 30)
-        const minY = 120 + 30 + owlSize - screenHeight;
-        const maxY = 0;
-
-        const offsetX = (pan.x as any)._offset || 0;
-        const offsetY = (pan.y as any)._offset || 0;
-
-        let targetX = offsetX + gestureState.dx;
-        let targetY = offsetY + gestureState.dy;
-
-        // Clamp values to keep owl on screen
-        if (targetX < minX) targetX = minX;
-        if (targetX > maxX) targetX = maxX;
-        if (targetY < minY) targetY = minY;
-        if (targetY > maxY) targetY = maxY;
-
-        pan.x.setValue(targetX - offsetX);
-        pan.y.setValue(targetY - offsetY);
-      },
-      onPanResponderRelease: () => {
-        isDragging.current = false;
-        pan.flattenOffset();
-
-        // Calculate if owl is on the left half of the screen
-        const screenWidth = Dimensions.get('window').width;
-        const initialOwlX = screenWidth - 20 - 64; // right=20, owlWidth=64
-        const currentOwlX = initialOwlX + (pan.x as any)._value;
-        setBubbleOnRight(currentOwlX < screenWidth / 2);
-
-        setBubbleVisible(true);
-      },
-      onPanResponderTerminate: () => {
-        isDragging.current = false;
-        pan.flattenOffset();
-
-        // Calculate if owl is on the left half of the screen
-        const screenWidth = Dimensions.get('window').width;
-        const initialOwlX = screenWidth - 20 - 64;
-        const currentOwlX = initialOwlX + (pan.x as any)._value;
-        setBubbleOnRight(currentOwlX < screenWidth / 2);
-
-        setBubbleVisible(true);
-      }
-    })
-  ).current;
-
-  const handleOpenGeneralChat = () => {
-    setModalFund(null);
-    setChatHistory([{
-      role: 'assistant',
-      content: `Hi there! I am your Investment Owl assistant. Hoot! 🦉\n\nI can help you understand the recommended **${selectedProduct?.name || 'investment'}** products or explain how these fit your **${riskProfile}** risk profile to help you reach **Premier Banking** (SGD 200,000 AUM).\n\nAsk me anything!`,
-    }]);
-    setChatInput('');
-    setModalOpen(true);
-  };
 
   const filteredOtherFunds = OTHER_MOCK_FUNDS.filter(fund => {
     const matchesSearch = fund.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -189,111 +86,10 @@ export default function FundNarrowingScreen() {
     return () => clearTimeout(timer);
   }, [riskProfile]);
 
-  const handleAskAbout = (fund: { name: string }) => {
-    setModalFund(fund);
-    setChatHistory([{
-      role: 'assistant',
-      content: `Hi! Ask me anything about the **${fund.name}** and whether it fits your investment profile.`,
-    }]);
-    setChatInput('');
-    setModalOpen(true);
-  };
-
-  const handleSendMessage = () => {
-    if (!chatInput.trim()) return;
-    const userMsg = chatInput.trim();
-    setChatHistory(prev => [...prev, { role: 'user', content: userMsg }]);
-    setChatInput('');
-    setAiTyping(true);
-    setTimeout(() => {
-      const reply = getMockReply(userMsg);
-      setChatHistory(prev => [...prev, { role: 'assistant', content: reply }]);
-      setAiTyping(false);
-    }, 1200);
-  };
-
   const handleSelectFund = (fund: { name: string; assetClass: string; reason: string; ytd: string }) => {
     dispatch({ type: 'SELECT_FUND', fund });
     router.push('/wealth/cta');
   };
-
-  const speechBubble = (
-    <MotiView
-      animate={{
-        opacity: bubbleVisible ? 1 : 0,
-        scale: bubbleVisible ? 1 : 0.8,
-        translateX: bubbleVisible ? 0 : (bubbleOnRight ? -10 : 10),
-      }}
-      transition={{ type: 'timing', duration: 200 }}
-      style={{
-        position: 'absolute',
-        top: 14,
-        left: bubbleOnRight ? 72 : -178,
-      }}
-    >
-      <TouchableOpacity onPress={handleOpenGeneralChat} activeOpacity={0.95}>
-        <GlassCard
-          paddingHorizontal="$3"
-          paddingVertical="$2"
-          backgroundColor="white"
-          width={170}
-          borderWidth={1}
-          borderColor="rgba(0,0,0,0.06)"
-          style={{
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.08,
-            shadowRadius: 6,
-            elevation: 4,
-          }}
-        >
-          <XStack alignItems="center" gap="$1.5" justifyContent="center">
-            <Text fontSize={12} fontWeight="700" color="black">Ask Investment Owl</Text>
-            <Text fontSize={12}>🦉</Text>
-          </XStack>
-        </GlassCard>
-      </TouchableOpacity>
-    </MotiView>
-  );
-
-  const owlAvatar = (
-    <MotiView
-      from={{ scale: 0, rotate: '-20deg' }}
-      animate={{ scale: 1, rotate: '0deg' }}
-      transition={{ type: 'spring', delay: 500 }}
-    >
-      <TouchableOpacity
-        onPress={handleOpenGeneralChat}
-        activeOpacity={0.9}
-        style={{
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.15,
-          shadowRadius: 8,
-          elevation: 6,
-        }}
-      >
-        <YStack
-          width={64}
-          height={64}
-          borderRadius={32}
-          backgroundColor="white"
-          overflow="hidden"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <Image
-            source={require('../../assets/images/Invest Owl.jpg')}
-            style={{
-              width: 64,
-              height: 64,
-            }}
-            resizeMode="contain"
-          />
-        </YStack>
-      </TouchableOpacity>
-    </MotiView>
-  );
 
   return (
     <YStack flex={1} backgroundColor="#F5F5F7">
@@ -545,174 +341,6 @@ export default function FundNarrowingScreen() {
           </>
         )}
       </ScrollView>
-
-      {/* Ask About This — Sheet */}
-      <Sheet
-        modal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        snapPoints={[85]}
-        dismissOnSnapToBottom
-        position={0}
-        zIndex={100000}
-      >
-        <Sheet.Overlay enterStyle={{ opacity: 0 }} exitStyle={{ opacity: 0 }} backgroundColor="rgba(0,0,0,0.4)" />
-        <Sheet.Handle backgroundColor="rgba(0,0,0,0.15)" />
-        <Sheet.Frame backgroundColor="#F5F5F7" borderTopLeftRadius={24} borderTopRightRadius={24}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-            {/* Header */}
-            <XStack
-              paddingHorizontal={20}
-              paddingVertical={14}
-              justifyContent="space-between"
-              alignItems="center"
-              backgroundColor="white"
-              borderBottomWidth={1}
-              borderColor="rgba(0,0,0,0.06)"
-            >
-              <XStack alignItems="center" gap="$3" flex={1}>
-                <YStack width={36} height={36} borderRadius={18} backgroundColor="rgba(218,41,28,0.1)" alignItems="center" justifyContent="center" overflow="hidden">
-                  {modalFund ? (
-                    <Feather name="bar-chart-2" size={16} color="#DA291C" />
-                  ) : (
-                    <Image
-                      source={require('../../assets/images/Invest Owl.jpg')}
-                      style={{ width: 36, height: 36 }}
-                      resizeMode="contain"
-                    />
-                  )}
-                </YStack>
-                <YStack flex={1}>
-                  <Text fontSize={15} fontWeight="800" color="black" numberOfLines={1}>
-                    {modalFund ? modalFund.name : (selectedProduct?.name ? `${selectedProduct.name} Advisor` : 'Investment Advisor')}
-                  </Text>
-                  <Text fontSize={12} color="#DA291C" fontWeight="600">
-                    {modalFund ? 'Fund Assistant' : 'Investment Owl'}
-                  </Text>
-                </YStack>
-              </XStack>
-              <Button circular size="$3" backgroundColor="rgba(0,0,0,0.05)" onPress={() => setModalOpen(false)}>
-                <Feather name="x" size={16} color="black" />
-              </Button>
-            </XStack>
-
-            {/* Chat */}
-            <ScrollView
-              ref={scrollViewRef}
-              onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
-              style={{ flex: 1, paddingHorizontal: 20 }}
-              contentContainerStyle={{ gap: 16, paddingVertical: 20 }}
-              keyboardShouldPersistTaps="handled"
-            >
-              {chatHistory.map((msg, i) => {
-                const isUser = msg.role === 'user';
-                return (
-                  <XStack key={i} justifyContent={isUser ? 'flex-end' : 'flex-start'} gap="$2" alignItems="flex-end">
-                    {!isUser && (
-                      <YStack width={28} height={28} borderRadius={14} backgroundColor="white" borderWidth={1} borderColor="rgba(0,0,0,0.08)" overflow="hidden" alignItems="center" justifyContent="center">
-                        <Image
-                          source={require('../../assets/images/Invest Owl.jpg')}
-                          style={{ width: 26, height: 26 }}
-                          resizeMode="contain"
-                        />
-                      </YStack>
-                    )}
-                    <YStack
-                      backgroundColor={isUser ? '#DA291C' : 'white'}
-                      paddingHorizontal={16}
-                      paddingVertical={12}
-                      borderRadius={20}
-                      borderBottomRightRadius={isUser ? 4 : 20}
-                      borderBottomLeftRadius={!isUser ? 4 : 20}
-                      maxWidth="80%"
-                      shadowColor="#000"
-                      shadowOpacity={0.04}
-                      shadowRadius={8}
-                      elevation={2}
-                    >
-                      <Text fontSize={14} color={isUser ? 'white' : 'black'} lineHeight={22}>
-                        {msg.content}
-                      </Text>
-                    </YStack>
-                  </XStack>
-                );
-              })}
-              {aiTyping && (
-                <XStack justifyContent="flex-start" gap="$2" alignItems="flex-end">
-                  <YStack width={28} height={28} borderRadius={14} backgroundColor="white" borderWidth={1} borderColor="rgba(0,0,0,0.08)" overflow="hidden" alignItems="center" justifyContent="center">
-                    <Image
-                      source={require('../../assets/images/Invest Owl.jpg')}
-                      style={{ width: 26, height: 26 }}
-                      resizeMode="contain"
-                    />
-                  </YStack>
-                  <YStack
-                    backgroundColor="white"
-                    paddingHorizontal={16}
-                    paddingVertical={12}
-                    borderRadius={20}
-                    borderBottomLeftRadius={4}
-                    shadowColor="#000"
-                    shadowOpacity={0.04}
-                    shadowRadius={8}
-                  >
-                    <XStack gap="$2" alignItems="center">
-                      <Spinner size="small" color="#DA291C" />
-                      <Text fontSize={13} color="rgba(0,0,0,0.5)">Typing...</Text>
-                    </XStack>
-                  </YStack>
-                </XStack>
-              )}
-            </ScrollView>
-
-            <YStack backgroundColor="white" paddingTop={12} paddingBottom={Platform.OS === 'ios' ? 34 : 48} paddingHorizontal={20} borderTopWidth={1} borderColor="rgba(0,0,0,0.06)">
-              <XStack
-                gap="$3"
-                backgroundColor="#F5F5F7"
-                borderRadius={24}
-                paddingHorizontal={16}
-                paddingVertical={8}
-                alignItems="center"
-                borderWidth={1}
-                borderColor="rgba(0,0,0,0.05)"
-              >
-                <Input
-                  flex={1}
-                  placeholder={modalFund ? "Ask about this fund..." : "Ask Investment Owl..."}
-                  value={chatInput}
-                  onChangeText={setChatInput}
-                  backgroundColor="transparent"
-                  borderWidth={0}
-                  paddingHorizontal={0}
-                  fontSize={15}
-                  onSubmitEditing={handleSendMessage}
-                  returnKeyType="send"
-                />
-                <Button circular size="$3" backgroundColor={chatInput.trim() ? '#DA291C' : 'rgba(0,0,0,0.1)'} pressStyle={{ opacity: 0.8 }} onPress={handleSendMessage}>
-                  <Feather name="arrow-up" size={18} color="white" />
-                </Button>
-              </XStack>
-            </YStack>
-          </KeyboardAvoidingView>
-        </Sheet.Frame>
-      </Sheet>
-
-      {/* Floating Draggable Investment Owl Assistant Bubble */}
-      <Animated.View
-        {...panResponder.panHandlers}
-        style={{
-          position: 'absolute',
-          bottom: 30,
-          right: 20,
-          width: 64,
-          height: 64,
-          zIndex: 1000,
-          transform: [{ translateX: pan.x }, { translateY: pan.y }],
-        }}
-      >
-        {owlAvatar}
-        {speechBubble}
-      </Animated.View>
     </YStack>
   );
 }

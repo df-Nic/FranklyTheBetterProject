@@ -25,24 +25,35 @@ function getRiskProfile(score: number) {
 
 export default function RiskSwipeScreen() {
   const router = useRouter();
-  const { dispatch } = useWealth();
+  const { state, dispatch } = useWealth();
+  const knowledgeLevel = state.userProfile.knowledgeLevel ?? 'Basic';
+
+  const currentRiskCards = RISK_CARDS.map(card => {
+    const variant = (card as any)[knowledgeLevel] || card;
+    return {
+      id: card.id,
+      headline: variant.headline,
+      description: variant.description,
+      riskSeekingAnswer: card.riskSeekingAnswer,
+    };
+  });
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
 
   // Each card gets its own pan instance to prevent snapping back
-  const pans = useRef(RISK_CARDS.map(() => new Animated.ValueXY())).current;
+  const pans = useRef(currentRiskCards.map(() => new Animated.ValueXY())).current;
   const pan = pans[currentIndex] || pans[pans.length - 1];
 
   const processSwipe = (direction: 'left' | 'right', currentIdx: number, currentScore: number) => {
-    const card = RISK_CARDS[currentIdx];
+    const card = currentRiskCards[currentIdx];
     const isRiskSeeking =
       (direction === 'right' && card.riskSeekingAnswer === 'right') ||
       (direction === 'left' && card.riskSeekingAnswer === 'left');
     const newScore = currentScore + (isRiskSeeking ? 1 : 0);
     const nextIndex = currentIdx + 1;
 
-    if (nextIndex >= RISK_CARDS.length) {
+    if (nextIndex >= currentRiskCards.length) {
       const profile = getRiskProfile(newScore);
       dispatch({ type: 'SET_RISK_PROFILE', riskProfile: profile.label as any });
       router.push('/wealth/product-selection');
@@ -94,7 +105,7 @@ export default function RiskSwipeScreen() {
   );
 
 
-  const visibleCards = RISK_CARDS.slice(currentIndex, currentIndex + 3);
+  const visibleCards = currentRiskCards.slice(currentIndex, currentIndex + 3);
 
   return (
     <YStack flex={1} backgroundColor="#F5F5F7">
@@ -123,7 +134,7 @@ export default function RiskSwipeScreen() {
           <YStack alignItems="center">
             <Text fontSize={17} fontWeight="700" color="black">Risk Profiling</Text>
             <Text fontSize={12} color="rgba(0,0,0,0.45)">
-              {currentIndex + 1} of {RISK_CARDS.length}
+              {currentIndex + 1} of {currentRiskCards.length}
             </Text>
           </YStack>
           <YStack width={36} />
@@ -131,7 +142,7 @@ export default function RiskSwipeScreen() {
         {/* Progress bar */}
         <YStack backgroundColor="rgba(0,0,0,0.04)" height={3}>
           <MotiView
-            animate={{ width: `${(currentIndex / RISK_CARDS.length) * 100}%` }}
+            animate={{ width: `${(currentIndex / currentRiskCards.length) * 100}%` }}
             transition={{ type: 'timing', duration: 300 }}
             style={{ height: 3, backgroundColor: '#DA291C' }}
           />

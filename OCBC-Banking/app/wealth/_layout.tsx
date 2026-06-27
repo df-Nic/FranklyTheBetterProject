@@ -1,8 +1,6 @@
-import { Stack, usePathname } from 'expo-router';
+import { Stack } from 'expo-router';
 import { YStack } from 'tamagui';
 import { WealthProvider } from '../../components/wealth/WealthContext';
-import { AIAssistantFAB } from '../../components/wealth/AIAssistantFAB';
-import { AIAssistantSheet } from '../../components/wealth/AIAssistantSheet';
 
 export default function WealthLayout() {
   return (
@@ -17,7 +15,6 @@ export default function WealthLayout() {
           <Stack.Screen name="cta" />
           <Stack.Screen name="dashboard" />
         </Stack>
-        <AIAssistantSheet />
       </YStack>
     </WealthProvider>
   );
