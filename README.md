@@ -213,19 +213,7 @@ A complete, multi-screen financial goal planning experience for life events (cur
 
 ---
 
-### 6. 🤖 AI Assistant
-
-A slide-up modal chat interface available throughout the Invest Owl flow.
-
-- Accessible via a floating action button on the Wealth Dashboard and Tier Dashboard.
-- **Quick question chips** — Pre-populated questions: *"How close am I to Premier?"*, *"What products are safest?"*, *"How long until I unlock Premier?"*
-- **Free-text input** — Users can type any question and receive a contextual mock response.
-- Responses are keyword-matched against a mock reply library and delivered with a 1.3-second "typing" delay to simulate a real AI assistant.
-- Conversation history is persisted in `WealthContext` for the session.
-
----
-
-### 7. 🎨 Design System & UI Patterns
+### 6. 🎨 Design System & UI Patterns
 
 The prototype uses a consistent set of UI primitives and design patterns across all screens.
 
