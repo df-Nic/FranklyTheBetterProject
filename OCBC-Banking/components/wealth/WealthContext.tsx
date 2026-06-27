@@ -10,6 +10,7 @@ export interface UserProfile {
   targetTierTimeline: string;
   marketPreference: string;
   riskProfile: 'Conservative' | 'Balanced' | 'Growth' | null;
+  knowledgeLevel: 'Basic' | 'Intermediate' | 'Advanced' | null;
 }
 
 interface SelectedFund {
@@ -34,6 +35,7 @@ export interface WealthState {
 type WealthAction =
   | { type: 'COMPLETE_ONBOARDING'; profile: UserProfile }
   | { type: 'SET_RISK_PROFILE'; riskProfile: 'Conservative' | 'Balanced' | 'Growth' }
+  | { type: 'SET_KNOWLEDGE_LEVEL'; knowledgeLevel: 'Basic' | 'Intermediate' | 'Advanced' }
   | { type: 'SELECT_PRODUCT'; productId: string }
   | { type: 'SELECT_FUND'; fund: SelectedFund }
   | { type: 'SET_INVESTMENT_AMOUNT'; amount: number }
@@ -52,6 +54,7 @@ const initialUserProfile: UserProfile = {
   targetTierTimeline: '',
   marketPreference: '',
   riskProfile: null,
+  knowledgeLevel: null,
 };
 
 const initialState: WealthState = {
@@ -78,6 +81,11 @@ function wealthReducer(state: WealthState, action: WealthAction): WealthState {
       return {
         ...state,
         userProfile: { ...state.userProfile, riskProfile: action.riskProfile },
+      };
+    case 'SET_KNOWLEDGE_LEVEL':
+      return {
+        ...state,
+        userProfile: { ...state.userProfile, knowledgeLevel: action.knowledgeLevel },
       };
     case 'SELECT_PRODUCT':
       return { ...state, selectedProduct: action.productId };

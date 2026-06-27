@@ -35,6 +35,11 @@ const QUESTIONS = [
     label: 'Which markets interest you most?',
     options: ['Singapore', 'Asia', 'Global', 'No preference'],
   },
+  {
+    id: 'knowledgeLevel',
+    label: 'What is your financial knowledge level?',
+    options: ['Basic (Starting out)', 'Intermediate (Fundamentals)', 'Advanced (Complex instruments)'],
+  },
 ];
 
 export default function OnboardingScreen() {
@@ -52,6 +57,10 @@ export default function OnboardingScreen() {
   };
 
   const handleContinue = () => {
+    let kl: 'Basic' | 'Intermediate' | 'Advanced' = 'Basic';
+    if (answers.knowledgeLevel?.startsWith('Intermediate')) kl = 'Intermediate';
+    else if (answers.knowledgeLevel?.startsWith('Advanced')) kl = 'Advanced';
+
     dispatch({
       type: 'COMPLETE_ONBOARDING',
       profile: {
@@ -62,9 +71,12 @@ export default function OnboardingScreen() {
         targetTierTimeline: '3–5 years',
         marketPreference: answers.marketPreference,
         riskProfile: null,
+        knowledgeLevel: kl,
       },
     });
-    router.push('/wealth/risk-swipe');
+    // Replace (not push) so onboarding is removed from the back stack.
+    // After the quiz the user can go back without stepping through onboarding again.
+    router.replace('/wealth/risk-swipe');
   };
 
   return (
