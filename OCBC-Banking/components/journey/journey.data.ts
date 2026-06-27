@@ -47,7 +47,7 @@ export const OWLS: OwlProduct[] = [
     name: "Deposit Owl",
     role: "LIQUIDITY MANAGER",
     tint: "#FBF1DE",
-    avatar: require("../../assets/owl-deposit.png"),
+    avatar: require("../../assets/images/owl-deposit.png"),
     description:
       "Optimizing your cash reserves. Monitoring yield opportunities across high-interest accounts and short-term instruments to ensure maximum liquidity return.",
     holdings: 65000,
@@ -58,7 +58,7 @@ export const OWLS: OwlProduct[] = [
     name: "Investment Owl",
     role: "PORTFOLIO STRATEGIST",
     tint: "#EBF0FA",
-    avatar: require("../../assets/owl-investment.png"),
+    avatar: require("../../assets/images/owl-investment.png"),
     description:
       "Analyzing market vectors for growth. Continuously rebalancing your portfolio against institutional benchmarks and emerging sector opportunities.",
     holdings: 135000,
@@ -69,7 +69,7 @@ export const OWLS: OwlProduct[] = [
     name: "Planning Owl",
     role: "FUTURE ARCHITECT",
     tint: "#EAF1E6",
-    avatar: require("../../assets/owl-planning.png"),
+    avatar: require("../../assets/images/owl-planning.png"),
     description:
       "Mapping your generational wealth trajectory. Forecasting tax implications and structuring long-term estate and budgeting frameworks.",
     holdings: 20000,

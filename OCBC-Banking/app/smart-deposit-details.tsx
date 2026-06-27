@@ -196,7 +196,7 @@ export default function SmartDepositDetailsPage() {
                   style={{ elevation: 2 }}
                 >
                   <Image 
-                    source={require('../assets/images/Deposit Owl.jpg')} 
+                    source={require('../assets/images/owl-deposit.png')} 
                     style={{ 
                       width: 36, 
                       height: 36, 
@@ -268,7 +268,7 @@ export default function SmartDepositDetailsPage() {
           >
             <XStack gap="$3" alignItems="center" marginBottom="$3">
               <Image 
-                source={require('../assets/images/Deposit Owl.jpg')} 
+                source={require('../assets/images/owl-deposit.png')} 
                 style={{ 
                   width: 44, 
                   height: 44, 

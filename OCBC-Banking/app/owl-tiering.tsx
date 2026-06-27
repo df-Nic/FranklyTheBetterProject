@@ -48,7 +48,7 @@ export default function OwlTieringScreen() {
     >
       {/* Painted scene with live-coded milestone nodes */}
       <ImageBackground
-        source={require("../assets/journey-scene.png")}
+        source={require("../assets/images/journey-scene.png")}
         resizeMode="cover"
         style={[styles.scene, { aspectRatio: SCENE_ASPECT }]}
       >

@@ -292,13 +292,13 @@ export default function HomePage() {
                   <Image
                     source={
                       selectedTab === 'Accounts'
-                        ? require('../../assets/images/Deposit Owl.jpg')
-                        : require('../../assets/images/Invest Owl.jpg')
+                        ? require('../../assets/images/owl-deposit.png')
+                        : require('../../assets/images/owl-investment.png')
                     }
                     style={{
-                      width: 75,
-                      height: 75,
-                      borderRadius: 37.5,
+                      width: 56,
+                      height: 56,
+                      borderRadius: 28,
                       borderWidth: 2,
                       borderColor: 'white',
                       backgroundColor: 'white',
@@ -322,11 +322,11 @@ export default function HomePage() {
                   }}
                   style={{
                     flex: 1,
-                    marginLeft: 16,
+                    marginLeft: 12,
                     backgroundColor: 'white',
-                    borderRadius: 14,
-                    paddingHorizontal: 14,
-                    paddingVertical: 10,
+                    borderRadius: 12,
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
                     shadowColor: '#000',
                     shadowOffset: { width: 0, height: 2 },
                     shadowOpacity: 0.08,
@@ -347,8 +347,8 @@ export default function HomePage() {
                   >
                     <YStack
                       style={{
-                        width: 12,
-                        height: 12,
+                        width: 10,
+                        height: 10,
                         backgroundColor: 'white',
                         borderLeftWidth: 1,
                         borderBottomWidth: 1,
@@ -359,10 +359,10 @@ export default function HomePage() {
                   </YStack>
 
                   <Text
-                    fontSize={13}
+                    fontSize={12}
                     fontWeight="600"
                     color="#DA291C"
-                    lineHeight={18}
+                    lineHeight={16}
                   >
                     {bubbleText}
                   </Text>
