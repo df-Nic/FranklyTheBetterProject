@@ -10,6 +10,7 @@ import { BackgroundOrb } from '../components/BackgroundOrb';
 import { DonutChart } from '../components/smart-deposit/DonutChart';
 import { LiquidityAreaChart } from '../components/smart-deposit/LiquidityAreaChart';
 import { GlassCard } from '../components/GlassCard';
+import { StandaloneNavBar } from '../components/StandaloneNavBar';
 export default function SmartDepositDetailsPage() {
   const router = useRouter();
 
@@ -64,7 +65,7 @@ export default function SmartDepositDetailsPage() {
         </XStack>
       </YStack>
 
-      <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 130, paddingBottom: 100 }}>
+      <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 130, paddingBottom: 160 }}>
         
         {/* SECTION 1: Total Balance & Linked Accounts */}
         <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 100 }}>
@@ -305,6 +306,9 @@ export default function SmartDepositDetailsPage() {
         </MotiView>
 
       </ScrollView>
+
+      {/* Floating nav bar matching the home page */}
+      <StandaloneNavBar />
     </YStack>
   );
 }
