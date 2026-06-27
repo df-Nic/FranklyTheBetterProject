@@ -29,6 +29,21 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <TamaguiProvider config={tamaguiConfig} defaultTheme="light">
+        <NavigationThemeProvider value={navTheme}>
+          <Stack screenOptions={{ contentStyle: { backgroundColor: '#F5F5F7' } }}>
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="landing" options={{ headerShown: false }} />
+            <Stack.Screen name="login" options={{ headerShown: false }} />
+            <Stack.Screen name="owl-tiering" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false, animation: 'fade' }} />
+            <Stack.Screen name="planning-owl-sandbox" options={{ headerShown: false, animation: 'slide_from_right' }} />
+            <Stack.Screen name="planning-owl-sandbox-handoff" options={{ headerShown: false, animation: 'slide_from_right' }} />
+            <Stack.Screen name="recommendations" options={{ headerShown: false, animation: 'slide_from_right' }} />
+            <Stack.Screen name="wealth" options={{ headerShown: false }} />
+            <Stack.Screen name="smart-deposit-details" options={{ headerShown: false }} />
+          </Stack>
+          <StatusBar style="dark" />
+        </NavigationThemeProvider>
         {/* WealthProvider lives here so the risk-profile quiz result persists
             across ALL routes, including those outside the /wealth/ group. */}
         <WealthProvider>
