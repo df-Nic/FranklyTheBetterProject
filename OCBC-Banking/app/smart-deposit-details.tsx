@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Image, Alert, TouchableOpacity } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { YStack, XStack, Text, Button, Input } from 'tamagui';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
@@ -12,8 +12,13 @@ import { LiquidityAreaChart } from '../components/smart-deposit/LiquidityAreaCha
 import { GlassCard } from '../components/GlassCard';
 import { StandaloneNavBar } from '../components/StandaloneNavBar';
 import { CustomSlider } from '../components/smart-deposit/CustomSlider';
+import { PlanningOwlRecommendationBanner, ProductSuccess } from '../components/planning-owl/ProductDestination';
+import { buildPlanningOwlProductContext, completePlanningOwlProductAction } from '../constants/planningOwlProductRoute';
 export default function SmartDepositDetailsPage() {
   const router = useRouter();
+  const params = useLocalSearchParams<Record<string, string>>();
+  const planningContext = buildPlanningOwlProductContext(params);
+  const fromPlanningOwl = planningContext.source === 'planning_owl';
 
   const balanceData = [
     { label: 'OCBC', value: 45000, color: '#DA291C' },
@@ -29,6 +34,7 @@ export default function SmartDepositDetailsPage() {
   // Custom deposit amount
   const [customDepositAmount, setCustomDepositAmount] = useState('');
   const [hasUserModifiedDeposit, setHasUserModifiedDeposit] = useState(false);
+  const [planningOwlCompleted, setPlanningOwlCompleted] = useState(false);
 
   const totalCashBalance = balanceData.reduce((sum, item) => sum + item.value, 0);
   const targetBufferAmount = averageExpense * bufferMonths;
@@ -64,6 +70,17 @@ export default function SmartDepositDetailsPage() {
     },
   ];
 
+  if (planningOwlCompleted) {
+    return (
+      <ProductSuccess
+        title="Deposit plan set up"
+        detail="Your Deposit Owl action has been marked as set up for this Planning Owl plan."
+        buttonLabel="Back to plan"
+        onBackToPlan={() => completePlanningOwlProductAction(router, planningContext)}
+      />
+    );
+  }
+
   return (
     <YStack flex={1} backgroundColor="#F5F5F7">
       <Stack.Screen options={{ headerShown: false }} />
@@ -87,6 +104,12 @@ export default function SmartDepositDetailsPage() {
       </YStack>
 
       <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 130, paddingBottom: 160 }}>
+        {fromPlanningOwl && (
+          <PlanningOwlRecommendationBanner
+            context={planningContext}
+            fallback="Planning Owl suggested Deposit Owl so this goal can have its own savings bucket while keeping emergency money available."
+          />
+        )}
         
         {/* SECTION 1: Total Balance & Linked Accounts */}
         <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 100 }}>
@@ -455,6 +478,11 @@ export default function SmartDepositDetailsPage() {
                 disabled={safeToDeposit <= 0}
                 pressStyle={{ opacity: 0.8 }}
                 onPress={() => {
+                  if (fromPlanningOwl) {
+                    setPlanningOwlCompleted(true);
+                    return;
+                  }
+
                   Alert.alert(
                     "Review Deposit", 
                     `Initiated allocation review for $${idleFunds.toLocaleString()}!\n\n` + 
@@ -465,7 +493,7 @@ export default function SmartDepositDetailsPage() {
                 }}
               >
                 <Text color={safeToDeposit > 0 ? "white" : "rgba(0,0,0,0.3)"} fontWeight="bold" fontSize={15}>
-                  Review Deposit
+                  {fromPlanningOwl ? 'Use this deposit plan' : 'Review Deposit'}
                 </Text>
               </Button>
             </YStack>

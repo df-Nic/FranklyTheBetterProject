@@ -44,6 +44,12 @@ export default function RootLayout() {
               <Stack.Screen name="recommendations" options={{ headerShown: false, animation: 'slide_from_right' }} />
               <Stack.Screen name="wealth" options={{ headerShown: false }} />
               <Stack.Screen name="smart-deposit-details" options={{ headerShown: false }} />
+              <Stack.Screen name="ocbc-365-card" options={{ headerShown: false, animation: 'slide_from_right' }} />
+              <Stack.Screen name="ocbc-365-card-apply" options={{ headerShown: false, animation: 'slide_from_right' }} />
+              <Stack.Screen name="ocbc-360-account" options={{ headerShown: false, animation: 'slide_from_right' }} />
+              <Stack.Screen name="ocbc-fixed-deposit" options={{ headerShown: false, animation: 'slide_from_right' }} />
+              <Stack.Screen name="ocbc-home-loan" options={{ headerShown: false, animation: 'slide_from_right' }} />
+              <Stack.Screen name="ocbc-insurance" options={{ headerShown: false, animation: 'slide_from_right' }} />
             </Stack>
             <StatusBar style="dark" />
           </NavigationThemeProvider>

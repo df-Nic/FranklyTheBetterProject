@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
-import { YStack, XStack, Text, Button, Spinner, Input } from 'tamagui';
-import { useRouter } from 'expo-router';
+import { YStack, XStack, Text, Button, Input } from 'tamagui';
+import { Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { MotiView } from 'moti';
 import { Feather } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { GlassCard } from '../../components/GlassCard';
 import { BackgroundOrb } from '../../components/BackgroundOrb';
+import { PlanningOwlRecommendationBanner } from '../../components/planning-owl/ProductDestination';
 import { useWealth } from '../../components/wealth/WealthContext';
+import { buildPlanningOwlProductContext } from '../../constants/planningOwlProductRoute';
 import {
   WEALTH_PRODUCTS,
   MOCK_FUNDS,
@@ -49,12 +51,15 @@ const OTHER_MOCK_FUNDS = [
 
 export default function FundNarrowingScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<Record<string, string>>();
+  const planningContext = buildPlanningOwlProductContext(params);
+  const fromPlanningOwl = planningContext.source === 'planning_owl';
   const { state, dispatch } = useWealth();
   const riskProfile = state.userProfile.riskProfile ?? 'Balanced';
   const selectedProduct = WEALTH_PRODUCTS.find(p => p.id === state.selectedProduct);
 
   const [loading, setLoading] = useState(true);
-  const [funds, setFunds] = useState<Array<{ name: string; assetClass: string; reason: string; ytd: string }>>([]);
+  const [funds, setFunds] = useState<{ name: string; assetClass: string; reason: string; ytd: string }[]>([]);
 
   // Explore more states
   const [searchQuery, setSearchQuery] = useState('');
@@ -89,7 +94,10 @@ export default function FundNarrowingScreen() {
 
   const handleSelectFund = (fund: { name: string; assetClass: string; reason: string; ytd: string }) => {
     dispatch({ type: 'SELECT_FUND', fund });
-    router.push('/wealth/cta');
+    router.push({
+      pathname: '/wealth/cta',
+      params: fromPlanningOwl ? planningContext : {},
+    } as Href);
   };
 
   return (
@@ -120,6 +128,12 @@ export default function FundNarrowingScreen() {
       </YStack>
 
       <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 130, paddingBottom: 120 }}>
+        {fromPlanningOwl && !loading && (
+          <PlanningOwlRecommendationBanner
+            context={planningContext}
+            fallback="Planning Owl is carrying your recommendation into Invest Owl so the selected fund can support the saved plan."
+          />
+        )}
         {loading ? (
           <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ alignItems: 'center', paddingTop: 60 }}>
             <YStack alignItems="center" gap="$4">
@@ -140,7 +154,7 @@ export default function FundNarrowingScreen() {
           <>
             <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 100 }}>
               <Text fontSize={14} color="rgba(0,0,0,0.5)" lineHeight={20} marginBottom="$5">
-                We've matched {funds.length} funds to your {riskProfile} risk profile. Each one has been selected to help grow your AUM.
+                We&apos;ve matched {funds.length} funds to your {riskProfile} risk profile. Each one has been selected to help grow your AUM.
               </Text>
             </MotiView>
 

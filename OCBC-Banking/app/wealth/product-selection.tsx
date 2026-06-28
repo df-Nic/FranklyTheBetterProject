@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
-import { YStack, XStack, Text, Button, Spinner } from 'tamagui';
-import { useRouter } from 'expo-router';
+import { YStack, XStack, Text, Button } from 'tamagui';
+import { Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { MotiView } from 'moti';
 import { Feather } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
@@ -9,6 +9,8 @@ import { GlassCard } from '../../components/GlassCard';
 import { BackgroundOrb } from '../../components/BackgroundOrb';
 import { useWealth } from '../../components/wealth/WealthContext';
 import { setPendingOwlDestination } from '../../components/wealth/navigationState';
+import { PlanningOwlRecommendationBanner } from '../../components/planning-owl/ProductDestination';
+import { buildPlanningOwlProductContext } from '../../constants/planningOwlProductRoute';
 import {
   WEALTH_PRODUCTS,
   SELECT_FOR_ME,
@@ -24,6 +26,9 @@ const RISK_LABELS = [
 
 export default function ProductSelectionScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<Record<string, string>>();
+  const planningContext = buildPlanningOwlProductContext(params);
+  const fromPlanningOwl = planningContext.source === 'planning_owl';
   const { state, dispatch } = useWealth();
   const riskProfile = state.userProfile.riskProfile ?? 'Balanced';
   const profileDetails = RISK_LABELS.find(r => r.label === riskProfile) ?? RISK_LABELS[1];
@@ -36,7 +41,10 @@ export default function ProductSelectionScreen() {
 
   const handleSelectProduct = (productId: string) => {
     dispatch({ type: 'SELECT_PRODUCT', productId });
-    router.push('/wealth/fund-narrowing');
+    router.push({
+      pathname: '/wealth/fund-narrowing',
+      params: fromPlanningOwl ? planningContext : {},
+    } as Href);
   };
 
   return (
@@ -66,6 +74,12 @@ export default function ProductSelectionScreen() {
       </YStack>
 
       <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 130, paddingBottom: 60 }}>
+        {fromPlanningOwl && (
+          <PlanningOwlRecommendationBanner
+            context={planningContext}
+            fallback="Planning Owl suggested Invest Owl because your selected timeline gives enough time to consider growing money you do not need soon."
+          />
+        )}
 
         {/* Risk Profile Result Card */}
         <MotiView

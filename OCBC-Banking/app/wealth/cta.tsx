@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, TextInput } from 'react-native';
 import { YStack, XStack, Text, Button } from 'tamagui';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MotiView } from 'moti';
 import { Feather } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { GlassCard } from '../../components/GlassCard';
 import { BackgroundOrb } from '../../components/BackgroundOrb';
+import { PlanningOwlRecommendationBanner, ProductSuccess } from '../../components/planning-owl/ProductDestination';
 import { useWealth } from '../../components/wealth/WealthContext';
+import { buildPlanningOwlProductContext, completePlanningOwlProductAction } from '../../constants/planningOwlProductRoute';
 import { AMOUNT_MIDPOINT, GROWTH_RATE, CURRENT_AUM, TIER_CONFIG } from '../../components/wealth/mockData';
 
 function formatCurrency(val: number) {
@@ -21,6 +23,9 @@ function calculateProjection(amount: number, riskProfile: string, years: number)
 
 export default function CTAScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<Record<string, string>>();
+  const planningContext = buildPlanningOwlProductContext(params);
+  const fromPlanningOwl = planningContext.source === 'planning_owl';
   const { state, dispatch } = useWealth();
 
   const riskProfile = state.userProfile.riskProfile ?? 'Balanced';
@@ -39,10 +44,6 @@ export default function CTAScreen() {
   const projectedAUM = CURRENT_AUM + projectedValue;
   const targetAUM = TIER_CONFIG.find(t => t.id === 'premier')!.minAUM;
   const willUnlock = projectedAUM >= targetAUM;
-  const yearsToPremier = willUnlock
-    ? projectionYears
-    : Math.ceil(Math.log(targetAUM / (CURRENT_AUM + amount)) / Math.log(1 + (GROWTH_RATE[riskProfile] ?? 0.06)));
-
   const handleAmountChange = (text: string) => {
     setAmountText(text);
     const num = parseInt(text.replace(/,/g, ''), 10);
@@ -54,12 +55,27 @@ export default function CTAScreen() {
 
   const handleInvest = () => {
     setInvested(true);
+    if (fromPlanningOwl) {
+      return;
+    }
+
     setTimeout(() => {
       router.push('/wealth/dashboard');
     }, 2000);
   };
 
   if (invested) {
+    if (fromPlanningOwl) {
+      return (
+        <ProductSuccess
+          title="Investment placed"
+          detail="Your Invest Owl action has been marked as invested for this Planning Owl plan."
+          buttonLabel="Back to plan"
+          onBackToPlan={() => completePlanningOwlProductAction(router, planningContext)}
+        />
+      );
+    }
+
     return (
       <YStack flex={1} backgroundColor="#F5F5F7" justifyContent="center" alignItems="center" padding="$6">
         <MotiView
@@ -121,6 +137,12 @@ export default function CTAScreen() {
       </YStack>
 
       <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 130, paddingBottom: 140 }}>
+        {fromPlanningOwl && (
+          <PlanningOwlRecommendationBanner
+            context={planningContext}
+            fallback="Planning Owl suggested Invest Owl because your saved plan can consider growth only for money you do not need soon."
+          />
+        )}
 
         {/* Fund Selected */}
         {selectedFund && (
