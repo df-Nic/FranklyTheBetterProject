@@ -48,7 +48,7 @@ export default function OCBC365CardPage() {
       </ScrollView>
       <StickyProductCTA
         label="Apply with this plan"
-        onPress={() => router.push({ pathname: '/ocbc-365-card-apply', params: { ...context } })}
+        onPress={() => router.push({ pathname: '/ocbc-365-card-apply' as any, params: { ...context } })}
       />
     </YStack>
   );

@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
 import { YStack, XStack, Text, Button, Input } from 'tamagui';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 
 export function LoginForm() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ redirect?: string }>();
   const [username, setUsername] = useState('');
   const [pin, setPin] = useState('');
 
   const handleLogin = () => {
-    router.replace('/(tabs)/home');
+    if (params.redirect) {
+      router.replace(params.redirect as any);
+    } else {
+      router.replace('/(tabs)/home');
+    }
   };
 
   return (

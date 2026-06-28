@@ -113,24 +113,47 @@ export default function LandingPage() {
         </MotiView>
 
         <MotiView from={{ translateY: 40, opacity: 0 }} animate={{ translateY: 0, opacity: 1 }} transition={{ delay: 400, type: 'timing', duration: 800 }}>
-          <Button 
-            size="$5" 
-            backgroundColor="#DA291C" 
-            color="white" 
-            borderRadius={30} 
-            width={280}
-            height={60}
-            fontSize={18}
-            fontWeight="bold"
-            elevation={5}
-            shadowColor="#DA291C"
-            shadowRadius={15}
-            shadowOpacity={0.2}
-            onPress={() => router.push('/login')}
-            pressStyle={{ opacity: 0.8, scale: 0.96 }}
-          >
-            Get Started
-          </Button>
+          <YStack gap="$3" alignItems="center">
+            <Button 
+              size="$5" 
+              backgroundColor="#DA291C" 
+              color="white" 
+              borderRadius={30} 
+              width={280}
+              height={60}
+              fontSize={18}
+              fontWeight="bold"
+              elevation={5}
+              shadowColor="#DA291C"
+              shadowRadius={15}
+              shadowOpacity={0.2}
+              onPress={() => router.push('/login')}
+              pressStyle={{ opacity: 0.8, scale: 0.96 }}
+            >
+              Get Started
+            </Button>
+
+            <Button 
+              size="$5" 
+              backgroundColor="white" 
+              borderColor="#DA291C"
+              borderWidth={2}
+              color="#DA291C" 
+              borderRadius={30} 
+              width={280}
+              height={60}
+              fontSize={15}
+              fontWeight="bold"
+              elevation={2}
+              shadowColor="#DA291C"
+              shadowRadius={8}
+              shadowOpacity={0.1}
+              onPress={() => router.push({ pathname: '/login', params: { redirect: '/owl-tiering' } })}
+              pressStyle={{ opacity: 0.8, scale: 0.96 }}
+            >
+              Manage your wealth with NEST
+            </Button>
+          </YStack>
         </MotiView>
       </YStack>
     </YStack>

@@ -1,259 +1,160 @@
-# OCBC Banking — Prototype
+# OCBC Banking — Agentic AI Banking Prototype
 
-A high-fidelity mobile banking prototype built with **React Native (Expo)**, showcasing AI-driven wealth management and financial planning experiences. This prototype was developed as part of a design and engineering exploration into how a modern digital bank could guide users along a personalised wealth-building journey.
+A high-fidelity mobile banking prototype built with **React Native (Expo SDK 54)**, showcasing how **Agentic AI** can redefine digital wealth management and financial planning. 
 
----
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Framework | React Native via [Expo](https://expo.dev) (SDK 52, New Architecture) |
-| Routing | [Expo Router](https://expo.github.io/router/) (file-based, typed routes) |
-| UI Components | [Tamagui](https://tamagui.dev/) |
-| Animations | [Moti](https://moti.fyi/) + React Native Reanimated |
-| Visual Effects | `expo-blur` (BlurView), animated background orbs |
-| Icons | Expo Vector Icons (Feather, MaterialCommunityIcons, FontAwesome5, Ionicons) |
-| Language | TypeScript |
-| Platform | iOS (primary) · Android · Web |
+In traditional mobile banking, apps function as static, reactive ledgers where users must navigate multiple menus to check balances or execute trades. This prototype explores a paradigm shift: **a proactive, contextual, and autonomous banking partner** that monitors multi-bank idle funds, profiles risk via interactive behavioral simulation, compares multi-scenario lifetime goals, and orchestrates cross-product wealth-building journeys.
 
 ---
 
-## Get Started
+## 🦉 Agentic AI Core Paradigms
 
-### 1. Install dependencies
+This project prototypes several key dimensions of agentic AI systems in a retail and wealth banking context:
 
+1. **Contextual Proactivity**: The system monitors customer account activities and balances, prompting them with actionable nudges at high-value moments.
+2. **Cross-Institutional Orchestration**: The AI reasons over financial positions across multiple institutions (OCBC, DBS, UOB) to synthesize a single optimized liquidity allocation strategy.
+3. **Adaptive Cognitive Matching**: Rather than using static forms, the risk-profiling system uses interactive game scenarios and dynamically adapts the complexity of its scenarios based on the customer's self-reported financial literacy.
+4. **Multi-Scenario Optimization Engine**: The planning agent evaluates variable combinations (timeline, monthly contributions, risk assets) to generate and compare multiple paths to reach a single goal.
+5. **Seamless Exploration Handoff**: A financial sandbox allows customers to play with general numbers first, which the agent automatically maps and carries over into formal goal configuration screens.
+6. **Cross-Product Silo Integration**: The agent breaks down product boundaries (e.g., matching home loan eligibility with deposit rate bonuses and investment baskets) under one unified wealth architecture.
+
+---
+
+## 🛠️ Tech Stack & Architecture
+
+| Layer | Technology | Version / Configuration |
+|---|---|---|
+| **Framework** | React Native via [Expo](https://expo.dev) | SDK 54 (New Architecture enabled) |
+| **Routing** | [Expo Router](https://expo.github.io/router/) | File-based, strongly typed navigation paths |
+| **UI Primitive** | [Tamagui](https://tamagui.dev/) | High-performance compiler and UI kit |
+| **Animations** | [Moti](https://moti.fyi/) | Powered by React Native Reanimated (declarative animations) |
+| **Gestures** | React Native Gesture Handler | Driver for interactive pan/swipe game mechanics |
+| **Visual Effects** | `expo-blur` | Real-time native glassmorphism (BlurView) |
+| **Icons** | Expo Vector Icons | Feather, FontAwesome5, Ionicons, MaterialCommunityIcons |
+| **Language** | TypeScript | Strong typing for app state, routing, and context |
+
+---
+
+## 📂 Project Directory Structure
+
+Below is the directory map of the prototype, highlighting the key files where the agentic logic and UI are defined:
+
+```
+OCBC-Banking/
+├── app/
+│   ├── (tabs)/                      # Core Application Navigation Tabs
+│   │   ├── home.tsx                 # Context-aware Dashboard & Proactive Mascot UI
+│   │   ├── planning-owl.tsx         # Planning Owl Goal Planner & Scenario comparison
+│   │   ├── more.tsx                 # More menu
+│   │   ├── pay.tsx                  # Pay tab stub
+│   │   ├── plan.tsx                 # Legacy plan stub
+│   │   └── rewards.tsx              # Rewards tab stub
+│   ├── wealth/                      # Invest Owl Wealth Journey
+│   │   ├── onboarding.tsx           # Profile questionnaire collecting customer context
+│   │   ├── risk-swipe.tsx           # Tinder-style gestural Risk Assessment Game
+│   │   ├── product-selection.tsx    # Asset class category selector
+│   │   ├── fund-narrowing.tsx       # AI portfolio shortlisting & personalized rationales
+│   │   ├── cta.tsx                  # Future compound projections & transaction checkout
+│   │   ├── dashboard.tsx            # Post-investment portfolio breakdown & AI progress nudges
+│   │   └── tier-dashboard.tsx       # Alternative wealth-tier entry point
+│   ├── landing.tsx                  # Product onboarding walkthrough
+│   ├── login.tsx                    # Authentication entry point
+│   ├── owl-tiering.tsx              # Gamified customer tier map (Starter → BOS)
+│   ├── planning-owl-sandbox.tsx     # "Play with the numbers" Sandbox exploration
+│   ├── planning-owl-sandbox-handoff.tsx # Sandbox data mapping and routing handoff
+│   ├── recommendations.tsx          # Deposit Owl product catalogue card deck
+│   └── smart-deposit-details.tsx   # Deposit Owl Multi-Bank Optimization Dashboard
+├── components/
+│   ├── GlassCard.tsx                # Custom glassmorphic container with native blur
+│   ├── BackgroundOrb.tsx            # Animated background gradient blur orbs
+│   └── CustomTabBar.tsx             # Customized bottom navigation bar
+├── constants/
+│   ├── depositOwlData.ts            # Multi-bank balances & product mock data
+│   ├── planningOwlMocks.ts          # Core simulator engine & scenario generation logic
+│   ├── planningOwlSandbox.ts        # Data contracts, mappings, and projection logic for Sandbox
+│   ├── planningOwlSavedPlanStore.ts # Local Storage wrapper for persistent goal plans
+│   └── theme.ts                     # Tamagui design system constants & color tokens
+├── assets/                          # Static resources (Owl icons, illustrations, backgrounds)
+└── package.json                     # Project dependency definitions (Expo SDK 54)
+```
+
+---
+
+## 🚀 Prototyped Agentic Features (In-Depth)
+
+### 1. 🏠 Proactive Context-Aware Home Screen
+The main interface [home.tsx](OCBC-Banking/app/(tabs)/home.tsx) is designed around dynamic, customer-centric balance states rather than a static home screen.
+* **Proactive Floating Mascot**: An animated Owl mascot cycles through context-aware speech bubbles. For example, if a user lingers on the *Accounts* tab while holding high savings, the mascot prompts: *"Hoot! Want your idle funds to work harder for you?"*
+* **Dynamic Tab Switcher**: Switches between Accounts, Investments, Cards, and Loans. Transitioning tabs updates the Action Pills, promotional banners, and spend summaries dynamically to represent the state relevant to that specific product suite.
+* **Tap-to-Mask Balances**: Implements safety-first balance masking by default, toggled via a tap interaction to preserve privacy in public environments.
+
+### 2. 🗺️ Gamified Customer Journey Map
+The journey dashboard [owl-tiering.tsx](OCBC-Banking/app/owl-tiering.tsx) maps the user's long-term progression from retail savings to high-net-worth tiers.
+* **milestones & Tier Status**: Tracks asset milestones across seven levels: *Starter* (S$0-50K), *Builder* (S$50K-150K), *Grower* (S$150K-300K, current active tier), *Momentum* (S$300K-350K), *Premier Banking* (S$350K-1.5M), *PPC* (S$1.5M-5M), and *BOS* (S$5M+).
+* **Computed AUM Indicator**: The overlay reads from multiple simulated assets (deposits + investments) to compute the customer's total assets (S$220,000) and displays a progression tracker showing the distance to unlocking the next premium tier (*Premier Banking*).
+* **Agent Quick-Launch**: Serves as the navigation hub, pointing users to the active AI modules (**Deposit Owl**, **Investment Owl**, or **Planning Owl**).
+
+### 3. 🦉 Deposit Owl — Multi-Bank Cash Orchestrator
+Defined in [smart-deposit-details.tsx](OCBC-Banking/app/smart-deposit-details.tsx), this feature addresses the fragmentation of liquidity across different financial institutions.
+* **Multi-Bank Asset Aggregation**: Synthesizes and visualizes customer assets across UOB (S$19.5K), DBS (S$60K), and OCBC (S$45K) inside a dynamic donut chart.
+* **Idle Cash Detection**: Identifies S$40,000 in uninvested, low-yielding cash across outside accounts and proposes a structured 3-part reallocation plan:
+  1. **OCBC 360 Account Top-Up** (S$10,000) to hit high-yield bonus interest tiers (up to 4.45% p.a.).
+  2. **6-Month Fixed Deposit** (S$20,000) to lock in secure interest shielded from volatility.
+  3. **OCBC RoboInvest Blue Chip Basket** (S$10,000) for inflation-hedged growth.
+* **Liquidity Curve Modeler**: Integrates a custom visual area chart that maps out the customer's projected liquid assets over a 12-month timeline, showing how liquidity changes before and after executing the AI's allocation advice.
+* **Exploration Deck**: Integrates [recommendations.tsx](OCBC-Banking/app/recommendations.tsx), an alternative product swipe deck allowing customers to filter and explore OCBC's product catalog manually.
+
+### 4. 📈 Invest Owl — Personalised Wealth Strategist
+A multi-step wealth advisory flow that adapts its behaviors and portfolio recommendations based on the user's financial profile.
+* **Context Gathering**: [onboarding.tsx](OCBC-Banking/app/wealth/onboarding.tsx) captures the user's age, income, investment amount, loan profile, and market preferences using an animated step card flow.
+* **Adaptive Risk-Swipe Game**: [risk-swipe.tsx](OCBC-Banking/app/wealth/risk-swipe.tsx) assesses risk appetite through a Tinder-style swipe interface. Using the profile's financial knowledge level, the card game *rewrites scenario questions* (e.g., using simpler descriptions for "Basic" users, and detailed asset terms for "Advanced" users) to ensure clear comprehension. It incorporates physics-based pan gesture handling that tilts cards based on user finger drag.
+* **AI Fund Shortlisting**: [fund-narrowing.tsx](OCBC-Banking/app/wealth/fund-narrowing.tsx) evaluates the user's context and generates a tailored shortlist of 3-5 unit trusts. Each card displays a personalized investment rationale (e.g., *"Recommended because this fund targets US tech, matching your interest in high growth markets while balancing your intermediate risk profile"*).
+* **Compound Growth Modeler**: [cta.tsx](OCBC-Banking/app/wealth/cta.tsx) runs real-time simulations projecting portfolio values over a 3-7 year horizon. Adjusting the investment amount updates the curves and triggers alerts if the investment unlocks the *Premier Banking* tier.
+* **Portfolio Dashboard & Nudges**: [dashboard.tsx](OCBC-Banking/app/wealth/dashboard.tsx) visualizes asset allocation post-investment and surfaces intelligent nudges (e.g., *"Adding S$500/month gets you to Premier Banking 18 months earlier"*). It also includes a floating button that expands a conversational AI Assistant panel.
+
+### 5. 🗓️ Planning Owl — Goal Planner & Sandbox Explorer
+The goal-planning engine in [planning-owl.tsx](OCBC-Banking/app/(tabs)/planning-owl.tsx) structures plans for major life events, backed by a persistent plan database [planningOwlSavedPlanStore.ts](OCBC-Banking/constants/planningOwlSavedPlanStore.ts).
+* **The "Play with the Numbers" Sandbox**: Accessible via [planning-owl-sandbox.tsx](OCBC-Banking/app/planning-owl-sandbox.tsx), this playground lets users experiment with saving amounts and timelines before committing to a goal. Projections are computed live, labeling the user's savings band (e.g., *Rainy Day range* vs. *Property Deposit range*).
+* **Frictionless Handoff**: [planning-owl-sandbox-handoff.tsx](OCBC-Banking/app/planning-owl-sandbox-handoff.tsx) maps sandbox values into target goal fields using [planningOwlSandbox.ts](OCBC-Banking/constants/planningOwlSandbox.ts). When pushing to the property or custom goal questionnaires, fields carried from the sandbox display a `"from sandbox"` badge, while unasked fields show a `"new"` badge.
+* **Multi-Scenario Comparison Engine**: Instead of outputting a single number, the planner generates and compares three scenarios side-by-side:
+  - *Match Timing*: Meets the target date exactly.
+  - *Save Less, Wait Longer*: Extends the timeline to lower monthly contribution pressure.
+  - *Save More, Buy Sooner*: Increases savings to accelerate property acquisition.
+* **Silo-Breaking Action Plans**: Integrates actionable cross-product steps inside the scenario cards (e.g., linking Deposit Owl, Invest Owl portfolios, and a Home Loan eligibility check together).
+* **Ask Owl Natural Language Chat**: An inline conversational chat interface. Customers type questions about their plan (e.g., *"What if my downpayment changes?"*), and the engine processes the context to output relevant guidance.
+* **Persistent Plan Library**: Supports creating, naming, reading, and deleting goal plans. Saved plans are displayed on the *Plans Home* screen with options accessible through a 3-dot overflow options menu.
+
+---
+
+## 🎨 UI Design System & Micro-Interactions
+
+Visual fidelity is crucial to making the banking experience premium and engaging. The application leverages Tamagui and Reanimated to implement a modern glassmorphism design:
+* **GlassCard Container**: [GlassCard.tsx](OCBC-Banking/components/GlassCard.tsx) provides a shared visual component utilizing `expo-blur` to render semi-transparent, frosted glass backgrounds.
+* **Pulsing Ambient Orbs**: [BackgroundOrb.tsx](OCBC-Banking/components/BackgroundOrb.tsx) renders blurred, glowing radial gradient backdrops behind components. These orbs pulse slowly using reanimated timing sequences to add depth and warmth to the canvas.
+* **Moti Transitions**: Screens employ entrance transitions (fade-in, slide-up, scale) using Moti, creating a smooth progression flow as the customer moves between steps.
+* **Tappable Visual Hierarchy**: Follows strict design rules where static metadata chips (e.g., timeframe tags) are styled as flat, transparent outlines, reserving filled button indicators solely for interactive elements.
+
+---
+
+## 🏁 Get Started & Setup
+
+### Prerequisites
+Ensure you have [Node.js](https://nodejs.org) (v18+) and `npm` installed.
+
+### 1. Install Dependencies
+Navigate to the mobile directory and install npm packages:
 ```bash
 cd OCBC-Banking
 npm install
 ```
 
-### 2. Start the development server
-
+### 2. Start the Expo Server
+Start the local development server:
 ```bash
 npx expo start
 ```
 
-From the terminal output, you can open the app in:
-
-- [Development Build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android Emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS Simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go) (limited sandbox)
-
----
-
-## Project Structure
-
-```
-OCBC-Banking/
-├── app/
-│   ├── (tabs)/              # Bottom-tab screens
-│   │   ├── home.tsx         # Main home screen
-│   │   ├── planning-owl.tsx # Planning Owl feature (full flow)
-│   │   ├── more.tsx         # More menu
-│   │   ├── pay.tsx
-│   │   ├── plan.tsx
-│   │   └── rewards.tsx
-│   ├── wealth/              # Invest Owl / Wealth journey screens
-│   │   ├── onboarding.tsx
-│   │   ├── risk-swipe.tsx
-│   │   ├── product-selection.tsx
-│   │   ├── fund-narrowing.tsx
-│   │   ├── cta.tsx
-│   │   ├── dashboard.tsx
-│   │   └── tier-dashboard.tsx
-│   ├── landing.tsx          # Onboarding carousel
-│   ├── login.tsx            # Login screen
-│   ├── owl-tiering.tsx      # Owl Journey map
-│   ├── recommendations.tsx  # Deposit Owl recommendations
-│   └── smart-deposit-details.tsx # Deposit Owl AI plan
-├── components/
-│   ├── home/                # Home screen sub-components
-│   ├── deposit-owl/         # Deposit Owl UI components
-│   ├── wealth/              # Invest Owl UI + context + mock data
-│   ├── journey/             # Journey map components
-│   ├── smart-deposit/       # Charts (Donut, Liquidity Area)
-│   ├── landing/             # Carousel item component
-│   ├── auth/                # Auth components
-│   ├── GlassCard.tsx        # Shared glassmorphism card
-│   ├── BackgroundOrb.tsx    # Animated ambient background element
-│   └── CustomTabBar.tsx     # Custom bottom navigation bar
-├── constants/               # Mock data, planning scenarios, store
-├── assets/                  # Images, fonts, owl avatars, scene art
-└── app.json                 # Expo configuration
-```
-
----
-
-## Implemented Features
-
-### 1. 🏠 Home Screen
-
-The main landing screen after login, built around a personalised, context-aware dashboard.
-
-- **Account tabs** — Switch between Accounts, Investments, Cards, and Loans views. Each tab surfaces relevant summary information (balances, holdings, card details).
-- **Balance masking** — A tap-to-reveal balance toggle that masks sensitive figures by default.
-- **Floating Owl mascot** — An animated owl character that appears in the corner of the Accounts and Investments tabs. It cycles through contextual speech bubbles (e.g. *"Hoot! Want your idle funds to work harder for you?"*) with staggered show/hide timing to prompt users toward relevant features.
-- **Action pills** — Quick-action buttons (Transfer, Pay, Invest, More) for common banking tasks.
-- **Dynamic content cards** — Cards rendered per-tab, including spend summaries, portfolio snapshots, and promotional nudges. Content updates when the active tab changes.
-- **Smart Insights banner** — A contextual insight strip that surfaces product recommendations based on the active tab.
-- **Wealth Portfolio widget** — A compact view of total wealth across asset classes, shown in the Investments tab.
-
----
-
-### 2. 🗺️ Owl Journey Map
-
-A gamified, visual representation of the user's wealth-building path, designed as an illustrated mountain scene.
-
-- **Illustrated scene background** — A custom-painted mountain image serves as the backdrop for the entire journey.
-- **Milestone nodes** — Seven interactive tier nodes positioned precisely on the scene using percentage-based coordinates:
-  - **Starter** (S$0–50K) — Completed
-  - **Builder** (S$50K–150K) — Completed
-  - **Grower** (S$150K–300K) — Current tier (highlighted)
-  - **Momentum** (S$300K–350K) — Upcoming
-  - **Premier Banking** (S$350K–1.5M) — Upcoming
-  - **PPC** (S$1.5M–5M) — Locked
-  - **BOS** (S$5M+) — Locked
-  - Each node uses distinct visual states (done / current / upcoming / locked) with animated rings and badge styling.
-- **Total Assets chip** — An overlay chip showing the user's current total assets (S$220,000), dynamically computed from all owl product holdings.
-- **Owl product cards** — Below the scene, three cards represent the active AI-powered Owl modules:
-  - **Deposit Owl** — Liquidity manager: navigates to the Smart Deposit Details screen.
-  - **Investment Owl** — Portfolio strategist: navigates to the Invest Owl onboarding or dashboard.
-  - **Planning Owl** — Future architect: navigates to the Planning Owl goal-planning flow.
-  - Cards not yet implemented show a "Coming soon" alert.
-
----
-
-### 3. 🦉 Deposit Owl — Smart Deposit
-
-An AI-generated cash optimisation plan for idle funds sitting across multiple banks.
-
-- **Multi-bank balance overview** — A donut chart visualising the user's cash distribution across OCBC (S$45K), DBS (S$60K), and UOB (S$19.5K).
-- **Idle funds detection** — Identifies S$40,000 in uninvested cash and proposes a three-part allocation plan:
-  1. **OCBC 360 Account top-up** (S$10K) — Moves liquid savings to the next bonus tier for up to 4.45% p.a.
-  2. **6-Month Fixed Deposit** (S$20K) — Locks funds at a guaranteed promotional rate, shielded from market volatility.
-  3. **OCBC RoboInvest** (S$10K) — Long-term inflation-beating growth via a low-risk Blue Chip portfolio.
-- **Liquidity area chart** — An animated area chart illustrating the projected liquidity curve over time after the reallocation.
-- **Allocation plan cards** — Step-by-step cards with colour-coded amounts and conversational explanations for each allocation decision.
-- **Recommendations screen** — A filterable product catalogue with category chips (e.g. Deposits, Investments) for exploring OCBC products beyond the AI plan. Products are rendered as swipeable deck cards.
-
----
-
-### 4. 📈 Invest Owl — Wealth Journey
-
-A multi-step guided flow for entering wealth investment products, adapting to the user's financial profile.
-
-#### Step 1: Onboarding Questionnaire
-- Six-question profiling survey covering: age range, monthly income, investable amount, outstanding loans, preferred markets, and financial knowledge level.
-- Answers are stored in a global `WealthContext` (React Context + Reducer) and used to personalise every subsequent step.
-- Smooth slide-in animation per question using Moti.
-
-#### Step 2: Risk Profiling — Swipe Cards
-- A Tinder-style **swipe card game** for risk assessment.
-- Each card presents a financial scenario. Users swipe **right** (agree / risk-seeking) or **left** (disagree / risk-averse).
-- Cards adapt their language based on the user's self-reported knowledge level (Basic / Intermediate / Advanced).
-- A risk score is tallied and mapped to one of three profiles: **Conservative 🛡️**, **Balanced ⚖️**, or **Growth 🚀**.
-- Each card includes physics-based pan gesture handling (via `PanResponder` + `Animated`) that tilts the card as the user drags.
-
-#### Step 3: Product Selection
-- Displays wealth product categories (e.g. Unit Trust, Structured Products, Equities) as interactive cards.
-- Each product highlights its risk level, typical return range, and a short description.
-- The selected product is persisted in `WealthContext` for use downstream.
-
-#### Step 4: Fund Narrowing
-- An AI-simulated loading state generates a personalised shortlist of 3–5 recommended funds based on the user's risk profile and selected product.
-- Each fund card shows: fund name, asset class, YTD performance, and a personalised rationale sentence tied to the user's profile.
-- **Explore More** section — A searchable list of additional funds outside the AI shortlist, allowing users to manually browse and add funds.
-- Selecting a fund persists the choice in context.
-
-#### Step 5: Investment CTA
-- Displays the selected fund, risk profile, and a projected growth simulation.
-- **Editable investment amount** — The user can adjust the dollar amount they wish to invest; projections recalculate live.
-- **Growth projection** — Calculates future value using risk-appropriate compound annual growth rates (5% Conservative, 6% Balanced, 8% Growth) over a 3–7 year horizon.
-- **Premier Banking unlock indicator** — Shows whether the investment, combined with the user's current AUM, would unlock Premier Banking tier.
-- Terms & Conditions checkbox + "Invest Now" confirmation, which triggers an animated success state before navigating to the dashboard.
-
-#### Step 6: Wealth Dashboard
-- Post-investment summary screen.
-- **Donut chart** — Visualises the portfolio breakdown (Unit Trust, Equities, Bonds) with the newly added fund highlighted in green.
-- **Holdings list** — Shows each asset class with current value and YTD performance.
-- **Tier progress bar** — A visual indicator of how far the user is from Premier Banking (S$350K AUM target), updated to reflect the new investment.
-- **AI nudge card** — A personalised prompt (e.g. *"Adding SGD 500/month could unlock Premier Banking 18 months earlier"*) encouraging ongoing engagement.
-- **AI Assistant FAB** — A floating action button that opens the AI Assistant sheet.
-
-#### Tier Dashboard
-- An alternative entry point surfacing the user's current tier, progress toward Premier, and four action categories: Grow Wealth, Protect, Save, Plan.
-
----
-
-### 5. 🗓️ Planning Owl — Goal Planner
-
-A complete, multi-screen financial goal planning experience for life events (currently: property purchase).
-
-- **Plans Home** — A library screen listing all saved plans. Users can view, edit, or delete existing plans, or create a new one.
-- **Event Picker** — Selection of a life goal event (Property is the implemented prototype; others are stubs).
-- **3-Question Guided Flow**:
-  1. **Property value range** — S$600K–800K / S$800K–1.2M / S$1.2M–1.6M
-  2. **Downpayment target** — 20% / 25% / 30% (with a chip showing current eligible cash: S$150,890)
-  3. **Timeframe** — 1–2 / 3–4 / 5–6 years
-- **Results Screen** — Generates a personalised savings plan with:
-  - Monthly savings target
-  - Total amount needed vs. current cash position
-  - Gap analysis
-  - Recommended OCBC products for the savings vehicle
-- **Scenario Comparison** — Three scenarios are presented side-by-side:
-  - **Match Timing** — Hit the downpayment exactly on the chosen date.
-  - **Save Less, Wait Longer** — Reduce monthly burden, extend the timeline.
-  - **Save More, Buy Sooner** — Accelerate contributions to buy earlier.
-  - Users can switch between scenarios and see simulations update in real time.
-- **Commit to Plan** — A confirmation step that saves the plan locally, allowing the user to revisit it from the Plans Home.
-- **Ask Owl chat** — An inline contextual Q&A panel where users can ask the Owl questions about their plan (mock AI replies keyed to keywords).
-- **Persistent plan store** — Plans are saved across sessions using a local store, supporting create, read, and delete operations.
-
----
-
-### 6. 🎨 Design System & UI Patterns
-
-The prototype uses a consistent set of UI primitives and design patterns across all screens.
-
-- **GlassCard** — A shared glassmorphism card component with `expo-blur` background, used as the primary content container throughout the app.
-- **BackgroundOrb** — Animated, softly pulsing gradient orbs layered behind content to create depth and visual warmth. Each screen composes 2–3 orbs with different colours, sizes, and positions.
-- **Moti animations** — Entrance animations (fade + slide) applied to cards and content blocks to create a sense of progression as screens load.
-- **Custom Tab Bar** — A bespoke bottom navigation bar with OCBC branding, active state indicators, and smooth transitions.
-- **Colour palette** — OCBC Red (`#DA291C`), deep navy, amber gold, and soft off-white backgrounds across all screens, maintaining brand fidelity.
-- **Typography** — System font stack with carefully tuned weight, size, and letter-spacing hierarchies for banking-grade readability.
-
----
-
-## Screen Map
-
-```
-Landing → Login → Home (tabs)
-                      ├── Accounts / Investments / Cards / Loans
-                      └── [Floating Owl] → Owl Journey Map
-                                              ├── Deposit Owl → Smart Deposit Details
-                                              │                      └── Recommendations
-                                              ├── Investment Owl → Onboarding
-                                              │                       → Risk Swipe
-                                              │                       → Product Selection
-                                              │                       → Fund Narrowing
-                                              │                       → CTA
-                                              │                       → Dashboard
-                                              └── Planning Owl → Plans Home
-                                                                   → Event Picker
-                                                                   → Questions (1→2→3)
-                                                                   → Results
-                                                                   → Scenario Comparison
-                                                                   → Committed
-```
-
----
-
-## Notes
-
-- All financial data (balances, fund returns, AUM figures, projections) are **mock/simulated** for prototype demonstration purposes.
-- The Planning Owl plan store uses local device storage; data does not sync to a backend.
-- Screens marked "Coming soon" in the Owl Journey are stubs for future prototype iterations.
-- The app targets portrait orientation on iOS and Android.
-
+### 3. Open the Mobile Simulator
+Once the server is running, you can open the project in:
+* **iOS Simulator**: Press `i` in the terminal (requires macOS and Xcode).
+* **Android Emulator**: Press `a` in the terminal (requires Android Studio).
+* **Expo Go / Development Build**: Scan the QR code displayed in the terminal with your phone camera (using the Expo Go app).
