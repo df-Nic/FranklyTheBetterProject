@@ -1,54 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { ScrollView, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import React from 'react';
+import { ScrollView, Image, TouchableOpacity, useWindowDimensions, StyleSheet } from 'react-native';
 import { YStack, XStack, Text, Button } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { GlassCard } from '../components/GlassCard';
 import { BackgroundOrb } from '../components/BackgroundOrb';
 import { MotiView } from 'moti';
-import { CarouselItem } from '../components/landing/CarouselItem';
-
-const CAROUSEL_DATA = [
-  {
-    title: "Elevate Your Future",
-    description: "Experience a new standard of wealth management. Actionable AI-driven insights to grow your portfolio."
-  },
-  {
-    title: "Global Portfolios",
-    description: "Access markets worldwide. Diversify your assets seamlessly with our multi-currency private banking accounts."
-  },
-  {
-    title: "Exclusive Rewards",
-    description: "Unlock unparalleled privileges. From private concierge services to bespoke lifestyle experiences."
-  }
-];
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function LandingPage() {
   const router = useRouter();
-
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [cardWidth, setCardWidth] = useState(380);
-  const scrollViewRef = useRef<ScrollView>(null);
-
-  useEffect(() => {
-    if (cardWidth === 0) return;
-    const timer = setInterval(() => {
-      const nextIndex = (activeIndex + 1) % CAROUSEL_DATA.length;
-      scrollViewRef.current?.scrollTo({ x: nextIndex * cardWidth, animated: true });
-      setActiveIndex(nextIndex);
-    }, 4000);
-    return () => clearInterval(timer);
-  }, [activeIndex, cardWidth]);
-
-  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    if (cardWidth === 0) return;
-    const slideIndex = Math.round(e.nativeEvent.contentOffset.x / cardWidth);
-    if (slideIndex !== activeIndex && slideIndex >= 0 && slideIndex < CAROUSEL_DATA.length) {
-      setActiveIndex(slideIndex);
-    }
-  };
+  const { width: screenWidth } = useWindowDimensions();
 
   return (
-    <YStack flex={1} backgroundColor="#FAFAFA" justifyContent="center" alignItems="center" padding="$4">
+    <YStack flex={1} backgroundColor="#FAFAFA">
       {/* Background Orb 1 */}
       <BackgroundOrb
         size={400}
@@ -69,93 +33,183 @@ export default function LandingPage() {
         toOpacity={0.5}
       />
 
-      <YStack zIndex={1} alignItems="center" gap="$8" width="100%">
-        <MotiView from={{ translateY: 30, opacity: 0 }} animate={{ translateY: 0, opacity: 1 }} transition={{ type: 'timing', duration: 800 }}>
-          <Text fontSize={48} fontWeight="900" color="#111111" textAlign="center" letterSpacing={-1}>
-            OCBC Wealth
-          </Text>
-        </MotiView>
-
-        <MotiView from={{ translateY: 40, opacity: 0 }} animate={{ translateY: 0, opacity: 1 }} transition={{ delay: 200, type: 'timing', duration: 800 }}>
-          <GlassCard 
-            width="100%" 
-            maxWidth={380} 
-            padding="$0" 
-            overflow="hidden"
-            onLayout={(e) => setCardWidth(e.nativeEvent.layout.width)}
+      <ScrollView
+        contentContainerStyle={{ paddingTop: 90, paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <YStack zIndex={1} alignItems="center" width="100%">
+          {/* Welcome Header */}
+          <MotiView
+            from={{ translateY: 20, opacity: 0 }}
+            animate={{ translateY: 0, opacity: 1 }}
+            transition={{ type: 'timing', duration: 800 }}
+            style={{ marginVertical: 55, width: '100%', paddingHorizontal: 20 }}
           >
-            <ScrollView
-              ref={scrollViewRef}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              onMomentumScrollEnd={onScroll}
-              scrollEventThrottle={16}
-            >
-              {CAROUSEL_DATA.map((item, index) => (
-                <CarouselItem key={index} item={item} cardWidth={cardWidth} />
-              ))}
-            </ScrollView>
-            
-            {/* Dots */}
-            <XStack justifyContent="center" gap="$2" paddingBottom="$5">
-              {CAROUSEL_DATA.map((_, i) => (
-                <YStack 
-                  key={i} 
-                  width={i === activeIndex ? 20 : 6} 
-                  height={6} 
-                  borderRadius={3} 
-                  backgroundColor={i === activeIndex ? '#DA291C' : 'rgba(0,0,0,0.2)'} 
-                />
-              ))}
-            </XStack>
-          </GlassCard>
-        </MotiView>
+            <Text fontSize={48} fontWeight="900" color="#111111" textAlign="center" letterSpacing={-1} lineHeight={54}>
+              Welcome to <Text color="#DA291C">OCBC</Text>
+            </Text>
+          </MotiView>
 
-        <MotiView from={{ translateY: 40, opacity: 0 }} animate={{ translateY: 0, opacity: 1 }} transition={{ delay: 400, type: 'timing', duration: 800 }}>
-          <YStack gap="$3" alignItems="center">
-            <Button 
-              size="$5" 
-              backgroundColor="#DA291C" 
-              color="white" 
-              borderRadius={30} 
-              width={280}
-              height={60}
-              fontSize={18}
+          {/* Quick Access Grid */}
+          <MotiView
+            from={{ translateY: 30, opacity: 0 }}
+            animate={{ translateY: 0, opacity: 1 }}
+            transition={{ delay: 200, type: 'timing', duration: 800 }}
+            style={{ width: '100%', paddingHorizontal: 24, marginVertical: 35 }}
+          >
+            <YStack gap="$6">
+              {/* Row 1 */}
+              <XStack justifyContent="space-around">
+                <GridItem
+                  icon={<MaterialCommunityIcons name="cellphone-key" size={24} color="#333" />}
+                  label="OneToken"
+                />
+                <GridItem
+                  icon={<Feather name="crop" size={24} color="#333" />}
+                  label="Scan & Pay"
+                />
+                <GridItem
+                  icon={<MaterialCommunityIcons name="bank-transfer" size={26} color="#333" />}
+                  label="PayNow"
+                />
+              </XStack>
+
+              {/* Row 2 */}
+              <XStack justifyContent="space-around">
+                <GridItem
+                  icon={<Feather name="trending-up" size={24} color="#333" />}
+                  label="Wealth Insights"
+                />
+                <GridItem
+                  icon={<Feather name="repeat" size={22} color="#333" />}
+                  label="Foreign Exchange"
+                />
+                <GridItem
+                  icon={<Feather name="grid" size={24} color="#333" />}
+                  label="More"
+                />
+              </XStack>
+            </YStack>
+          </MotiView>
+
+          {/* Action CTAs */}
+          <MotiView
+            from={{ translateY: 30, opacity: 0 }}
+            animate={{ translateY: 0, opacity: 1 }}
+            transition={{ delay: 300, type: 'timing', duration: 800 }}
+            style={{ width: '100%', alignItems: 'center', gap: 16, marginTop: 25 }}
+          >
+            <Button
+              size="$5"
+              backgroundColor="#2E3E4F"
+              color="white"
+              borderRadius={12}
+              width={320}
+              height={55}
+              fontSize={16}
               fontWeight="bold"
-              elevation={5}
-              shadowColor="#DA291C"
-              shadowRadius={15}
-              shadowOpacity={0.2}
+              elevation={4}
+              shadowColor="#2E3E4F"
+              shadowRadius={10}
+              shadowOpacity={0.15}
               onPress={() => router.push('/login')}
-              pressStyle={{ opacity: 0.8, scale: 0.96 }}
+              pressStyle={{ opacity: 0.85, scale: 0.98 }}
             >
-              Get Started
+              Log in to OCBC Singapore
             </Button>
 
-            <Button 
-              size="$5" 
-              backgroundColor="white" 
+            <Button
+              size="$5"
+              backgroundColor="white"
               borderColor="#DA291C"
               borderWidth={2}
-              color="#DA291C" 
-              borderRadius={30} 
-              width={280}
-              height={60}
-              fontSize={15}
-              fontWeight="bold"
+              borderRadius={12}
+              width={320}
+              height={55}
               elevation={2}
               shadowColor="#DA291C"
               shadowRadius={8}
-              shadowOpacity={0.1}
+              shadowOpacity={0.08}
               onPress={() => router.push({ pathname: '/login', params: { redirect: '/owl-tiering' } })}
-              pressStyle={{ opacity: 0.8, scale: 0.96 }}
+              pressStyle={{ opacity: 0.85, scale: 0.98 }}
             >
-              Manage your wealth with NEST
+              <XStack alignItems="center" gap="$2" justifyContent="center">
+                <Image
+                  source={require('../assets/images/OCBC Owl.jpg')}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                  }}
+                  resizeMode="contain"
+                />
+                <Text color="#DA291C" fontSize={14} fontWeight="bold">
+                  Manage your wealth with NEST
+                </Text>
+              </XStack>
             </Button>
-          </YStack>
-        </MotiView>
-      </YStack>
+          </MotiView>
+
+          {/* Security Advisory Footer */}
+          <MotiView
+            from={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 400, type: 'timing', duration: 800 }}
+            style={{ width: '100%', paddingHorizontal: 28, marginTop: 50 }}
+          >
+            <Text fontSize={11} lineHeight={16} color="rgba(0,0,0,0.5)" textAlign="left">
+              <Text fontWeight="bold" color="rgba(0,0,0,0.6)">Security advisory:</Text>
+              {" Beware of calls that start with pre-recorded messages. Scam callers impersonating OCBC may request your banking details. Do not reveal them. "}
+              <Text color="#0a7ea4" fontWeight="600">
+                Learn more
+              </Text>
+            </Text>
+          </MotiView>
+        </YStack>
+      </ScrollView>
     </YStack>
   );
 }
+
+function GridItem({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <YStack alignItems="center" width={100} gap="$2">
+      <YStack
+        width={56}
+        height={56}
+        borderRadius={28}
+        borderWidth={1.5}
+        borderColor="rgba(0,0,0,0.1)"
+        justifyContent="center"
+        alignItems="center"
+        backgroundColor="transparent"
+      >
+        <TouchableOpacity style={styles.gridBtn} activeOpacity={0.7}>
+          {icon}
+        </TouchableOpacity>
+      </YStack>
+      <Text fontSize={12} fontWeight="600" color="rgba(0,0,0,0.7)" textAlign="center">
+        {label}
+      </Text>
+    </YStack>
+  );
+}
+
+const styles = StyleSheet.create({
+  headerIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  gridBtn: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
