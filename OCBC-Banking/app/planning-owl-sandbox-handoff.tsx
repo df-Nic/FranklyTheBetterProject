@@ -9,6 +9,9 @@ import {
   buildPrefilledParams,
   GOAL_FIELD_MAPPINGS,
   GoalFieldMapping,
+  getRankedGoalSuggestions,
+  RankedGoalSuggestion,
+  SandboxGoalId,
   SandboxState,
 } from '../constants/planningOwlSandbox';
 
@@ -18,11 +21,13 @@ const currencyFormatter = new Intl.NumberFormat(undefined, {
   maximumFractionDigits: 0,
 });
 
-type GoalId = 'property' | 'custom';
-
-const goalOptions: { id: GoalId; title: string; icon: keyof typeof Feather.glyphMap; enabled: boolean }[] = [
-  { id: 'property', title: 'Buying a property', icon: 'home', enabled: true },
-  { id: 'custom', title: 'Save for something else', icon: 'target', enabled: true },
+const goalOptions: { id: SandboxGoalId; title: string; icon: keyof typeof Feather.glyphMap }[] = [
+  { id: 'custom', title: 'Custom savings goal', icon: 'target' },
+  { id: 'property', title: 'Property plan', icon: 'home' },
+  { id: 'education', title: 'Education fund', icon: 'book-open' },
+  { id: 'wedding', title: 'Wedding plan', icon: 'heart' },
+  { id: 'family', title: 'Family emergency fund', icon: 'users' },
+  { id: 'career_break', title: 'Career break', icon: 'briefcase' },
 ];
 
 export default function PlanningOwlSandboxHandoffScreen() {
@@ -33,8 +38,6 @@ export default function PlanningOwlSandboxHandoffScreen() {
     projectedTotal?: string;
     suggestedTag?: SandboxState['suggestedTag'];
   }>();
-  const [pickerOpen, setPickerOpen] = useState(false);
-
   const sandbox = useMemo<SandboxState>(() => {
     const monthlySavings = Number(params.monthlySavings ?? 500);
     const timelineYears = Number(params.timelineYears ?? 5);
@@ -47,24 +50,26 @@ export default function PlanningOwlSandboxHandoffScreen() {
     };
   }, [params.monthlySavings, params.projectedTotal, params.suggestedTag, params.timelineYears]);
 
-  const initialGoal = getSuggestedGoal(sandbox.suggestedTag);
-  const [selectedGoal, setSelectedGoal] = useState<GoalId | null>(initialGoal);
+  const rankedSuggestions = useMemo(() => getRankedGoalSuggestions(sandbox), [sandbox]);
+  const [selectedGoal, setSelectedGoal] = useState<SandboxGoalId>(rankedSuggestions[0]?.goalId ?? 'custom');
+  const selectedSuggestion = rankedSuggestions.find((suggestion) => suggestion.goalId === selectedGoal) ?? rankedSuggestions[0];
   const mapping = selectedGoal ? GOAL_FIELD_MAPPINGS[selectedGoal] : null;
-  const canCreatePlan = Boolean(selectedGoal);
 
   const createPlan = () => {
     if (!mapping) {
-      router.push('/(tabs)/planning-owl');
+      router.replace('/(tabs)/planning-owl');
       return;
     }
 
     const carried = buildPrefilledParams(sandbox, mapping);
+    const timeline = getTimelineAnswer(sandbox.timelineYears);
     if (selectedGoal === 'custom') {
-      router.push({
+      router.replace({
         pathname: '/(tabs)/planning-owl',
         params: {
+          entrySource: 'sandbox',
           startStep: 'customQuestion1',
-          prefillCustomGoalName: sandbox.suggestedTag === 'rainy_day' ? 'Rainy day fund' : undefined,
+          prefillCustomGoalName: selectedSuggestion?.title === 'Emergency savings' ? 'Emergency savings' : undefined,
           prefillCustomTargetAmount: carried.targetAmount ? String(carried.targetAmount) : undefined,
           prefillCustomMonthlySavings: carried.monthlySavings ? String(carried.monthlySavings) : undefined,
           prefillCustomTimeline: carried.timeline ? String(carried.timeline) : undefined,
@@ -73,12 +78,65 @@ export default function PlanningOwlSandboxHandoffScreen() {
       return;
     }
 
-    router.push({
+    const baseParams = {
+      entrySource: 'sandbox',
+      startStep: 'question1',
+      startEvent: selectedGoal,
+    };
+
+    if (selectedGoal === 'property') {
+      router.replace({
+        pathname: '/(tabs)/planning-owl',
+        params: {
+          ...baseParams,
+          prefillTimeline: carried.timeline ? String(carried.timeline) : undefined,
+          prefillDownpayment: carried.downpayment ? String(carried.downpayment) : undefined,
+        },
+      });
+      return;
+    }
+
+    if (selectedGoal === 'education') {
+      router.replace({
+        pathname: '/(tabs)/planning-owl',
+        params: {
+          ...baseParams,
+          prefillEducationCost: carried.educationCost ? String(carried.educationCost) : undefined,
+          prefillEducationTimeframe: timeline,
+        },
+      });
+      return;
+    }
+
+    if (selectedGoal === 'wedding') {
+      router.replace({
+        pathname: '/(tabs)/planning-owl',
+        params: {
+          ...baseParams,
+          prefillWeddingBudget: carried.weddingBudget ? String(carried.weddingBudget) : undefined,
+          prefillWeddingMonthlySavings: carried.weddingMonthlySavings ? String(carried.weddingMonthlySavings) : undefined,
+          prefillWeddingTimeframe: timeline,
+        },
+      });
+      return;
+    }
+
+    if (selectedGoal === 'family') {
+      router.replace({
+        pathname: '/(tabs)/planning-owl',
+        params: {
+          ...baseParams,
+          prefillFamilyTimeframe: timeline,
+        },
+      });
+      return;
+    }
+
+    router.replace({
       pathname: '/(tabs)/planning-owl',
       params: {
-        startStep: 'question1',
-        prefillTimeline: carried.timeline ? String(carried.timeline) : undefined,
-        prefillDownpayment: carried.downpayment ? String(carried.downpayment) : undefined,
+        ...baseParams,
+        prefillCareerBreakTimeframe: timeline,
       },
     });
   };
@@ -86,16 +144,16 @@ export default function PlanningOwlSandboxHandoffScreen() {
   return (
     <YStack flex={1} backgroundColor="#F5F5F7">
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <FlowHeader title="Make it real" subtitle="Carry over what fits" onBack={() => router.back()} />
+        <FlowHeader title="Make it real" subtitle="Owl found possible plans" onBack={() => router.back()} />
 
         <MotiView from={{ opacity: 0, translateX: 28 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 260 }}>
           <YStack gap="$5">
             <YStack gap="$2">
               <Text fontSize={30} fontWeight="900" color="#111820">
-                Turn these numbers into a plan
+                Owl found possible plans
               </Text>
               <Text fontSize={15} color="rgba(23,32,48,0.58)" lineHeight={22}>
-                Planning Owl can reuse the numbers that match your chosen goal and ask fresh for the rest.
+                Your monthly amount and timeline can fit different goals. Pick the one that feels closest.
               </Text>
             </YStack>
 
@@ -108,20 +166,12 @@ export default function PlanningOwlSandboxHandoffScreen() {
               <SummaryRow label="Projected total" value={currencyFormatter.format(sandbox.projectedTotal)} />
             </GlassCard>
 
-            <GoalSummaryCard mapping={mapping} selectedGoal={selectedGoal} suggestedTag={sandbox.suggestedTag} />
-
-            {pickerOpen && (
-              <MotiView from={{ opacity: 0, translateY: 16 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220 }}>
-                <LifeEventPicker selectedGoal={selectedGoal} onSelectGoal={setSelectedGoal} />
-              </MotiView>
-            )}
+            <RankedGoalList suggestions={rankedSuggestions} selectedGoal={selectedGoal} onSelectGoal={setSelectedGoal} />
+            <GoalSummaryCard mapping={mapping} selectedGoal={selectedGoal} suggestion={selectedSuggestion} />
 
             <YStack gap="$3" marginTop="$1">
-              <Button height={52} borderRadius={26} backgroundColor="#DA291C" color="white" fontWeight="800" disabled={!canCreatePlan} onPress={createPlan}>
-                {canCreatePlan ? 'Create plan with these numbers' : 'Coming soon'}
-              </Button>
-              <Button chromeless color="#5A6475" onPress={() => setPickerOpen((current) => !current)}>
-                Choose a different goal instead
+              <Button height={52} borderRadius={26} backgroundColor="#DA291C" color="white" fontWeight="800" onPress={createPlan}>
+                Create this plan
               </Button>
             </YStack>
           </YStack>
@@ -131,19 +181,72 @@ export default function PlanningOwlSandboxHandoffScreen() {
   );
 }
 
-function getSuggestedGoal(tag: SandboxState['suggestedTag']): GoalId | null {
-  if (tag === 'rainy_day') return 'custom';
-  return 'property';
+function getTimelineAnswer(timelineYears: number) {
+  if (timelineYears <= 1) return '<1 year';
+  if (timelineYears <= 2) return '1-2 years';
+  if (timelineYears <= 4) return '3-4 years';
+  return '5+ years';
+}
+
+function getGoalIcon(goalId: SandboxGoalId) {
+  return goalOptions.find((goal) => goal.id === goalId)?.icon ?? 'target';
+}
+
+function RankedGoalList({
+  suggestions,
+  selectedGoal,
+  onSelectGoal,
+}: {
+  suggestions: RankedGoalSuggestion[];
+  selectedGoal: SandboxGoalId;
+  onSelectGoal: (goal: SandboxGoalId) => void;
+}) {
+  return (
+    <YStack gap="$3">
+      <Text fontSize={16} fontWeight="900" color="#111820">
+        Suggested plans
+      </Text>
+      {suggestions.map((suggestion, index) => {
+        const selected = selectedGoal === suggestion.goalId;
+        return (
+          <Pressable key={`${suggestion.goalId}-${index}`} accessibilityRole="button" accessibilityState={{ selected }} onPress={() => onSelectGoal(suggestion.goalId)}>
+            <YStack padding="$4" gap="$2.5" borderRadius={12} backgroundColor={selected ? '#FFF1F4' : 'white'} borderWidth={1} borderColor={selected ? '#DA291C' : 'rgba(20,30,45,0.08)'}>
+              <XStack alignItems="flex-start" gap="$3">
+                <YStack width={38} height={38} borderRadius={19} backgroundColor={selected ? '#DA291C' : 'rgba(218,41,28,0.08)'} alignItems="center" justifyContent="center">
+                  <Feather name={selected ? 'check' : getGoalIcon(suggestion.goalId)} size={17} color={selected ? 'white' : '#DA291C'} />
+                </YStack>
+                <YStack flex={1}>
+                  <XStack alignItems="center" gap="$2" flexWrap="wrap">
+                    <Text fontSize={16} fontWeight="900" color="#111820">
+                      {suggestion.title}
+                    </Text>
+                    <XStack backgroundColor={selected ? '#DA291C' : 'rgba(23,32,48,0.06)'} paddingHorizontal="$2" paddingVertical="$1" borderRadius={8}>
+                      <Text fontSize={10} color={selected ? 'white' : '#4A5770'} fontWeight="900">
+                        {suggestion.fitLabel}
+                      </Text>
+                    </XStack>
+                  </XStack>
+                  <Text fontSize={12} color="rgba(23,32,48,0.62)" lineHeight={18} marginTop="$1">
+                    {suggestion.reason}
+                  </Text>
+                </YStack>
+              </XStack>
+            </YStack>
+          </Pressable>
+        );
+      })}
+    </YStack>
+  );
 }
 
 function GoalSummaryCard({
   mapping,
   selectedGoal,
-  suggestedTag,
+  suggestion,
 }: {
   mapping: GoalFieldMapping | null;
-  selectedGoal: GoalId | null;
-  suggestedTag: SandboxState['suggestedTag'];
+  selectedGoal: SandboxGoalId;
+  suggestion?: RankedGoalSuggestion;
 }) {
   if (!mapping) {
     return (
@@ -170,13 +273,13 @@ function GoalSummaryCard({
       <XStack justifyContent="space-between" alignItems="flex-start" gap="$3">
         <YStack flex={1}>
           <Text fontSize={12} color="#C9002B" fontWeight="900">
-            {suggestedTag === 'property_deposit' ? 'SUGGESTED GOAL' : 'BEST AVAILABLE GOAL'}
+            WHAT CARRIES OVER
           </Text>
           <Text fontSize={22} fontWeight="900" color="#111820" marginTop="$1">
-            {selectedGoal === 'custom' ? 'Save for something else' : 'Buying a property'}
+            {suggestion?.title ?? goalOptions.find((goal) => goal.id === selectedGoal)?.title}
           </Text>
         </YStack>
-        <Feather name={selectedGoal === 'custom' ? 'target' : 'home'} size={22} color="#DA291C" />
+        <Feather name={getGoalIcon(selectedGoal)} size={22} color="#DA291C" />
       </XStack>
 
       <YStack gap="$3">
@@ -203,36 +306,6 @@ function FieldList({ title, fields, accent = false }: { title: string; fields: s
           </Text>
         </XStack>
       ))}
-    </YStack>
-  );
-}
-
-function LifeEventPicker({ selectedGoal, onSelectGoal }: { selectedGoal: GoalId | null; onSelectGoal: (goal: GoalId) => void }) {
-  return (
-    <YStack gap="$3">
-      {goalOptions.map((event) => {
-        const selected = selectedGoal === event.id;
-        return (
-          <Pressable key={event.id} accessibilityRole="button" accessibilityState={{ selected }} onPress={() => onSelectGoal(event.id)}>
-            <GlassCard padding="$4" borderColor={selected ? '#DA291C' : 'rgba(255,255,255,0.8)'}>
-              <XStack alignItems="center" gap="$4">
-                <YStack width={48} height={48} borderRadius={24} backgroundColor="rgba(218,41,28,0.1)" alignItems="center" justifyContent="center">
-                  <Feather name={event.icon} size={22} color="#DA291C" />
-                </YStack>
-                <YStack flex={1}>
-                  <Text fontSize={17} fontWeight="800" color="black">
-                    {event.title}
-                  </Text>
-                  <Text fontSize={12} color="rgba(0,0,0,0.5)" marginTop="$1">
-                    Ready to create
-                  </Text>
-                </YStack>
-                {selected && <Feather name="check-circle" size={20} color="#DA291C" />}
-              </XStack>
-            </GlassCard>
-          </Pressable>
-        );
-      })}
     </YStack>
   );
 }

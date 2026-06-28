@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather, FontAwesome5 } from '@expo/vector-icons';
 import { MotiView } from 'moti';
 import { Button, Input, Text, XStack, YStack } from 'tamagui';
@@ -10,6 +10,7 @@ import {
   getPlanningOwlSimulationForEvent,
   PlanningOwlAnswers,
   PlanningOwlEvent,
+  PlanningOwlProfileSignals,
   PlanningOwlScenario,
   PlanningOwlSimulation,
 } from '../../constants/planningOwlMocks';
@@ -19,6 +20,17 @@ import {
   savePlanningOwlPlan,
   SavedPlanningOwlPlan,
 } from '../../constants/planningOwlSavedPlanStore';
+import {
+  getCompletedPlanningOwlActions,
+  getPlanningOwlActionStatus,
+  getPlanningOwlCompletionKey,
+  getPlanningOwlProductRoute,
+  getPlanningOwlReturnContext,
+  mergePlanningOwlCompletedActions,
+  markPlanningOwlActionComplete,
+  savePlanningOwlReturnContext,
+} from '../../constants/planningOwlProductActions';
+import { useWealth } from '../../components/wealth/WealthContext';
 
 type PlanningStep =
   | 'plansHome'
@@ -320,28 +332,52 @@ const stepOrder: PlanningStep[] = ['plansHome', 'eventPicker', 'question1', 'que
 
 function buildInitialPlanningState({
   startStep,
+  startEvent,
   prefillTimeline,
   prefillDownpayment,
   prefillCustomGoalName,
   prefillCustomTargetAmount,
   prefillCustomMonthlySavings,
   prefillCustomTimeline,
+  prefillEducationCost,
+  prefillEducationTimeframe,
+  prefillWeddingBudget,
+  prefillWeddingMonthlySavings,
+  prefillWeddingTimeframe,
+  prefillFamilyTimeframe,
+  prefillCareerBreakTimeframe,
 }: {
   startStep?: string | string[];
+  startEvent?: string | string[];
   prefillTimeline?: string | string[];
   prefillDownpayment?: string | string[];
   prefillCustomGoalName?: string | string[];
   prefillCustomTargetAmount?: string | string[];
   prefillCustomMonthlySavings?: string | string[];
   prefillCustomTimeline?: string | string[];
+  prefillEducationCost?: string | string[];
+  prefillEducationTimeframe?: string | string[];
+  prefillWeddingBudget?: string | string[];
+  prefillWeddingMonthlySavings?: string | string[];
+  prefillWeddingTimeframe?: string | string[];
+  prefillFamilyTimeframe?: string | string[];
+  prefillCareerBreakTimeframe?: string | string[];
 }): PlanningOwlState {
   const resolvedStartStep = getRouteParamString(startStep);
+  const resolvedStartEvent = getPlanningOwlEventParam(startEvent);
   const resolvedPrefillTimeline = getRouteParamString(prefillTimeline);
   const resolvedPrefillDownpayment = getRouteParamString(prefillDownpayment);
   const resolvedCustomGoalName = getRouteParamString(prefillCustomGoalName);
   const resolvedCustomTargetAmount = getRouteParamString(prefillCustomTargetAmount);
   const resolvedCustomMonthlySavings = getRouteParamString(prefillCustomMonthlySavings);
   const resolvedCustomTimeline = getRouteParamString(prefillCustomTimeline);
+  const resolvedEducationCost = getRouteParamString(prefillEducationCost);
+  const resolvedEducationTimeframe = getRouteParamString(prefillEducationTimeframe);
+  const resolvedWeddingBudget = getRouteParamString(prefillWeddingBudget);
+  const resolvedWeddingMonthlySavings = getRouteParamString(prefillWeddingMonthlySavings);
+  const resolvedWeddingTimeframe = getRouteParamString(prefillWeddingTimeframe);
+  const resolvedFamilyTimeframe = getRouteParamString(prefillFamilyTimeframe);
+  const resolvedCareerBreakTimeframe = getRouteParamString(prefillCareerBreakTimeframe);
 
   if (resolvedStartStep === 'customQuestion1') {
     return {
@@ -361,6 +397,24 @@ function buildInitialPlanningState({
 
   if (resolvedStartStep !== 'question1') {
     return initialState;
+  }
+
+  if (resolvedStartEvent && resolvedStartEvent !== 'property' && resolvedStartEvent !== 'custom') {
+    return {
+      ...initialState,
+      step: 'question1',
+      selectedEvent: resolvedStartEvent,
+      answers: {
+        ...initialState.answers,
+        educationCost: resolvedStartEvent === 'education' && resolvedEducationCost ? formatSandboxCurrency(Number(resolvedEducationCost)) : null,
+        educationTimeframe: resolvedStartEvent === 'education' ? resolvedEducationTimeframe : null,
+        weddingBudget: resolvedStartEvent === 'wedding' && resolvedWeddingBudget ? formatSandboxCurrency(Number(resolvedWeddingBudget)) : null,
+        weddingMonthlySavings: resolvedStartEvent === 'wedding' && resolvedWeddingMonthlySavings ? formatSandboxCurrency(Number(resolvedWeddingMonthlySavings)) : null,
+        weddingTimeframe: resolvedStartEvent === 'wedding' ? resolvedWeddingTimeframe : null,
+        familyTimeframe: resolvedStartEvent === 'family' ? resolvedFamilyTimeframe : null,
+        careerBreakTimeframe: resolvedStartEvent === 'career_break' ? resolvedCareerBreakTimeframe : null,
+      },
+    };
   }
 
   return {
@@ -385,6 +439,22 @@ function getRouteParamString(value?: string | string[]) {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+function getPlanningOwlEventParam(value?: string | string[]): PlanningOwlEvent | null {
+  const event = getRouteParamString(value);
+  if (
+    event === 'property' ||
+    event === 'custom' ||
+    event === 'education' ||
+    event === 'wedding' ||
+    event === 'family' ||
+    event === 'career_break'
+  ) {
+    return event;
+  }
+
+  return null;
+}
+
 function formatSandboxCurrency(value: number) {
   if (!Number.isFinite(value) || value <= 0) {
     return null;
@@ -407,35 +477,67 @@ function formatSandboxTimeline(value: number) {
 
 export default function PlanningOwlPage() {
   const router = useRouter();
+  const { state: wealthState } = useWealth();
   const {
     startStep,
+    entrySource,
+    startEvent,
     prefillTimeline,
     prefillDownpayment,
     prefillCustomGoalName,
     prefillCustomTargetAmount,
     prefillCustomMonthlySavings,
     prefillCustomTimeline,
+    prefillEducationCost,
+    prefillEducationTimeframe,
+    prefillWeddingBudget,
+    prefillWeddingMonthlySavings,
+    prefillWeddingTimeframe,
+    prefillFamilyTimeframe,
+    prefillCareerBreakTimeframe,
+    completedAction,
+    completionKey,
   } = useLocalSearchParams<{
     startStep?: string;
+    entrySource?: string;
+    startEvent?: string;
     prefillTimeline?: string;
     prefillDownpayment?: string;
     prefillCustomGoalName?: string;
     prefillCustomTargetAmount?: string;
     prefillCustomMonthlySavings?: string;
     prefillCustomTimeline?: string;
+    prefillEducationCost?: string;
+    prefillEducationTimeframe?: string;
+    prefillWeddingBudget?: string;
+    prefillWeddingMonthlySavings?: string;
+    prefillWeddingTimeframe?: string;
+    prefillFamilyTimeframe?: string;
+    prefillCareerBreakTimeframe?: string;
+    completedAction?: string;
+    completionKey?: string;
   }>();
   const [state, setState] = useState<PlanningOwlState>(() =>
     buildInitialPlanningState({
       startStep,
+      startEvent,
       prefillTimeline,
       prefillDownpayment,
       prefillCustomGoalName,
       prefillCustomTargetAmount,
       prefillCustomMonthlySavings,
       prefillCustomTimeline,
+      prefillEducationCost,
+      prefillEducationTimeframe,
+      prefillWeddingBudget,
+      prefillWeddingMonthlySavings,
+      prefillWeddingTimeframe,
+      prefillFamilyTimeframe,
+      prefillCareerBreakTimeframe,
     }),
   );
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [, setCompletionVersion] = useState(0);
   const prefilledKeys = useMemo(
     () => ({
       downpayment: typeof prefillDownpayment === 'string' && prefillDownpayment.length > 0,
@@ -444,19 +546,70 @@ export default function PlanningOwlPage() {
       customTargetAmount: typeof prefillCustomTargetAmount === 'string' && prefillCustomTargetAmount.length > 0,
       customMonthlySavings: typeof prefillCustomMonthlySavings === 'string' && prefillCustomMonthlySavings.length > 0,
       customTimeframe: typeof prefillCustomTimeline === 'string' && prefillCustomTimeline.length > 0,
+      educationCost: typeof prefillEducationCost === 'string' && prefillEducationCost.length > 0,
+      educationTimeframe: typeof prefillEducationTimeframe === 'string' && prefillEducationTimeframe.length > 0,
+      weddingBudget: typeof prefillWeddingBudget === 'string' && prefillWeddingBudget.length > 0,
+      weddingMonthlySavings: typeof prefillWeddingMonthlySavings === 'string' && prefillWeddingMonthlySavings.length > 0,
+      weddingTimeframe: typeof prefillWeddingTimeframe === 'string' && prefillWeddingTimeframe.length > 0,
+      familyTimeframe: typeof prefillFamilyTimeframe === 'string' && prefillFamilyTimeframe.length > 0,
+      careerBreakTimeframe: typeof prefillCareerBreakTimeframe === 'string' && prefillCareerBreakTimeframe.length > 0,
     }),
-    [prefillCustomGoalName, prefillCustomMonthlySavings, prefillCustomTargetAmount, prefillCustomTimeline, prefillDownpayment, prefillTimeline],
+    [
+      prefillCareerBreakTimeframe,
+      prefillCustomGoalName,
+      prefillCustomMonthlySavings,
+      prefillCustomTargetAmount,
+      prefillCustomTimeline,
+      prefillDownpayment,
+      prefillEducationCost,
+      prefillEducationTimeframe,
+      prefillFamilyTimeframe,
+      prefillTimeline,
+      prefillWeddingBudget,
+      prefillWeddingMonthlySavings,
+      prefillWeddingTimeframe,
+    ],
   );
 
   const selectedEvent = state.selectedEvent ?? 'property';
+  const entrySourceValue = getRouteParamString(entrySource);
+  const profileSignals = useMemo<PlanningOwlProfileSignals>(
+    () => ({
+      riskProfile: wealthState.userProfile.riskProfile,
+      knowledgeLevel: wealthState.userProfile.knowledgeLevel,
+      investAmount: wealthState.userProfile.investAmount,
+      loans: wealthState.userProfile.loans,
+      incomeRange: wealthState.userProfile.incomeRange,
+      marketPreference: wealthState.userProfile.marketPreference,
+    }),
+    [
+      wealthState.userProfile.incomeRange,
+      wealthState.userProfile.investAmount,
+      wealthState.userProfile.knowledgeLevel,
+      wealthState.userProfile.loans,
+      wealthState.userProfile.marketPreference,
+      wealthState.userProfile.riskProfile,
+    ],
+  );
   const scenarios = useMemo(
-    () => getPlanningOwlScenariosForEvent(selectedEvent, state.answers),
-    [state.answers, selectedEvent],
+    () => getPlanningOwlScenariosForEvent(selectedEvent, state.answers, profileSignals),
+    [profileSignals, state.answers, selectedEvent],
   );
   const simulation = useMemo(
-    () => getPlanningOwlSimulationForEvent(selectedEvent, state.answers, state.selectedScenario),
-    [state.answers, selectedEvent, state.selectedScenario],
+    () => getPlanningOwlSimulationForEvent(selectedEvent, state.answers, state.selectedScenario, profileSignals),
+    [profileSignals, state.answers, selectedEvent, state.selectedScenario],
   );
+  const actionCompletionKey = useMemo(
+    () =>
+      getPlanningOwlCompletionKey({
+        planId: state.activePlanId,
+        event: selectedEvent,
+        selectedScenario: state.selectedScenario,
+        answers: state.answers,
+      }),
+    [selectedEvent, state.activePlanId, state.answers, state.selectedScenario],
+  );
+  const completedActions = getCompletedPlanningOwlActions(actionCompletionKey);
   const isCurrentPlanSaved = useMemo(
     () =>
       state.savedPlans.some(
@@ -506,6 +659,34 @@ export default function PlanningOwlPage() {
     }
   }, [scenarios, state.selectedScenario]);
 
+  useEffect(() => {
+    const completedActionId = getRouteParamString(completedAction);
+    const completedKey = getRouteParamString(completionKey);
+
+    if (!completedActionId || !completedKey) {
+      return;
+    }
+
+    markPlanningOwlActionComplete(completedKey, completedActionId);
+    setCompletionVersion((current) => current + 1);
+
+    const returnContext = getPlanningOwlReturnContext(completedKey);
+    if (!returnContext) {
+      return;
+    }
+
+    setState((current) => ({
+      ...current,
+      step: 'results',
+      selectedEvent: returnContext.event,
+      answers: returnContext.answers,
+      selectedScenario: returnContext.selectedScenario,
+      planName: returnContext.planName,
+      activePlanId: returnContext.planId,
+      isViewingSavedPlan: returnContext.isViewingSavedPlan,
+    }));
+  }, [completedAction, completionKey]);
+
   const transitionTo = (step: PlanningStep, patch?: Partial<PlanningOwlState>) => {
     if (isTransitioning) {
       return;
@@ -529,6 +710,18 @@ export default function PlanningOwlPage() {
   const goBack = () => {
     if (state.step === 'plansHome') {
       router.replace('/owl-tiering');
+      return;
+    }
+
+    if (entrySourceValue === 'sandbox' && (state.step === 'customQuestion1' || state.step === 'question1')) {
+      transitionTo('eventPicker', {
+        selectedEvent: null,
+        selectedScenario: 'match_timing',
+        answers: initialState.answers,
+        planName: '',
+        activePlanId: null,
+        isViewingSavedPlan: false,
+      });
       return;
     }
 
@@ -599,8 +792,48 @@ export default function PlanningOwlPage() {
     transitionTo(question.step === 'question1' ? 'question2' : 'question3');
   };
 
-  const showPendingAction = (target: string) => {
-    Alert.alert('Coming soon', `This will open ${target.replace('_', ' ')}.`);
+  const openProductAction = (target: string, actionId: string, insight?: string) => {
+    const productRoute = getPlanningOwlProductRoute(target);
+
+    if (!productRoute) {
+      Alert.alert('Coming soon', `This will open ${target.replace('_', ' ')}.`);
+      return;
+    }
+
+    const event = state.selectedEvent ?? 'property';
+    const completionKeyForAction = getPlanningOwlCompletionKey({
+      planId: state.activePlanId,
+      event,
+      selectedScenario: state.selectedScenario,
+      answers: state.answers,
+    });
+
+    savePlanningOwlReturnContext({
+      completionKey: completionKeyForAction,
+      planId: state.activePlanId,
+      event,
+      answers: state.answers,
+      selectedScenario: state.selectedScenario,
+      planName: state.planName || simulation.title,
+      isViewingSavedPlan: state.isViewingSavedPlan,
+    });
+
+    router.push({
+      pathname: productRoute,
+      params: {
+        source: 'planning_owl',
+        completionKey: completionKeyForAction,
+        planId: state.activePlanId ?? '',
+        actionId,
+        productTarget: target,
+        planTitle: state.planName || simulation.title,
+        scenarioTitle: simulation.scenarioTitle,
+        timeline: simulation.purchaseTiming,
+        recommendedAmount: simulation.liquidityRequired,
+        event,
+        insight: insight ?? '',
+      },
+    } as Href);
   };
 
   const editSavedPlan = (savedPlan: SavedPlanningOwlPlan) => {
@@ -710,6 +943,13 @@ export default function PlanningOwlPage() {
       answers: state.answers,
       selectedScenario: state.selectedScenario,
     });
+    const savedCompletionKey = getPlanningOwlCompletionKey({
+      planId: savedPlan.id,
+      event: state.selectedEvent ?? 'property',
+      selectedScenario: state.selectedScenario,
+      answers: state.answers,
+    });
+    mergePlanningOwlCompletedActions(actionCompletionKey, savedCompletionKey);
     const savedPlans = await getSavedPlanningOwlPlans();
     setState((current) => ({ ...current, savedPlans, activePlanId: savedPlan.id, step: 'results' }));
     setTimeout(() => setIsTransitioning(false), 280);
@@ -779,9 +1019,10 @@ export default function PlanningOwlPage() {
               savedScenario={savedScenarioForCurrentAnswers}
               event={state.selectedEvent ?? 'property'}
               planName={state.planName}
+              completedActions={completedActions}
               onPlanNameChange={(planName) => setState((current) => ({ ...current, planName }))}
               onScenarioChange={(selectedScenario) => setState((current) => ({ ...current, selectedScenario, isViewingSavedPlan: false }))}
-              onActionPress={showPendingAction}
+              onActionPress={openProductAction}
               onCommit={commitPlan}
               onBackToPlans={finishAndReturnPlans}
             />
@@ -792,7 +1033,8 @@ export default function PlanningOwlPage() {
               simulation={simulation}
               disabled={isTransitioning}
               isReadOnly={state.isViewingSavedPlan}
-              onActionPress={showPendingAction}
+              completedActions={completedActions}
+              onActionPress={openProductAction}
               onCommit={commitPlan}
             />
           )}
@@ -944,7 +1186,7 @@ function QuickStartPill({ disabled, onPress }: { disabled: boolean; onPress: () 
           Quick estimate
         </Text>
         <Text fontSize={12} color="rgba(23,32,48,0.52)">
-          {"See where you'd land"}
+          Start with what you can save
         </Text>
       </YStack>
     </Pressable>
@@ -1318,6 +1560,7 @@ function SimulationResults({
   savedScenario,
   event,
   planName,
+  completedActions,
   onPlanNameChange,
   onScenarioChange,
   onActionPress,
@@ -1333,9 +1576,10 @@ function SimulationResults({
   savedScenario: PlanningOwlScenario | null;
   event: PlanningOwlEvent;
   planName: string;
+  completedActions: Set<string>;
   onPlanNameChange: (value: string) => void;
   onScenarioChange: (scenario: PlanningOwlScenario) => void;
-  onActionPress: (target: string) => void;
+  onActionPress: (target: string, actionId: string, insight?: string) => void;
   onCommit: () => void;
   onBackToPlans: () => void;
 }) {
@@ -1391,6 +1635,7 @@ function SimulationResults({
             saveLocked={false}
             onPress={() => undefined}
             onActionPress={onActionPress}
+            completedActions={completedActions}
             onCommit={onCommit}
             onBackToPlans={onBackToPlans}
             planName={planName}
@@ -1412,6 +1657,7 @@ function SimulationResults({
                 onScenarioChange(scenario.scenario);
               }}
               onActionPress={onActionPress}
+              completedActions={completedActions}
               onCommit={onCommit}
               onBackToPlans={onBackToPlans}
               planName={planName}
@@ -1428,13 +1674,15 @@ function StrategyComparison({
   simulation,
   disabled,
   isReadOnly,
+  completedActions,
   onActionPress,
   onCommit,
 }: {
   simulation: PlanningOwlSimulation;
   disabled: boolean;
   isReadOnly: boolean;
-  onActionPress: (target: string) => void;
+  completedActions: Set<string>;
+  onActionPress: (target: string, actionId: string, insight?: string) => void;
   onCommit: () => void;
 }) {
   return (
@@ -1489,7 +1737,16 @@ function StrategyComparison({
           {simulation.guidance}
         </Text>
         {simulation.actions.map((action) => (
-          <ActionRow key={action.id} label={action.label} detail={action.detail} insight={action.insight} disabled={disabled} onPress={() => onActionPress(action.target)} />
+          <ActionRow
+            key={action.id}
+            label={action.label}
+            detail={action.detail}
+            insight={action.insight}
+            disabled={disabled}
+            completed={completedActions.has(action.id)}
+            completedLabel={getPlanningOwlActionStatus(action.id)}
+            onPress={() => onActionPress(action.target, action.id, action.insight)}
+          />
         ))}
       </YStack>
 
@@ -1620,12 +1877,16 @@ function ActionRow({
   detail,
   insight,
   disabled,
+  completed = false,
+  completedLabel,
   onPress,
 }: {
   label: string;
   detail: string;
   insight?: string;
   disabled: boolean;
+  completed?: boolean;
+  completedLabel?: string;
   onPress: () => void;
 }) {
   const lowerLabel = label.toLowerCase();
@@ -1633,32 +1894,50 @@ function ActionRow({
   const isLoan = lowerLabel.includes('loan');
   const isAccount = lowerLabel.includes('360');
   const isCard = lowerLabel.includes('card');
-  const isProtection = lowerLabel.includes('protection');
-  const iconName = isLoan ? 'briefcase' : isDeposit || isAccount ? 'home' : isCard ? 'credit-card' : isProtection ? 'shield' : 'bar-chart-2';
-  const iconColor = isLoan ? '#7A4A00' : isDeposit || isAccount ? '#C9002B' : isCard ? '#6E4AA8' : isProtection ? '#147A2E' : '#415A9C';
-  const iconBackground = isLoan ? '#FFF1D6' : isDeposit || isAccount ? '#FFE2E8' : isCard ? '#EEE8FF' : isProtection ? '#DDF5E4' : '#E4E9FF';
+  const isInsurance = lowerLabel.includes('insurance');
+  const iconName = isLoan ? 'briefcase' : isDeposit || isAccount ? 'home' : isCard ? 'credit-card' : isInsurance ? 'shield' : 'bar-chart-2';
+  const iconColor = isLoan ? '#7A4A00' : isDeposit || isAccount ? '#C9002B' : isCard ? '#6E4AA8' : isInsurance ? '#147A2E' : '#415A9C';
+  const iconBackground = isLoan ? '#FFF1D6' : isDeposit || isAccount ? '#FFE2E8' : isCard ? '#EEE8FF' : isInsurance ? '#DDF5E4' : '#E4E9FF';
   const actionLabel = isLoan
-    ? 'Explore OCBC Loans'
+    ? 'View recommended loans'
     : isDeposit
       ? 'Open Deposit Owl'
       : isAccount
         ? 'Review OCBC 360'
         : isCard
           ? 'Review card plan'
-          : isProtection
-            ? 'Review protection'
+          : isInsurance
+            ? 'Review OCBC Insurance'
             : 'Open Investment Owl';
 
   return (
     <Pressable disabled={disabled} onPress={onPress} accessibilityRole="button">
-      <XStack padding="$4" borderRadius={8} backgroundColor="white" alignItems="center" gap="$3">
+      <XStack
+        padding="$4"
+        borderRadius={8}
+        backgroundColor={completed ? '#F7FBF8' : 'white'}
+        borderWidth={completed ? 1 : 0}
+        borderColor={completed ? '#CBE8D1' : 'transparent'}
+        alignItems="center"
+        gap="$3"
+      >
         <YStack width={38} height={38} borderRadius={12} backgroundColor={iconBackground} alignItems="center" justifyContent="center">
-          <Feather name={iconName} size={18} color={iconColor} />
+          <Feather name={completed ? 'check' : iconName} size={18} color={completed ? '#147A2E' : iconColor} />
         </YStack>
         <YStack flex={1}>
-          <Text fontSize={15} fontWeight="900" color="#111820">
-            {label}
-          </Text>
+          <XStack alignItems="center" gap="$2" flexWrap="wrap">
+            <Text fontSize={15} fontWeight="900" color="#111820">
+              {label}
+            </Text>
+            {completed && (
+              <XStack alignItems="center" gap="$1" backgroundColor="#DDF5E4" paddingHorizontal="$2" paddingVertical="$1" borderRadius={10}>
+                <Feather name="check-circle" size={11} color="#147A2E" />
+                <Text fontSize={10} color="#147A2E" fontWeight="900">
+                  {completedLabel ?? 'Done'}
+                </Text>
+              </XStack>
+            )}
+          </XStack>
           <Text fontSize={11} color="rgba(23,32,48,0.58)" marginTop="$1">
             {detail}
           </Text>
@@ -1670,11 +1949,11 @@ function ActionRow({
               </Text>
             </XStack>
           )}
-          <Text fontSize={13} color="#C9002B" marginTop="$2" fontWeight="900">
-            {actionLabel}
+          <Text fontSize={13} color={completed ? '#147A2E' : '#C9002B'} marginTop="$2" fontWeight="900">
+            {completed ? 'View again' : actionLabel}
           </Text>
         </YStack>
-        <Feather name="arrow-right" size={20} color="#8B5962" />
+        <Feather name="arrow-right" size={20} color={completed ? '#6CA67A' : '#8B5962'} />
       </XStack>
     </Pressable>
   );
@@ -1691,6 +1970,7 @@ function ScenarioAccordionCard({
   saveLocked,
   onPress,
   onActionPress,
+  completedActions,
   onCommit,
   onBackToPlans,
   planName,
@@ -1705,7 +1985,8 @@ function ScenarioAccordionCard({
   isSaved: boolean;
   saveLocked: boolean;
   onPress: () => void;
-  onActionPress: (target: string) => void;
+  onActionPress: (target: string, actionId: string, insight?: string) => void;
+  completedActions: Set<string>;
   onCommit: () => void;
   onBackToPlans: () => void;
   planName: string;
@@ -1786,6 +2067,7 @@ function ScenarioAccordionCard({
               isSaved={isSaved}
               saveLocked={saveLocked}
               onActionPress={onActionPress}
+              completedActions={completedActions}
               onCommit={onCommit}
               onBackToPlans={onBackToPlans}
               planName={planName}
@@ -1876,6 +2158,7 @@ function FullScenarioPlan({
   isSaved,
   saveLocked,
   onActionPress,
+  completedActions,
   onCommit,
   onBackToPlans,
   planName,
@@ -1886,7 +2169,8 @@ function FullScenarioPlan({
   isReadOnly: boolean;
   isSaved: boolean;
   saveLocked: boolean;
-  onActionPress: (target: string) => void;
+  onActionPress: (target: string, actionId: string, insight?: string) => void;
+  completedActions: Set<string>;
   onCommit: () => void;
   onBackToPlans: () => void;
   planName: string;
@@ -1960,7 +2244,16 @@ function FullScenarioPlan({
           </Text>
         </XStack>
         {scenario.actions.map((action) => (
-          <ActionRow key={action.id} label={action.label} detail={action.detail} insight={action.insight} disabled={disabled} onPress={() => onActionPress(action.target)} />
+          <ActionRow
+            key={action.id}
+            label={action.label}
+            detail={action.detail}
+            insight={action.insight}
+            disabled={disabled}
+            completed={completedActions.has(action.id)}
+            completedLabel={getPlanningOwlActionStatus(action.id)}
+            onPress={() => onActionPress(action.target, action.id, action.insight)}
+          />
         ))}
       </YStack>
 
@@ -2135,7 +2428,7 @@ function getPlanningNudge(savedPlans: SavedPlanningOwlPlan[]): PlanningNudge {
   if (savedPlans.length === 0) {
     return {
       title: 'Start with a quick plan',
-      detail: 'Compare a life event or savings goal before saving anything.',
+      detail: 'Start with what you can save, then let Owl suggest a goal.',
       actionLabel: 'Create a plan',
       action: { type: 'picker' },
     };

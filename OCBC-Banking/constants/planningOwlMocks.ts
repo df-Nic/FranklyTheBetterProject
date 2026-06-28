@@ -29,6 +29,15 @@ export type PlanningOwlScenario = 'match_timing' | 'earlier' | 'later' | 'save_m
 type PlanningOwlAction = { id: string; label: string; detail: string; target: string; insight?: string };
 type PlanningOwlReason = { title: string; detail: string };
 
+export type PlanningOwlProfileSignals = {
+  riskProfile?: 'Conservative' | 'Balanced' | 'Growth' | null;
+  knowledgeLevel?: 'Basic' | 'Intermediate' | 'Advanced' | null;
+  investAmount?: string | null;
+  loans?: string | null;
+  incomeRange?: string | null;
+  marketPreference?: string | null;
+};
+
 export type PlanningOwlSimulation = {
   scenario: PlanningOwlScenario;
   scenarioLabel: string;
@@ -181,14 +190,112 @@ const baseActions = {
   },
   protection: {
     id: 'protection',
-    label: 'Protection review',
-    detail: 'Review coverage needs before the milestone',
-    target: 'protection_review',
+    label: 'OCBC Insurance',
+    detail: 'Review coverage needs before expenses change',
+    target: 'ocbc_insurance',
     insight: 'Suggested because regular expenses can change after this milestone, and Owl can use your selected cost to estimate what to protect.',
   },
 } satisfies Record<string, PlanningOwlAction>;
 
-export function getPlanningOwlScenarios(answers: PlanningOwlAnswers): PlanningOwlSimulation[] {
+function applyProfileSignalsToScenarios(scenarios: PlanningOwlSimulation[], profileSignals?: PlanningOwlProfileSignals) {
+  if (!hasProfileSignals(profileSignals)) {
+    return scenarios;
+  }
+
+  return scenarios.map((scenario) => ({
+    ...scenario,
+    actions: scenario.actions.map((action) => ({
+      ...action,
+      insight: appendProfileInsight(action, profileSignals),
+    })),
+  }));
+}
+
+function hasProfileSignals(profileSignals?: PlanningOwlProfileSignals) {
+  return Boolean(
+    profileSignals?.riskProfile ||
+      profileSignals?.knowledgeLevel ||
+      getAnswerString(profileSignals?.investAmount) ||
+      getAnswerString(profileSignals?.loans) ||
+      getAnswerString(profileSignals?.incomeRange) ||
+      getAnswerString(profileSignals?.marketPreference),
+  );
+}
+
+function appendProfileInsight(action: PlanningOwlAction, profileSignals?: PlanningOwlProfileSignals) {
+  const profileSentence = getProfileInsightForAction(action, profileSignals);
+  if (!profileSentence) {
+    return action.insight;
+  }
+
+  return action.insight ? `${action.insight} ${profileSentence}` : profileSentence;
+}
+
+function getProfileInsightForAction(action: PlanningOwlAction, profileSignals?: PlanningOwlProfileSignals) {
+  if (!profileSignals) {
+    return null;
+  }
+
+  const riskProfile = profileSignals.riskProfile;
+  const knowledgeLevel = profileSignals.knowledgeLevel;
+  const loans = getAnswerString(profileSignals.loans);
+  const incomeRange = getAnswerString(profileSignals.incomeRange);
+  const investAmount = getAnswerString(profileSignals.investAmount);
+  const marketPreference = getAnswerString(profileSignals.marketPreference);
+
+  if (action.id === 'invest') {
+    if (riskProfile === 'Conservative') {
+      return 'Your Conservative Owl risk profile keeps the focus on lower-risk options after emergency cash is set aside.';
+    }
+
+    if (riskProfile === 'Balanced') {
+      return 'Your Balanced Owl risk profile supports reviewing lower-risk growth options only after emergency cash is kept aside.';
+    }
+
+    if (riskProfile === 'Growth') {
+      const preferenceCopy = marketPreference && marketPreference !== 'No preference' ? ` and ${marketPreference.toLowerCase()} market preference` : '';
+      return `Your Growth Owl risk profile${preferenceCopy} helps explain why Invest Owl is shown, but only for money you do not need soon.`;
+    }
+
+    if (investAmount) {
+      return `Your Owl profile says you may invest ${investAmount}, so this action stays separate from money needed soon.`;
+    }
+  }
+
+  if (action.id === 'deposit' || action.id === 'fixed_deposit' || action.id === 'account360') {
+    if (riskProfile === 'Conservative') {
+      return 'Your Conservative Owl risk profile also favours keeping more money in deposits or savings buckets.';
+    }
+
+    if (knowledgeLevel === 'Basic') {
+      return 'Your Basic Owl knowledge level is why Owl keeps this action guided and easy to follow.';
+    }
+  }
+
+  if (action.id === 'loan') {
+    if (loans && loans !== 'None') {
+      return `Your Owl profile already shows ${loans.toLowerCase()}, so Owl includes a repayment comfort check before adding another commitment.`;
+    }
+
+    if (incomeRange) {
+      return `Your Owl profile income range of ${incomeRange} helps frame a comfortable repayment check.`;
+    }
+  }
+
+  if (action.id === 'protection') {
+    if (loans && loans !== 'None') {
+      return `Your Owl profile shows ${loans.toLowerCase()}, so Owl includes protection before regular commitments grow.`;
+    }
+
+    if (knowledgeLevel === 'Basic') {
+      return 'Your Basic Owl knowledge level is why Owl suggests a guided coverage review instead of a complex product choice.';
+    }
+  }
+
+  return null;
+}
+
+export function getPlanningOwlScenarios(answers: PlanningOwlAnswers, profileSignals?: PlanningOwlProfileSignals): PlanningOwlSimulation[] {
   const targetTiming = getTimingLabel(answers.timeframe, 0);
   const earlierTiming = getTimingLabel(answers.timeframe, -1);
   const laterTiming = getTimingLabel(answers.timeframe, 1);
@@ -437,7 +544,7 @@ export function getMockSimulation(answers: PlanningOwlAnswers, scenario: Plannin
   return getPlanningOwlScenarios(answers).find((item) => item.scenario === scenario) ?? getPlanningOwlScenarios(answers)[0];
 }
 
-export function getCustomGoalScenarios(answers: PlanningOwlAnswers): PlanningOwlSimulation[] {
+export function getCustomGoalScenarios(answers: PlanningOwlAnswers, profileSignals?: PlanningOwlProfileSignals): PlanningOwlSimulation[] {
   const goalName = getCustomGoalName(answers);
   const targetAmount = parseCurrencyAmount(answers.customTargetAmount, 20000);
   const monthlySavings = parseCurrencyAmount(answers.customMonthlySavings, 500);
@@ -451,7 +558,7 @@ export function getCustomGoalScenarios(answers: PlanningOwlAnswers): PlanningOwl
   const formattedMonthly = formatCurrency(monthlySavings);
   const formattedShortfall = formatCurrency(shortfall);
 
-  return [
+  const scenarios: PlanningOwlSimulation[] = [
     {
       scenario: 'match_timing',
       scenarioLabel: 'Option A',
@@ -599,6 +706,8 @@ export function getCustomGoalScenarios(answers: PlanningOwlAnswers): PlanningOwl
       },
     },
   ];
+
+  return applyProfileSignalsToScenarios(scenarios, profileSignals);
 }
 
 export function getCustomGoalSimulation(answers: PlanningOwlAnswers, scenario: PlanningOwlScenario = 'match_timing') {
@@ -632,20 +741,20 @@ type LifeEventScenarioConfig = {
   };
 };
 
-export function getPlanningOwlScenariosForEvent(event: PlanningOwlEvent, answers: PlanningOwlAnswers): PlanningOwlSimulation[] {
+export function getPlanningOwlScenariosForEvent(event: PlanningOwlEvent, answers: PlanningOwlAnswers, profileSignals?: PlanningOwlProfileSignals): PlanningOwlSimulation[] {
   if (event === 'custom') {
-    return getCustomGoalScenarios(answers);
+    return getCustomGoalScenarios(answers, profileSignals);
   }
 
   if (event === 'property') {
-    return getPlanningOwlScenarios(answers);
+    return getPlanningOwlScenarios(answers, profileSignals);
   }
 
-  return getLifeEventScenarios(getLifeEventScenarioConfig(event, answers));
+  return applyProfileSignalsToScenarios(getLifeEventScenarios(getLifeEventScenarioConfig(event, answers)), profileSignals);
 }
 
-export function getPlanningOwlSimulationForEvent(event: PlanningOwlEvent, answers: PlanningOwlAnswers, scenario: PlanningOwlScenario = 'match_timing') {
-  const scenarios = getPlanningOwlScenariosForEvent(event, answers);
+export function getPlanningOwlSimulationForEvent(event: PlanningOwlEvent, answers: PlanningOwlAnswers, scenario: PlanningOwlScenario = 'match_timing', profileSignals?: PlanningOwlProfileSignals) {
+  const scenarios = getPlanningOwlScenariosForEvent(event, answers, profileSignals);
   return scenarios.find((item) => item.scenario === scenario) ?? scenarios[0];
 }
 

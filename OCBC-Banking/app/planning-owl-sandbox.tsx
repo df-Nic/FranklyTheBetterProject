@@ -64,16 +64,16 @@ export default function PlanningOwlSandboxScreen() {
   return (
     <YStack flex={1} backgroundColor="#F5F5F7">
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <FlowHeader title="Quick estimate" subtitle="See where you'd land" onBack={() => router.back()} />
+        <FlowHeader title="Quick estimate" subtitle="Start with what you can save" onBack={() => router.back()} />
 
         <MotiView from={{ opacity: 0, translateX: 28 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 260 }}>
           <YStack gap="$5">
             <YStack gap="$2">
               <Text fontSize={30} fontWeight="900" color="#111820">
-                Try a plan without choosing the goal yet
+                Not sure what to plan for?
               </Text>
               <Text fontSize={15} color="rgba(23,32,48,0.58)" lineHeight={22}>
-                Adjust a monthly saving habit and timeline. Nothing is saved unless you turn it into a real plan.
+                Enter a monthly amount and timeline. Owl will show what kind of goal it could support.
               </Text>
             </YStack>
 
