@@ -977,13 +977,12 @@ export default function PlanningOwlPage() {
         >
           {state.step === 'plansHome' && (
             <PlansHome
-          savedPlans={state.savedPlans}
-          disabled={isTransitioning}
-          onNewPlan={openNewPlanPicker}
-          onNudgeAction={handleNudgeAction}
-          onSandbox={() => router.push('/planning-owl-sandbox')}
-          onEditSavedPlan={editSavedPlan}
-          onViewSavedPlan={viewSavedPlan}
+              savedPlans={state.savedPlans}
+              disabled={isTransitioning}
+              onNewPlan={openNewPlanPicker}
+              onNudgeAction={handleNudgeAction}
+              onEditSavedPlan={editSavedPlan}
+              onViewSavedPlan={viewSavedPlan}
               onDeleteSavedPlan={deleteSavedPlan}
             />
           )}
@@ -993,7 +992,6 @@ export default function PlanningOwlPage() {
               disabled={isTransitioning}
               onSelectEvent={createLifeEventPlan}
               onSelectCustom={createCustomPlan}
-              onPlayWithNumbers={() => router.push('/planning-owl-sandbox')}
             />
           )}
 
@@ -1089,7 +1087,6 @@ function PlansHome({
   disabled,
   onNewPlan,
   onNudgeAction,
-  onSandbox,
   onEditSavedPlan,
   onViewSavedPlan,
   onDeleteSavedPlan,
@@ -1098,7 +1095,6 @@ function PlansHome({
   disabled: boolean;
   onNewPlan: () => void;
   onNudgeAction: (nudge: PlanningNudge) => void;
-  onSandbox: () => void;
   onEditSavedPlan: (savedPlan: SavedPlanningOwlPlan) => void;
   onViewSavedPlan: (savedPlan: SavedPlanningOwlPlan) => void;
   onDeleteSavedPlan: (savedPlan: SavedPlanningOwlPlan) => void;
@@ -1148,7 +1144,6 @@ function PlansHome({
           savedPlans={savedPlans}
           disabled={disabled}
           onNewPlan={onNewPlan}
-          onSandbox={onSandbox}
           onEditSavedPlan={onEditSavedPlan}
           onViewSavedPlan={onViewSavedPlan}
           onDeleteSavedPlan={onDeleteSavedPlan}
@@ -1170,7 +1165,6 @@ function PlansHome({
             <Button width="100%" height={46} borderRadius={23} backgroundColor="#DA291C" color="white" fontWeight="800" disabled={disabled} onPress={onNewPlan}>
               Create your first plan
             </Button>
-            <QuickStartPill disabled={disabled} onPress={onSandbox} />
           </YStack>
         </YStack>
       )}
@@ -1178,31 +1172,14 @@ function PlansHome({
   );
 }
 
-function QuickStartPill({ disabled, onPress }: { disabled: boolean; onPress: () => void }) {
-  return (
-    <Pressable disabled={disabled} accessibilityRole="button" accessibilityState={{ disabled }} onPress={onPress}>
-      <YStack width="100%" padding="$3" gap="$1" borderRadius={18} backgroundColor="transparent" borderWidth={1} borderColor="rgba(23,32,48,0.14)" alignItems="center">
-        <Text fontSize={14} color="#33415C" fontWeight="900">
-          Quick estimate
-        </Text>
-        <Text fontSize={12} color="rgba(23,32,48,0.52)">
-          Start with what you can save
-        </Text>
-      </YStack>
-    </Pressable>
-  );
-}
-
 function LifeEventPicker({
   disabled,
   onSelectEvent,
   onSelectCustom,
-  onPlayWithNumbers,
 }: {
   disabled: boolean;
   onSelectEvent: (event: Exclude<PlanningOwlEvent, 'custom'>) => void;
   onSelectCustom: () => void;
-  onPlayWithNumbers: () => void;
 }) {
   const events: { id: Exclude<PlanningOwlEvent, 'custom'>; title: string; icon: keyof typeof Feather.glyphMap }[] = [
     { id: 'property', title: 'Buying a property', icon: 'home' },
@@ -1301,7 +1278,6 @@ function LifeEventPicker({
             </XStack>
           </GlassCard>
         </Pressable>
-        <QuickStartPill disabled={disabled} onPress={onPlayWithNumbers} />
       </YStack>
     </YStack>
   );
@@ -1311,7 +1287,6 @@ function SavedPlansSection({
   savedPlans,
   disabled,
   onNewPlan,
-  onSandbox,
   onEditSavedPlan,
   onViewSavedPlan,
   onDeleteSavedPlan,
@@ -1319,7 +1294,6 @@ function SavedPlansSection({
   savedPlans: SavedPlanningOwlPlan[];
   disabled: boolean;
   onNewPlan: () => void;
-  onSandbox: () => void;
   onEditSavedPlan: (savedPlan: SavedPlanningOwlPlan) => void;
   onViewSavedPlan: (savedPlan: SavedPlanningOwlPlan) => void;
   onDeleteSavedPlan: (savedPlan: SavedPlanningOwlPlan) => void;
@@ -1331,9 +1305,6 @@ function SavedPlansSection({
           Saved plans
         </Text>
         <XStack gap="$2">
-          <Button size="$3" borderRadius={18} backgroundColor="rgba(0,0,0,0.06)" color="#111820" fontWeight="800" disabled={disabled} onPress={onSandbox}>
-            Quick estimate
-          </Button>
           <Button size="$3" borderRadius={18} backgroundColor="#DA291C" color="white" fontWeight="800" disabled={disabled} onPress={onNewPlan}>
             New plan
           </Button>
