@@ -20,9 +20,9 @@ export function AIAssistantSheet() {
   const scrollViewRef = useRef<ScrollView>(null);
 
   const QUICK_QUESTIONS = [
-    'How close am I to Premier?',
+    'How close am I to Momentum?',
     'What products are safest?',
-    'How long until I unlock Premier?',
+    'How long until I unlock Momentum?',
   ];
 
   const handleSend = (text?: string) => {

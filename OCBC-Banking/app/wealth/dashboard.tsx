@@ -26,7 +26,7 @@ const MOCK_HOLDINGS = [
 
 const AI_NUDGE = {
   headline: 'You\'re making great progress!',
-  body: 'Adding SGD 500/month in regular investments could unlock Premier Banking 18 months earlier.',
+  body: 'Adding SGD 500/month in regular investments could unlock Momentum tier 18 months earlier.',
   icon: 'trending-up',
 };
 
