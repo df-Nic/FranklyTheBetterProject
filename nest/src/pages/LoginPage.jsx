@@ -49,7 +49,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex-1 w-full bg-[#F5F5F7] flex flex-col relative px-6 py-6 overflow-y-auto no-scrollbar select-none">
+    <div className="flex-1 w-full bg-[#F5F5F7] flex flex-col relative px-6 py-6 overflow-y-auto overflow-x-hidden no-scrollbar select-none">
       {/* Background Orb in top-right */}
       <BackgroundOrb color="peach" size="350px" className="-top-12 -right-12" />
 

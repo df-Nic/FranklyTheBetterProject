@@ -110,7 +110,7 @@ const HomePage = () => {
       </header>
 
       {/* Main Scrollable Content */}
-      <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-4 flex flex-col gap-5 z-10 pb-10">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-4 py-4 flex flex-col gap-5 z-10 pb-10">
         
         {/* Greeting Section */}
         <div className="flex flex-col gap-0.5">

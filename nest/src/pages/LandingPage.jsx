@@ -36,7 +36,7 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="flex-1 w-full bg-[#FAFAFA] flex flex-col justify-between overflow-y-auto no-scrollbar relative px-6 py-6 select-none">
+    <div className="flex-1 w-full bg-[#FAFAFA] flex flex-col justify-between overflow-y-auto overflow-x-hidden no-scrollbar relative px-6 py-6 select-none">
       {/* Animated Orbs */}
       <BackgroundOrb color="pink" size="320px" className="-top-16 -left-16" />
       <BackgroundOrb color="gold" size="380px" className="-bottom-20 -right-20" />
