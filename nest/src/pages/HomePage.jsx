@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import BackgroundOrb from '../components/ui/BackgroundOrb';
 import GlassCard from '../components/ui/GlassCard';
+import ChatWidget from '../components/ui/ChatWidget';
 import {
   Scan,
   Bell,
@@ -420,6 +421,9 @@ const HomePage = () => {
           </AnimatePresence>
         </div>
       </div>
+      
+      {/* Interactive AI Chatbot Widget */}
+      <ChatWidget />
     </div>
   );
 };
