@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext';
 import BackgroundOrb from '../components/ui/BackgroundOrb';
 import GlassCard from '../components/ui/GlassCard';
 import ChatWidget from '../components/ui/ChatWidget';
+import BottomNavBar from '../components/layout/BottomNavBar';
 import {
   Scan,
   Bell,
@@ -46,6 +47,7 @@ const HomePage = () => {
   } = useApp();
 
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
+  const [activeNavTab, setActiveNavTab] = useState('home');
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -116,7 +118,7 @@ const HomePage = () => {
       </header>
 
       {/* Main Scrollable Content */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-4 py-4 flex flex-col gap-5 z-10 pb-10">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-4 py-4 flex flex-col gap-5 z-10 pb-safe-nav">
         
         {/* Greeting Section */}
         <div className="flex flex-col gap-0.5">
@@ -424,6 +426,9 @@ const HomePage = () => {
       
       {/* Interactive AI Chatbot Widget */}
       <ChatWidget />
+
+      {/* Floating Bottom Navigation Bar */}
+      <BottomNavBar activeTab={activeNavTab} onTabSelect={setActiveNavTab} />
     </div>
   );
 };

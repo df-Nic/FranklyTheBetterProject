@@ -8,6 +8,7 @@ const ChatWidget = () => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [hasInitialized, setHasInitialized] = useState(false);
   const [inputText, setInputText] = useState('');
+  const [safeBottom, setSafeBottom] = useState(0);
   
   const bubbleRef = useRef(null);
   const containerRef = useRef(null);
@@ -34,8 +35,16 @@ const ChatWidget = () => {
     "Invest in Gold"
   ];
 
-  // Resolve container ref on mount
+  // Resolve container ref on mount and measure safe bottom area
   useEffect(() => {
+    // Dynamically measure the bottom safe area inset in pixels
+    const tempDiv = document.createElement('div');
+    tempDiv.style.paddingBottom = 'env(safe-area-inset-bottom, 0px)';
+    document.body.appendChild(tempDiv);
+    const measuredSafeBottom = parseInt(window.getComputedStyle(tempDiv).paddingBottom, 10) || 0;
+    document.body.removeChild(tempDiv);
+    setSafeBottom(measuredSafeBottom);
+
     const parent = bubbleRef.current?.parentElement;
     if (parent) {
       containerRef.current = parent;
@@ -43,9 +52,9 @@ const ChatWidget = () => {
       const parentRect = parent.getBoundingClientRect();
       const bubbleRect = bubbleRef.current.getBoundingClientRect();
       
-      // Initial position: snap to right edge with 16px padding
+      // Initial position: snap to right edge with 16px padding, offset by safe bottom inset & navbar clearance
       const initX = parentRect.width - bubbleRect.width - 16;
-      const initY = parentRect.height - bubbleRect.height - 120;
+      const initY = parentRect.height - bubbleRect.height - 180 - measuredSafeBottom;
       
       setPosition({ x: initX, y: initY });
       setHasInitialized(true);
@@ -68,9 +77,9 @@ const ChatWidget = () => {
     // Save previous drag coordinates
     lastPosition.current = { x: position.x, y: position.y };
     
-    // Target position: flush in the bottom-right corner, aligned with bottom-5 (20px)
+    // Target position: flush in the bottom-right corner, offset by safe bottom inset & navbar clearance
     const targetX = parentRect.width - bubbleRect.width - 16;
-    const targetY = parentRect.height - bubbleRect.height - 20;
+    const targetY = parentRect.height - bubbleRect.height - 96 - safeBottom;
     
     setPosition({ x: targetX, y: targetY });
     setIsOpen(true);
@@ -89,7 +98,7 @@ const ChatWidget = () => {
     const bubbleRect = bubbleRef.current.getBoundingClientRect();
     
     const paddingX = 16;
-    const paddingY = 16;
+    const paddingY = 96 + safeBottom; // clearance for bottom navbar and safe inset
     
     // Find current horizontal position and snap to closest vertical side edge
     const bubbleCenterX = bubbleRect.left + bubbleRect.width / 2;
@@ -106,7 +115,7 @@ const ChatWidget = () => {
     let targetY = bubbleRect.top - parentRect.top;
     
     // Ensure Y bounds are respected
-    const minY = paddingY;
+    const minY = 16;
     const maxY = parentRect.height - bubbleRect.height - paddingY;
     if (targetY < minY) targetY = minY;
     if (targetY > maxY) targetY = maxY;
@@ -175,7 +184,8 @@ const ChatWidget = () => {
             animate={{ opacity: 1, scale: 1, x: 0 }}
             exit={{ opacity: 0, scale: 0.9, x: 20 }}
             transition={{ type: "spring", stiffness: 260, damping: 26 }}
-            className="absolute top-20 bottom-4 left-4 right-20 bg-white/80 backdrop-blur-xl border border-white/60 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-40 flex flex-col overflow-hidden"
+            style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 96px)' }}
+            className="absolute top-20 left-4 right-20 bg-white/80 backdrop-blur-xl border border-white/60 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-40 flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="h-14 px-4 bg-white border-b border-zinc-200/50 flex items-center justify-between shrink-0">
@@ -240,7 +250,7 @@ const ChatWidget = () => {
             </div>
 
             {/* Input Bar */}
-            <div className="px-4 pb-5 pt-3 bg-white/95 border-t border-zinc-200/50 flex items-center gap-3 shrink-0">
+            <div className="px-4 pb-3 pt-3 bg-white/95 border-t border-zinc-200/50 flex items-center gap-3 shrink-0">
               <input
                 type="text"
                 value={inputText}
