@@ -3,8 +3,6 @@ import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import BackgroundOrb from '../components/ui/BackgroundOrb';
 import { ShieldAlert, Key, QrCode, Send, TrendingUp, Landmark, Grid, ArrowRight } from 'lucide-react';
-import owlPlanning from '../assets/images/owl-planning.png';
-import ocbcLogo from '../assets/images/OCBC-Bank-Logo.png';
 
 const LandingPage = () => {
   const { navigate } = useApp();
@@ -36,21 +34,11 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="flex-1 w-full bg-[#FAFAFA] flex flex-col justify-between overflow-y-auto overflow-x-hidden no-scrollbar relative px-6 py-6 select-none">
+    <div className="flex-1 w-full bg-[#FAFAFA] flex flex-col justify-between overflow-hidden relative px-6 pt-12 pb-6 select-none">
       {/* Animated Orbs */}
-      <BackgroundOrb color="pink" size="320px" className="-top-16 -left-16" />
-      <BackgroundOrb color="gold" size="380px" className="-bottom-20 -right-20" />
-
-      {/* Header section (Logo) */}
-      <div className="w-full flex justify-between items-center z-10 shrink-0 mb-8">
-        <img
-          src={ocbcLogo}
-          alt="OCBC Bank Logo"
-          className="h-8 object-contain"
-        />
-        <span className="text-xs font-bold px-2.5 py-1 bg-zinc-200/50 backdrop-blur-md rounded-full text-zinc-600 border border-zinc-300/30">
-          SG PROTOTYPE
-        </span>
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <BackgroundOrb color="pink" size="320px" className="-top-16 -left-16" />
+        <BackgroundOrb color="gold" size="380px" className="-bottom-20 -right-20" />
       </div>
 
       {/* Content Area */}
@@ -58,7 +46,7 @@ const LandingPage = () => {
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="flex-1 flex flex-col justify-start z-10"
+        className="flex-1 flex flex-col justify-center z-10"
       >
         {/* Welcome Header */}
         <motion.div variants={itemVariants} className="mb-8">
@@ -98,7 +86,7 @@ const LandingPage = () => {
         </motion.div>
 
         {/* Action CTAs */}
-        <motion.div variants={itemVariants} className="flex flex-col gap-3.5 mb-8">
+        <motion.div variants={itemVariants} className="mb-8">
           {/* Primary Button */}
           <button
             onClick={() => navigate('login')}
@@ -106,20 +94,6 @@ const LandingPage = () => {
           >
             <span>Log in to OCBC Singapore</span>
             <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-          </button>
-
-          {/* Secondary Button */}
-          <button
-            onClick={() => navigate('login')}
-            className="w-full h-[55px] bg-white border-2 border-brand-primary/90 text-brand-primary font-bold rounded-xl flex items-center justify-center gap-2.5 transition-all duration-150 active:scale-[0.98] hover:bg-red-50/50 cursor-pointer"
-          >
-            <img
-              src={owlPlanning}
-              alt="Mascot"
-              className="w-7 h-7 object-contain animate-bounce"
-              style={{ animationDuration: '2.5s' }}
-            />
-            <span>Manage your wealth with NEST</span>
           </button>
         </motion.div>
       </motion.div>

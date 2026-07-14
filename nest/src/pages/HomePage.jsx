@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import BackgroundOrb from '../components/ui/BackgroundOrb';
@@ -15,11 +15,22 @@ import {
   Settings,
   Globe,
   Coins,
-  ArrowUpRight,
-  Sparkles,
   Inbox,
   LogOut
 } from 'lucide-react';
+
+const banners = [
+  {
+    title: 'Trade across 15 global exchanges with access to SG, US & China markets',
+    linkText: 'Important Information',
+    bgType: 'globe'
+  },
+  {
+    title: 'OCBC 360 Account: Earn up to 4.65% p.a. on your savings',
+    linkText: 'View Interests Tier',
+    bgType: 'rate'
+  }
+];
 
 const HomePage = () => {
   const {
@@ -35,18 +46,12 @@ const HomePage = () => {
 
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
 
-  const banners = [
-    {
-      title: 'Trade across 15 global exchanges with access to SG, US & China markets',
-      linkText: 'Important Information',
-      bgType: 'globe'
-    },
-    {
-      title: 'OCBC 360 Account: Earn up to 4.65% p.a. on your savings',
-      linkText: 'View Interests Tier',
-      bgType: 'rate'
-    }
-  ];
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveBannerIndex((prevIndex) => (prevIndex + 1) % banners.length);
+    }, 4000); // Auto-scroll every 4 seconds
+    return () => clearInterval(timer);
+  }, []);
 
   const handleLogout = () => {
     navigate('landing');
@@ -324,36 +329,6 @@ const HomePage = () => {
                     </div>
                   </div>
 
-                  {/* Smart Advice Insights */}
-                  {investmentsData.insights.map((insight) => (
-                    <div
-                      key={insight.id}
-                      className="bg-white/80 border border-zinc-200/50 backdrop-blur-md rounded-2xl p-4 shadow-sm relative overflow-hidden"
-                    >
-                      {/* Accent decoration line */}
-                      <div className="absolute top-0 left-0 right-0 h-[3px] bg-brand-accent" />
-                      
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-1.5 text-brand-accent font-bold text-xs">
-                          <Sparkles className="w-3.5 h-3.5 fill-current" />
-                          <span className="uppercase tracking-wider">NEST Insights</span>
-                        </div>
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 bg-zinc-100 text-zinc-500 rounded-md">
-                          Optimize
-                        </span>
-                      </div>
-                      
-                      <h4 className="text-sm font-bold text-zinc-900">{insight.title}</h4>
-                      <p className="text-xs font-medium text-zinc-500 leading-normal mt-1.5">
-                        {insight.description}
-                      </p>
-                      
-                      <button className="mt-3.5 px-4 py-2 bg-brand-accent text-white text-xs font-bold rounded-lg flex items-center gap-1 active:scale-[0.98] transition-all duration-150 shadow-sm shadow-brand-accent/10 cursor-pointer">
-                        <span>{insight.cta}</span>
-                        <ArrowUpRight className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ))}
                 </>
               )}
 
@@ -364,7 +339,7 @@ const HomePage = () => {
                     <div className="flex justify-between items-start">
                       <div className="flex flex-col">
                         <span className="text-[10px] font-bold tracking-wider uppercase text-zinc-400">NEST Platinum Debit</span>
-                        <span className="text-sm font-bold mt-1">Support Team 2!!</span>
+                        <span className="text-sm font-bold mt-1">Olivia</span>
                       </div>
                       <span className="text-base font-black italic tracking-widest text-zinc-300">VISA</span>
                     </div>

@@ -7,7 +7,7 @@ export const AppProvider = ({ children }) => {
   const [isMasked, setIsMasked] = useState(true);
   const [activeTab, setActiveTab] = useState('accounts'); // 'accounts', 'investments', 'cards', 'loans'
   const [user, setUser] = useState({
-    name: 'Support Team 2!!',
+    name: 'Olivia',
     accessId: '',
   });
 
