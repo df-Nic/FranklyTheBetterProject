@@ -1,0 +1,15 @@
+{
+  "short_name": "OCBC NEST",
+  "name": "OCBC NEST Banking Onboarding & Wealth Dashboard",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#2E3E4F",
+  "background_color": "#FAFAFA"
+}
