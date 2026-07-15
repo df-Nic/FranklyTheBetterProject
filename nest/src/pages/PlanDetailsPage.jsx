@@ -17,7 +17,7 @@ import BackgroundOrb from '../components/ui/BackgroundOrb';
 const PlanDetailsPage = () => {
   const { clickPos, activePlanTitle, setPage } = useApp();
   const [activeTab, setActiveTab] = useState('summary');
-  
+
   // Custom checklist items that can be checked by the user
   const [checklist, setChecklist] = useState([
     { id: 1, text: 'Establish Nest Smart Saver Deposit account', desc: 'Auto-allocate SG$10,000 to earn 4.2% p.a. starting immediately.', checked: true },
@@ -43,15 +43,15 @@ const PlanDetailsPage = () => {
 
   const contentVariants = {
     hidden: { opacity: 0, y: 15 },
-    visible: { 
-      opacity: 1, 
-      y: 0, 
-      transition: { delay: 0.35, duration: 0.4, ease: "easeOut" } 
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { delay: 0.35, duration: 0.4, ease: "easeOut" }
     },
-    exit: { 
-      opacity: 0, 
-      y: 15, 
-      transition: { duration: 0.2, ease: "easeIn" } 
+    exit: {
+      opacity: 0,
+      y: 15,
+      transition: { duration: 0.2, ease: "easeIn" }
     }
   };
 
@@ -90,7 +90,7 @@ const PlanDetailsPage = () => {
 
         {/* Scrollable Plan Board */}
         <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-5 flex flex-col gap-5 z-10 pb-10">
-          
+
           {/* Main Proposal Card */}
           <GlassCard className="p-5 border-white/70 relative overflow-hidden bg-white/40">
             <div className="flex items-center gap-3">
@@ -140,17 +140,15 @@ const PlanDetailsPage = () => {
           <div className="flex bg-zinc-200/50 backdrop-blur-md rounded-xl p-1 border border-zinc-200/35">
             <button
               onClick={() => setActiveTab('summary')}
-              className={`flex-1 py-2 rounded-lg text-[10px] font-bold tracking-wide uppercase transition-all ${
-                activeTab === 'summary' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'
-              }`}
+              className={`flex-1 py-2 rounded-lg text-[10px] font-bold tracking-wide uppercase transition-all ${activeTab === 'summary' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'
+                }`}
             >
               Overview
             </button>
             <button
               onClick={() => setActiveTab('checklist')}
-              className={`flex-1 py-2 rounded-lg text-[10px] font-bold tracking-wide uppercase transition-all ${
-                activeTab === 'checklist' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'
-              }`}
+              className={`flex-1 py-2 rounded-lg text-[10px] font-bold tracking-wide uppercase transition-all ${activeTab === 'checklist' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'
+                }`}
             >
               Roadmap ({checklist.filter(i => !i.checked).length})
             </button>
@@ -207,17 +205,15 @@ const PlanDetailsPage = () => {
                 <button
                   key={item.id}
                   onClick={() => toggleCheck(item.id)}
-                  className={`p-4 rounded-2xl border text-left flex gap-3 items-start transition-all cursor-pointer ${
-                    item.checked
-                      ? 'bg-zinc-100/50 border-zinc-200/50 opacity-60'
-                      : 'bg-white border-zinc-200/60 shadow-sm hover:border-zinc-300'
-                  }`}
+                  className={`p-4 rounded-2xl border text-left flex gap-3 items-start transition-all cursor-pointer ${item.checked
+                    ? 'bg-zinc-100/50 border-zinc-200/50 opacity-60'
+                    : 'bg-white border-zinc-200/60 shadow-sm hover:border-zinc-300'
+                    }`}
                 >
-                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 mt-0.5 transition-all ${
-                    item.checked
-                      ? 'bg-brand-primary border-brand-primary text-white'
-                      : 'bg-white border-zinc-300 text-transparent'
-                  }`}>
+                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 mt-0.5 transition-all ${item.checked
+                    ? 'bg-brand-primary border-brand-primary text-white'
+                    : 'bg-white border-zinc-300 text-transparent'
+                    }`}>
                     <CheckCircle2 className="w-3.5 h-3.5 fill-current stroke-[2.5]" />
                   </div>
                   <div className="flex flex-col">

@@ -11,7 +11,7 @@ const ChatWidget = () => {
   const [hasInitialized, setHasInitialized] = useState(false);
   const [inputText, setInputText] = useState('');
   const [safeBottom, setSafeBottom] = useState(0);
-  
+
   const bubbleRef = useRef(null);
   const containerRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -50,14 +50,14 @@ const ChatWidget = () => {
     const parent = bubbleRef.current?.parentElement;
     if (parent) {
       containerRef.current = parent;
-      
+
       const parentRect = parent.getBoundingClientRect();
       const bubbleRect = bubbleRef.current.getBoundingClientRect();
-      
+
       // Initial position: snap to right edge with 16px padding, offset by safe bottom inset & navbar clearance
       const initX = parentRect.width - bubbleRect.width - 16;
       const initY = parentRect.height - bubbleRect.height - 180 - measuredSafeBottom;
-      
+
       setPosition({ x: initX, y: initY });
       setHasInitialized(true);
     }
@@ -72,17 +72,17 @@ const ChatWidget = () => {
 
   const handleOpen = () => {
     if (!containerRef.current || !bubbleRef.current) return;
-    
+
     const parentRect = containerRef.current.getBoundingClientRect();
     const bubbleRect = bubbleRef.current.getBoundingClientRect();
-    
+
     // Save previous drag coordinates
     lastPosition.current = { x: position.x, y: position.y };
-    
+
     // Target position: flush in the bottom-right corner, offset by safe bottom inset & navbar clearance
     const targetX = parentRect.width - bubbleRect.width - 16;
     const targetY = parentRect.height - bubbleRect.height - 96 - safeBottom;
-    
+
     setPosition({ x: targetX, y: targetY });
     setIsOpen(true);
   };
@@ -95,33 +95,33 @@ const ChatWidget = () => {
 
   const handleDragEnd = (event, info) => {
     if (!containerRef.current || !bubbleRef.current) return;
-    
+
     const parentRect = containerRef.current.getBoundingClientRect();
     const bubbleRect = bubbleRef.current.getBoundingClientRect();
-    
+
     const paddingX = 16;
     const paddingY = 96 + safeBottom; // clearance for bottom navbar and safe inset
-    
+
     // Find current horizontal position and snap to closest vertical side edge
     const bubbleCenterX = bubbleRect.left + bubbleRect.width / 2;
     const parentCenterX = parentRect.left + parentRect.width / 2;
-    
+
     let targetX = 0;
     if (bubbleCenterX < parentCenterX) {
       targetX = paddingX; // snap to left edge
     } else {
       targetX = parentRect.width - bubbleRect.width - paddingX; // snap to right edge
     }
-    
+
     // Compute current Y relative to the parent container
     let targetY = bubbleRect.top - parentRect.top;
-    
+
     // Ensure Y bounds are respected
     const minY = 16;
     const maxY = parentRect.height - bubbleRect.height - paddingY;
     if (targetY < minY) targetY = minY;
     if (targetY > maxY) targetY = maxY;
-    
+
     setPosition({ x: targetX, y: targetY });
 
     // Set to false in the next tick to prevent drag release from triggering tap/click
@@ -132,7 +132,7 @@ const ChatWidget = () => {
 
   const handleTap = () => {
     if (isDragging.current) return;
-    
+
     if (isOpen) {
       if (inputText.trim()) {
         handleSend();
@@ -146,7 +146,7 @@ const ChatWidget = () => {
 
   const handleReviewPlanClick = (e, planTitle) => {
     e.stopPropagation();
-    
+
     // Calculate click coordinates relative to the MobileFrame inner viewport container
     if (containerRef.current) {
       const parentRect = containerRef.current.getBoundingClientRect();
@@ -156,12 +156,12 @@ const ChatWidget = () => {
     } else {
       setClickPos({ x: 195, y: 422 }); // fallback to center
     }
-    
+
     setActivePlanTitle(planTitle);
-    
+
     // Close chat widget so it's fresh when navigating back
     setIsOpen(false);
-    
+
     // Shift page to plan-details
     setTimeout(() => {
       setPage('plan-details');
@@ -171,13 +171,13 @@ const ChatWidget = () => {
   const handleSend = (textToSend = inputText) => {
     const trimmed = textToSend.trim();
     if (!trimmed) return;
-    
+
     // 1. Add user message
     setMessages(prev => [
       ...prev,
       { id: Date.now(), sender: 'user', text: trimmed }
     ]);
-    
+
     setInputText('');
 
     // 2. Add loading typing indicator after a short delay
@@ -267,11 +267,10 @@ const ChatWidget = () => {
                   className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[82%] rounded-2xl px-4 py-3 text-xs leading-relaxed ${
-                      msg.sender === 'user'
+                    className={`max-w-[82%] rounded-2xl px-4 py-3 text-xs leading-relaxed ${msg.sender === 'user'
                         ? 'bg-brand-primary text-white font-medium rounded-tr-none shadow-md shadow-brand-primary/10'
                         : 'bg-white text-zinc-800 font-medium rounded-tl-none border border-zinc-200/40 shadow-sm'
-                    }`}
+                      }`}
                   >
                     {msg.isTyping ? (
                       <div className="flex items-center gap-1.5 py-1 px-1">
@@ -369,18 +368,17 @@ const ChatWidget = () => {
         whileHover={!isOpen || inputText.trim() ? { scale: 1.05 } : { scale: 1 }}
         whileTap={!isOpen || inputText.trim() ? { scale: 0.95 } : { scale: 1 }}
         transition={{ type: 'spring', stiffness: 220, damping: 22 }}
-        className={`w-14 h-14 rounded-full border-2 border-brand-primary bg-white shadow-xl flex items-center justify-center overflow-hidden select-none z-50 ${
-          isOpen 
-            ? 'pointer-events-auto cursor-pointer shadow-md' 
+        className={`w-14 h-14 rounded-full border-2 border-brand-primary bg-white shadow-xl flex items-center justify-center overflow-hidden select-none z-50 ${isOpen
+            ? 'pointer-events-auto cursor-pointer shadow-md'
             : 'pointer-events-auto cursor-grab active:cursor-grabbing'
-        }`}
+          }`}
       >
         <img
           src={ocbcOwl}
           alt="OCBC Owl Mascot"
           className="w-full h-full object-cover select-none pointer-events-none"
         />
-        
+
         {/* Send Action Overlay when user is typing */}
         <AnimatePresence>
           {isOpen && inputText.trim() && (
