@@ -6,6 +6,8 @@ export const AppProvider = ({ children }) => {
   const [page, setPage] = useState('landing'); // 'landing', 'login', 'home'
   const [isMasked, setIsMasked] = useState(true);
   const [activeTab, setActiveTab] = useState('accounts'); // 'accounts', 'investments', 'cards', 'loans'
+  const [clickPos, setClickPos] = useState(null);
+  const [activePlanTitle, setActivePlanTitle] = useState('');
   const [user, setUser] = useState({
     name: 'Olivia',
     accessId: '',
@@ -65,6 +67,10 @@ export const AppProvider = ({ children }) => {
         toggleMask,
         activeTab,
         setActiveTab,
+        clickPos,
+        setClickPos,
+        activePlanTitle,
+        setActivePlanTitle,
         user,
         setUser,
         accountsData,

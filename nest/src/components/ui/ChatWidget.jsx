@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Compass } from 'lucide-react';
 import ocbcOwl from '../../assets/images/OCBC Owl.jpg';
+import { useApp } from '../../context/AppContext';
 
 const ChatWidget = () => {
+  const { setPage, setClickPos, setActivePlanTitle } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -142,17 +144,65 @@ const ChatWidget = () => {
     }
   };
 
+  const handleReviewPlanClick = (e, planTitle) => {
+    e.stopPropagation();
+    
+    // Calculate click coordinates relative to the MobileFrame inner viewport container
+    if (containerRef.current) {
+      const parentRect = containerRef.current.getBoundingClientRect();
+      const relativeX = e.clientX - parentRect.left;
+      const relativeY = e.clientY - parentRect.top;
+      setClickPos({ x: relativeX, y: relativeY });
+    } else {
+      setClickPos({ x: 195, y: 422 }); // fallback to center
+    }
+    
+    setActivePlanTitle(planTitle);
+    
+    // Close chat widget so it's fresh when navigating back
+    setIsOpen(false);
+    
+    // Shift page to plan-details
+    setTimeout(() => {
+      setPage('plan-details');
+    }, 50);
+  };
+
   const handleSend = (textToSend = inputText) => {
     const trimmed = textToSend.trim();
     if (!trimmed) return;
     
-    // Add user message to conversation list
+    // 1. Add user message
     setMessages(prev => [
       ...prev,
       { id: Date.now(), sender: 'user', text: trimmed }
     ]);
     
     setInputText('');
+
+    // 2. Add loading typing indicator after a short delay
+    setTimeout(() => {
+      setMessages(prev => [
+        ...prev,
+        { id: 'typing', sender: 'bot', isTyping: true }
+      ]);
+    }, 250);
+
+    // 3. Resolve plan creation after 2 seconds
+    setTimeout(() => {
+      setMessages(prev => {
+        const filtered = prev.filter(m => m.id !== 'typing');
+        return [
+          ...filtered,
+          {
+            id: Date.now(),
+            sender: 'bot',
+            isPlanProposal: true,
+            planTitle: trimmed
+          }
+        ];
+      });
+    }, 2250);
   };
 
   const handleKeyPress = (e) => {
@@ -223,7 +273,43 @@ const ChatWidget = () => {
                         : 'bg-white text-zinc-800 font-medium rounded-tl-none border border-zinc-200/40 shadow-sm'
                     }`}
                   >
-                    {msg.text}
+                    {msg.isTyping ? (
+                      <div className="flex items-center gap-1.5 py-1 px-1">
+                        <motion.span
+                          animate={{ y: [0, -5, 0] }}
+                          transition={{ duration: 0.5, repeat: Infinity, ease: "easeInOut", delay: 0 }}
+                          className="w-1.5 h-1.5 bg-zinc-400 rounded-full"
+                        />
+                        <motion.span
+                          animate={{ y: [0, -5, 0] }}
+                          transition={{ duration: 0.5, repeat: Infinity, ease: "easeInOut", delay: 0.12 }}
+                          className="w-1.5 h-1.5 bg-zinc-400 rounded-full"
+                        />
+                        <motion.span
+                          animate={{ y: [0, -5, 0] }}
+                          transition={{ duration: 0.5, repeat: Infinity, ease: "easeInOut", delay: 0.24 }}
+                          className="w-1.5 h-1.5 bg-zinc-400 rounded-full"
+                        />
+                      </div>
+                    ) : msg.isPlanProposal ? (
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-1.5 text-zinc-900 font-bold border-b border-zinc-100 pb-1">
+                          <Compass className="w-3.5 h-3.5 text-brand-primary animate-pulse" />
+                          <span>Financial Plan Ready</span>
+                        </div>
+                        <p className="text-zinc-600 font-medium leading-relaxed text-[11px]">
+                          I have compiled a customized wealth plan for your target: <strong className="text-brand-primary font-bold">"{msg.planTitle}"</strong>. Would you like to review it?
+                        </p>
+                        <button
+                          onClick={(e) => handleReviewPlanClick(e, msg.planTitle)}
+                          className="mt-1.5 w-full py-2 bg-brand-primary hover:bg-red-600 text-white font-bold rounded-xl text-[10px] tracking-wide uppercase transition-all duration-150 active:scale-95 shadow-md shadow-brand-primary/25 cursor-pointer flex items-center justify-center gap-1.5"
+                        >
+                          <span>Review Plan</span>
+                        </button>
+                      </div>
+                    ) : (
+                      msg.text
+                    )}
                   </div>
                 </motion.div>
               ))}
@@ -259,7 +345,6 @@ const ChatWidget = () => {
                 placeholder="How can we plan for you today?"
                 className="flex-1 h-10 px-3.5 bg-zinc-100 border border-zinc-200/50 rounded-xl text-xs font-medium focus:outline-none focus:ring-1 focus:ring-brand-primary focus:border-brand-primary placeholder-zinc-400 transition-all duration-150"
               />
-              <div className="w-14 h-10 shrink-0" /> {/* Spacer to avoid overlap with bubble Send button */}
             </div>
           </motion.div>
         )}
