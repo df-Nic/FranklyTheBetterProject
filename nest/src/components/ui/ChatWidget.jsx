@@ -15,6 +15,7 @@ const ChatWidget = () => {
   const bubbleRef = useRef(null);
   const containerRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const scrollContainerRef = useRef(null);
   const lastPosition = useRef({ x: 0, y: 0 });
   const isDragging = useRef(false);
 
@@ -65,8 +66,11 @@ const ChatWidget = () => {
 
   // Scroll to bottom when messages list changes
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
     }
   }, [messages]);
 
@@ -257,7 +261,7 @@ const ChatWidget = () => {
             </div>
 
             {/* Scrollable Message Box */}
-            <div className="flex-1 overflow-y-auto no-scrollbar p-5 flex flex-col gap-4">
+            <div ref={scrollContainerRef} className="flex-1 overflow-y-auto no-scrollbar p-5 flex flex-col gap-4">
               {messages.map((msg) => (
                 <motion.div
                   key={msg.id}
