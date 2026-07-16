@@ -2,17 +2,20 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Compass } from 'lucide-react';
 import ocbcOwl from '../../assets/images/OCBC Owl.jpg';
+import { useApp } from '../../context/AppContext';
 
 const ChatWidget = () => {
+  const { setPage, setClickPos, setActivePlanTitle } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [hasInitialized, setHasInitialized] = useState(false);
   const [inputText, setInputText] = useState('');
   const [safeBottom, setSafeBottom] = useState(0);
-  
+
   const bubbleRef = useRef(null);
   const containerRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const scrollContainerRef = useRef(null);
   const lastPosition = useRef({ x: 0, y: 0 });
   const isDragging = useRef(false);
 
@@ -48,14 +51,14 @@ const ChatWidget = () => {
     const parent = bubbleRef.current?.parentElement;
     if (parent) {
       containerRef.current = parent;
-      
+
       const parentRect = parent.getBoundingClientRect();
       const bubbleRect = bubbleRef.current.getBoundingClientRect();
-      
+
       // Initial position: snap to right edge with 16px padding, offset by safe bottom inset & navbar clearance
       const initX = parentRect.width - bubbleRect.width - 16;
       const initY = parentRect.height - bubbleRect.height - 180 - measuredSafeBottom;
-      
+
       setPosition({ x: initX, y: initY });
       setHasInitialized(true);
     }
@@ -63,24 +66,27 @@ const ChatWidget = () => {
 
   // Scroll to bottom when messages list changes
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
     }
   }, [messages]);
 
   const handleOpen = () => {
     if (!containerRef.current || !bubbleRef.current) return;
-    
+
     const parentRect = containerRef.current.getBoundingClientRect();
     const bubbleRect = bubbleRef.current.getBoundingClientRect();
-    
+
     // Save previous drag coordinates
     lastPosition.current = { x: position.x, y: position.y };
-    
+
     // Target position: flush in the bottom-right corner, offset by safe bottom inset & navbar clearance
     const targetX = parentRect.width - bubbleRect.width - 16;
     const targetY = parentRect.height - bubbleRect.height - 96 - safeBottom;
-    
+
     setPosition({ x: targetX, y: targetY });
     setIsOpen(true);
   };
@@ -93,33 +99,33 @@ const ChatWidget = () => {
 
   const handleDragEnd = (event, info) => {
     if (!containerRef.current || !bubbleRef.current) return;
-    
+
     const parentRect = containerRef.current.getBoundingClientRect();
     const bubbleRect = bubbleRef.current.getBoundingClientRect();
-    
+
     const paddingX = 16;
     const paddingY = 96 + safeBottom; // clearance for bottom navbar and safe inset
-    
+
     // Find current horizontal position and snap to closest vertical side edge
     const bubbleCenterX = bubbleRect.left + bubbleRect.width / 2;
     const parentCenterX = parentRect.left + parentRect.width / 2;
-    
+
     let targetX = 0;
     if (bubbleCenterX < parentCenterX) {
       targetX = paddingX; // snap to left edge
     } else {
       targetX = parentRect.width - bubbleRect.width - paddingX; // snap to right edge
     }
-    
+
     // Compute current Y relative to the parent container
     let targetY = bubbleRect.top - parentRect.top;
-    
+
     // Ensure Y bounds are respected
     const minY = 16;
     const maxY = parentRect.height - bubbleRect.height - paddingY;
     if (targetY < minY) targetY = minY;
     if (targetY > maxY) targetY = maxY;
-    
+
     setPosition({ x: targetX, y: targetY });
 
     // Set to false in the next tick to prevent drag release from triggering tap/click
@@ -130,7 +136,7 @@ const ChatWidget = () => {
 
   const handleTap = () => {
     if (isDragging.current) return;
-    
+
     if (isOpen) {
       if (inputText.trim()) {
         handleSend();
@@ -142,17 +148,65 @@ const ChatWidget = () => {
     }
   };
 
+  const handleReviewPlanClick = (e, planTitle) => {
+    e.stopPropagation();
+
+    // Calculate click coordinates relative to the MobileFrame inner viewport container
+    if (containerRef.current) {
+      const parentRect = containerRef.current.getBoundingClientRect();
+      const relativeX = e.clientX - parentRect.left;
+      const relativeY = e.clientY - parentRect.top;
+      setClickPos({ x: relativeX, y: relativeY });
+    } else {
+      setClickPos({ x: 195, y: 422 }); // fallback to center
+    }
+
+    setActivePlanTitle(planTitle);
+
+    // Close chat widget so it's fresh when navigating back
+    setIsOpen(false);
+
+    // Shift page to plan-details
+    setTimeout(() => {
+      setPage('plan-details');
+    }, 50);
+  };
+
   const handleSend = (textToSend = inputText) => {
     const trimmed = textToSend.trim();
     if (!trimmed) return;
-    
-    // Add user message to conversation list
+
+    // 1. Add user message
     setMessages(prev => [
       ...prev,
       { id: Date.now(), sender: 'user', text: trimmed }
     ]);
-    
+
     setInputText('');
+
+    // 2. Add loading typing indicator after a short delay
+    setTimeout(() => {
+      setMessages(prev => [
+        ...prev,
+        { id: 'typing', sender: 'bot', isTyping: true }
+      ]);
+    }, 250);
+
+    // 3. Resolve plan creation after 2 seconds
+    setTimeout(() => {
+      setMessages(prev => {
+        const filtered = prev.filter(m => m.id !== 'typing');
+        return [
+          ...filtered,
+          {
+            id: Date.now(),
+            sender: 'bot',
+            isPlanProposal: true,
+            planTitle: trimmed
+          }
+        ];
+      });
+    }, 2250);
   };
 
   const handleKeyPress = (e) => {
@@ -207,7 +261,7 @@ const ChatWidget = () => {
             </div>
 
             {/* Scrollable Message Box */}
-            <div className="flex-1 overflow-y-auto no-scrollbar p-5 flex flex-col gap-4">
+            <div ref={scrollContainerRef} className="flex-1 overflow-y-auto no-scrollbar p-5 flex flex-col gap-4">
               {messages.map((msg) => (
                 <motion.div
                   key={msg.id}
@@ -217,13 +271,48 @@ const ChatWidget = () => {
                   className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[82%] rounded-2xl px-4 py-3 text-xs leading-relaxed ${
-                      msg.sender === 'user'
+                    className={`max-w-[82%] rounded-2xl px-4 py-3 text-xs leading-relaxed ${msg.sender === 'user'
                         ? 'bg-brand-primary text-white font-medium rounded-tr-none shadow-md shadow-brand-primary/10'
                         : 'bg-white text-zinc-800 font-medium rounded-tl-none border border-zinc-200/40 shadow-sm'
-                    }`}
+                      }`}
                   >
-                    {msg.text}
+                    {msg.isTyping ? (
+                      <div className="flex items-center gap-1.5 py-1 px-1">
+                        <motion.span
+                          animate={{ y: [0, -5, 0] }}
+                          transition={{ duration: 0.5, repeat: Infinity, ease: "easeInOut", delay: 0 }}
+                          className="w-1.5 h-1.5 bg-zinc-400 rounded-full"
+                        />
+                        <motion.span
+                          animate={{ y: [0, -5, 0] }}
+                          transition={{ duration: 0.5, repeat: Infinity, ease: "easeInOut", delay: 0.12 }}
+                          className="w-1.5 h-1.5 bg-zinc-400 rounded-full"
+                        />
+                        <motion.span
+                          animate={{ y: [0, -5, 0] }}
+                          transition={{ duration: 0.5, repeat: Infinity, ease: "easeInOut", delay: 0.24 }}
+                          className="w-1.5 h-1.5 bg-zinc-400 rounded-full"
+                        />
+                      </div>
+                    ) : msg.isPlanProposal ? (
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-1.5 text-zinc-900 font-bold border-b border-zinc-100 pb-1">
+                          <Compass className="w-3.5 h-3.5 text-brand-primary animate-pulse" />
+                          <span>Financial Plan Ready</span>
+                        </div>
+                        <p className="text-zinc-600 font-medium leading-relaxed text-[11px]">
+                          I have compiled a customized wealth plan for your target: <strong className="text-brand-primary font-bold">"{msg.planTitle}"</strong>. Would you like to review it?
+                        </p>
+                        <button
+                          onClick={(e) => handleReviewPlanClick(e, msg.planTitle)}
+                          className="mt-1.5 w-full py-2 bg-brand-primary hover:bg-red-600 text-white font-bold rounded-xl text-[10px] tracking-wide uppercase transition-all duration-150 active:scale-95 shadow-md shadow-brand-primary/25 cursor-pointer flex items-center justify-center gap-1.5"
+                        >
+                          <span>Review Plan</span>
+                        </button>
+                      </div>
+                    ) : (
+                      msg.text
+                    )}
                   </div>
                 </motion.div>
               ))}
@@ -259,7 +348,6 @@ const ChatWidget = () => {
                 placeholder="How can we plan for you today?"
                 className="flex-1 h-10 px-3.5 bg-zinc-100 border border-zinc-200/50 rounded-xl text-xs font-medium focus:outline-none focus:ring-1 focus:ring-brand-primary focus:border-brand-primary placeholder-zinc-400 transition-all duration-150"
               />
-              <div className="w-14 h-10 shrink-0" /> {/* Spacer to avoid overlap with bubble Send button */}
             </div>
           </motion.div>
         )}
@@ -284,18 +372,17 @@ const ChatWidget = () => {
         whileHover={!isOpen || inputText.trim() ? { scale: 1.05 } : { scale: 1 }}
         whileTap={!isOpen || inputText.trim() ? { scale: 0.95 } : { scale: 1 }}
         transition={{ type: 'spring', stiffness: 220, damping: 22 }}
-        className={`w-14 h-14 rounded-full border-2 border-brand-primary bg-white shadow-xl flex items-center justify-center overflow-hidden select-none z-50 ${
-          isOpen 
-            ? 'pointer-events-auto cursor-pointer shadow-md' 
+        className={`w-14 h-14 rounded-full border-2 border-brand-primary bg-white shadow-xl flex items-center justify-center overflow-hidden select-none z-50 ${isOpen
+            ? 'pointer-events-auto cursor-pointer shadow-md'
             : 'pointer-events-auto cursor-grab active:cursor-grabbing'
-        }`}
+          }`}
       >
         <img
           src={ocbcOwl}
           alt="OCBC Owl Mascot"
           className="w-full h-full object-cover select-none pointer-events-none"
         />
-        
+
         {/* Send Action Overlay when user is typing */}
         <AnimatePresence>
           {isOpen && inputText.trim() && (

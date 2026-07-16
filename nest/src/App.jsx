@@ -4,6 +4,7 @@ import MobileFrame from './components/layout/MobileFrame';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
+import PlanDetailsPage from './pages/PlanDetailsPage';
 import { AnimatePresence, motion } from 'framer-motion';
 
 function AppContent() {
@@ -36,7 +37,7 @@ function AppContent() {
             <LoginPage />
           </motion.div>
         )}
-        {page === 'home' && (
+        {(page === 'home' || page === 'plan-details') && (
           <motion.div
             key="home"
             initial={{ opacity: 0, x: 60 }}
@@ -47,6 +48,12 @@ function AppContent() {
           >
             <HomePage />
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {page === 'plan-details' && (
+          <PlanDetailsPage />
         )}
       </AnimatePresence>
     </MobileFrame>

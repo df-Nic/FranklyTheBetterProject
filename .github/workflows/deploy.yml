@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - master
-      - migration-to-react
+      - feature/plan-building
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
