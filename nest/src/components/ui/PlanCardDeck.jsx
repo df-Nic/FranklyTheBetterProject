@@ -17,34 +17,28 @@ const cardVariants = {
   front: {
     scale: 1,
     y: 0,
-    zIndex: 30,
     opacity: 1,
     rotate: 0,
     transition: { 
-      type: "spring", stiffness: 300, damping: 25,
-      zIndex: { duration: 0 }
+      type: "spring", stiffness: 300, damping: 25
     }
   },
   middle: {
     scale: 0.94,
     y: 12,
-    zIndex: 20,
     opacity: 0.9,
     rotate: 0,
     transition: { 
-      type: "spring", stiffness: 300, damping: 25,
-      zIndex: { duration: 0 }
+      type: "spring", stiffness: 300, damping: 25
     }
   },
   bottom: {
     scale: 0.88,
     y: 24,
-    zIndex: 10,
     opacity: 0.7,
     rotate: 0,
     transition: { 
-      type: "spring", stiffness: 300, damping: 25,
-      zIndex: { duration: 0 }
+      type: "spring", stiffness: 300, damping: 25
     }
   }
 };
@@ -168,6 +162,7 @@ const DeckCard = ({
         height: '245px',
         top: 0,
         x, // Bind to local motion value
+        zIndex: isFront ? 30 : isMiddle ? 20 : 10,
         pointerEvents: isFront ? 'auto' : 'none',
         transformOrigin: 'bottom center',
       }}
@@ -279,6 +274,15 @@ const PlanCardDeck = ({ categories, pendingExcluded, toggleAction }) => {
 
     const bottomCardId = stack[2];
     setIncomingCardId(bottomCardId);
+    
+    // Synchronously position the incoming card offscreen-left before stack state update to prevent rendering flicker
+    const bottomCardX = cardMotionValues.current[bottomCardId];
+    if (bottomCardX) {
+      bottomCardX.stop();
+      if (bottomCardX.get() === 0) {
+        bottomCardX.set(-350);
+      }
+    }
     
     setStack(prev => [prev[2], prev[0], prev[1]]);
     
