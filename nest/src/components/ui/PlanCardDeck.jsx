@@ -109,8 +109,8 @@ const DeckCard = ({
           const targetX = Math.min(0, -350 - info.offset.x * 2.2);
           bottomCardX.set(targetX);
         } else {
-          // Keep bottom card off-screen when dragging right
-          bottomCardX.set(-350);
+          // When swiping right, keep the bottom card centered in the stack
+          bottomCardX.set(0);
         }
       }
     }
@@ -125,11 +125,10 @@ const DeckCard = ({
     } else if (info.offset.x < -threshold || info.velocity.x < -velocityThreshold) {
       onSwipeLeft();
     } else {
-      if (info.offset.x < 0) {
-        const bottomCardX = getBottomCardX();
-        if (bottomCardX) {
-          animate(bottomCardX, -350, { type: "spring", stiffness: 300, damping: 26 });
-        }
+      // If drag is canceled, animate both cards back to center (0)
+      const bottomCardX = getBottomCardX();
+      if (bottomCardX) {
+        animate(bottomCardX, 0, { type: "spring", stiffness: 300, damping: 26 });
       }
       animate(x, 0, { type: "spring", stiffness: 300, damping: 25 });
     }
@@ -296,27 +295,33 @@ const PlanCardDeck = ({ categories, pendingExcluded, toggleAction }) => {
     <div className="flex flex-col gap-3 shrink-0">
       {/* 3D Stack Frame Container */}
       <div className="relative w-full h-[285px] mt-1 shrink-0 select-none">
-        {categories.map((cat) => {
-          const stackIdx = stack.indexOf(cat.id);
-          if (stackIdx === -1) return null;
+        {[...categories]
+          .sort((a, b) => {
+            const idxA = stack.indexOf(a.id);
+            const idxB = stack.indexOf(b.id);
+            return idxB - idxA; // Render bottom card first, top card last in DOM order for mobile WebKit GPU stacking compatibility
+          })
+          .map((cat) => {
+            const stackIdx = stack.indexOf(cat.id);
+            if (stackIdx === -1) return null;
 
-          return (
-            <DeckCard
-              key={cat.id}
-              cat={cat}
-              stackIdx={stackIdx}
-              pendingExcluded={pendingExcluded}
-              toggleAction={toggleAction}
-              onSwipeRight={cycleForward}
-              onSwipeLeft={cycleBackward}
-              incomingCardId={incomingCardId}
-              outgoingCardId={outgoingCardId}
-              isAnimating={isAnimating}
-              registerMotionValue={registerMotionValue}
-              getBottomCardX={getBottomCardX}
-            />
-          );
-        })}
+            return (
+              <DeckCard
+                key={cat.id}
+                cat={cat}
+                stackIdx={stackIdx}
+                pendingExcluded={pendingExcluded}
+                toggleAction={toggleAction}
+                onSwipeRight={cycleForward}
+                onSwipeLeft={cycleBackward}
+                incomingCardId={incomingCardId}
+                outgoingCardId={outgoingCardId}
+                isAnimating={isAnimating}
+                registerMotionValue={registerMotionValue}
+                getBottomCardX={getBottomCardX}
+              />
+            );
+          })}
       </div>
 
       {/* Pagination Dot Navigation */}
