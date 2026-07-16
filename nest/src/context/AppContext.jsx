@@ -3,11 +3,14 @@ import React, { createContext, useState, useContext } from 'react';
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  const [page, setPage] = useState('landing'); // 'landing', 'login', 'home'
+  const [page, setPage] = useState('landing'); // 'landing', 'login', 'home', 'plan-dashboard', 'plan-details'
   const [isMasked, setIsMasked] = useState(true);
   const [activeTab, setActiveTab] = useState('accounts'); // 'accounts', 'investments', 'cards', 'loans'
   const [clickPos, setClickPos] = useState(null);
   const [activePlanTitle, setActivePlanTitle] = useState('');
+  const [activePlanId, setActivePlanId] = useState(null); // 'retirement' | 'savings' | 'emergency' | 'default'
+  const [createdPlans, setCreatedPlans] = useState([]); // In-memory list of plan IDs the user has created (resets on app restart)
+  const [planDetailOrigin, setPlanDetailOrigin] = useState('home'); // 'home' | 'plan-dashboard'
   const [user, setUser] = useState({
     name: 'Olivia',
     accessId: '',
@@ -15,6 +18,14 @@ export const AppProvider = ({ children }) => {
 
   const navigate = (targetPage) => {
     setPage(targetPage);
+  };
+
+  // Add a plan to the in-memory list (deduplicated by id)
+  const addCreatedPlan = (planId) => {
+    setCreatedPlans(prev => {
+      if (prev.includes(planId)) return prev;
+      return [...prev, planId];
+    });
   };
 
   const toggleMask = () => {
@@ -71,6 +82,12 @@ export const AppProvider = ({ children }) => {
         setClickPos,
         activePlanTitle,
         setActivePlanTitle,
+        activePlanId,
+        setActivePlanId,
+        createdPlans,
+        addCreatedPlan,
+        planDetailOrigin,
+        setPlanDetailOrigin,
         user,
         setUser,
         accountsData,

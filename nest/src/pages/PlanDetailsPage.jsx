@@ -18,11 +18,13 @@ import PlanCardDeck from '../components/ui/PlanCardDeck';
 import ReplanOverlay from '../components/ui/ReplanOverlay';
 
 const PlanDetailsPage = () => {
-  const { clickPos, activePlanTitle, setPage } = useApp();
+  const { clickPos, activePlanTitle, activePlanId, planDetailOrigin, setPage, addCreatedPlan } = useApp();
 
-  // 1. Identify active plan template
+  // 1. Identify active plan template — prefer activePlanId (precise), fall back to fuzzy title match
   const getActivePlan = () => {
-    const title = (activePlanTitle || "").toLowerCase();
+    if (activePlanId && PLANS_DATA[activePlanId]) return PLANS_DATA[activePlanId];
+    // Legacy fuzzy title-based fallback
+    const title = (activePlanTitle || '').toLowerCase();
     if (title.includes('retire')) return PLANS_DATA.retirement;
     if (title.includes('save') || title.includes('home') || title.includes('hdb')) return PLANS_DATA.savings;
     if (title.includes('emerg') || title.includes('safe') || title.includes('shield') || title.includes('protect')) return PLANS_DATA.emergency;
@@ -371,9 +373,9 @@ const PlanDetailsPage = () => {
         <BackgroundOrb color="blue" size="250px" className="bottom-20 -right-10" />
 
         {/* Header Bar */}
-        <header className="h-14 w-full bg-white/60 backdrop-blur-xl border-b border-zinc-200/40 px-4 flex items-center gap-3 shrink-0 z-40 sticky top-0">
+        <header className="pt-6 pb-2 h-auto w-full bg-white/60 backdrop-blur-xl border-b border-zinc-200/40 px-4 flex items-center gap-3 shrink-0 z-40 sticky top-0">
           <button
-            onClick={() => setPage('home')}
+            onClick={() => setPage(planDetailOrigin || 'home')}
             className="w-9 h-9 rounded-full bg-white border border-zinc-200/50 flex items-center justify-center text-zinc-700 active:scale-90 transition-all duration-150 cursor-pointer shadow-sm"
           >
             <ArrowLeft className="w-[18px] h-[18px] stroke-[2.2]" />
@@ -461,12 +463,12 @@ const PlanDetailsPage = () => {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
                 onClick={() => {
-                  alert("Plan details verified! Setting up recurring transfers and multiplier vaults.");
-                  setPage('home');
+                  addCreatedPlan(activePlan.id);
+                  setPage('plan-dashboard');
                 }}
                 className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white font-extrabold rounded-2xl text-[11px] uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-md cursor-pointer flex items-center justify-center gap-2"
               >
-                <span>Proceed with Plan</span>
+                <span>Accept & Save Plan</span>
               </motion.button>
             ) : (
               <motion.button

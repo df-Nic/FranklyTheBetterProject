@@ -3,8 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import BackgroundOrb from '../components/ui/BackgroundOrb';
 import GlassCard from '../components/ui/GlassCard';
-import ChatWidget from '../components/ui/ChatWidget';
-import BottomNavBar from '../components/layout/BottomNavBar';
 import {
   Scan,
   Bell,
@@ -49,6 +47,13 @@ const HomePage = () => {
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
   const [activeNavTab, setActiveNavTab] = useState('home');
 
+  const handleNavTabSelect = (tabId) => {
+    setActiveNavTab(tabId);
+    if (tabId === 'plan') {
+      navigate('plan-dashboard');
+    }
+  };
+
   useEffect(() => {
     const timer = setInterval(() => {
       setActiveBannerIndex((prevIndex) => (prevIndex + 1) % banners.length);
@@ -92,7 +97,7 @@ const HomePage = () => {
       <BackgroundOrb color="pink" size="360px" className="-top-10 -right-10" />
 
       {/* Frosted Sticky Navigation Header */}
-      <header className="h-14 w-full bg-white/60 backdrop-blur-xl border-b border-white/50 px-4 flex justify-between items-center z-40 shrink-0 sticky top-0">
+      <header className="pt-6 pb-2 h-auto w-full bg-white/60 backdrop-blur-xl border-b border-white/50 px-4 flex justify-between items-center z-40 shrink-0 sticky top-0">
         <div className="flex items-center gap-2">
           <button className="w-9 h-9 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-700 active:scale-95 transition-all duration-150 cursor-pointer">
             <Scan className="w-[18px] h-[18px] stroke-[2.2]" />
@@ -423,12 +428,6 @@ const HomePage = () => {
           </AnimatePresence>
         </div>
       </div>
-      
-      {/* Interactive AI Chatbot Widget */}
-      <ChatWidget />
-
-      {/* Floating Bottom Navigation Bar */}
-      <BottomNavBar activeTab={activeNavTab} onTabSelect={setActiveNavTab} />
     </div>
   );
 };
