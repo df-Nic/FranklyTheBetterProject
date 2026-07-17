@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - master
-      - feature/plan-building
+      - feature/plan-dashboard
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:

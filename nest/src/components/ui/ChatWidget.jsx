@@ -5,7 +5,7 @@ import ocbcOwl from '../../assets/images/OCBC Owl.jpg';
 import { useApp } from '../../context/AppContext';
 
 const ChatWidget = () => {
-  const { setPage, setClickPos, setActivePlanTitle } = useApp();
+  const { setPage, setClickPos, setActivePlanTitle, setActivePlanId, addCreatedPlan, setPlanDetailOrigin } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -148,29 +148,33 @@ const ChatWidget = () => {
     }
   };
 
+  // Resolve a stable planId from natural language plan title
+  const resolvePlanId = (title) => {
+    const t = (title || '').toLowerCase();
+    if (t.includes('retire')) return 'retirement';
+    if (t.includes('save') || t.includes('home') || t.includes('hdb') || t.includes('saving')) return 'savings';
+    if (t.includes('emerg') || t.includes('safe') || t.includes('shield') || t.includes('protect')) return 'emergency';
+    return 'default';
+  };
+
+  // Preview only — does NOT save to dashboard
   const handleReviewPlanClick = (e, planTitle) => {
     e.stopPropagation();
-
-    // Calculate click coordinates relative to the MobileFrame inner viewport container
     if (containerRef.current) {
       const parentRect = containerRef.current.getBoundingClientRect();
-      const relativeX = e.clientX - parentRect.left;
-      const relativeY = e.clientY - parentRect.top;
-      setClickPos({ x: relativeX, y: relativeY });
+      setClickPos({ x: e.clientX - parentRect.left, y: e.clientY - parentRect.top });
     } else {
-      setClickPos({ x: 195, y: 422 }); // fallback to center
+      setClickPos({ x: 195, y: 422 });
     }
-
+    const planId = resolvePlanId(planTitle);
     setActivePlanTitle(planTitle);
-
-    // Close chat widget so it's fresh when navigating back
+    setActivePlanId(planId);
+    setPlanDetailOrigin('home'); // back button returns to home
     setIsOpen(false);
-
-    // Shift page to plan-details
-    setTimeout(() => {
-      setPage('plan-details');
-    }, 50);
+    setTimeout(() => { setPage('plan-details'); }, 50);
   };
+
+
 
   const handleSend = (textToSend = inputText) => {
     const trimmed = textToSend.trim();

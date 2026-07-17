@@ -3,11 +3,11 @@ import { Home, Compass, Send, Gift, Grid } from 'lucide-react';
 
 const BottomNavBar = ({ activeTab = 'home', onTabSelect }) => {
   const navItems = [
-    { id: 'home', label: 'Home', icon: Home },
-    { id: 'plan', label: 'Plan', icon: Compass },
-    { id: 'pay', label: 'Pay&transfer', icon: Send },
-    { id: 'rewards', label: 'Rewards', icon: Gift },
-    { id: 'more', label: 'More', icon: Grid },
+    { id: 'home', label: 'Home', icon: Home, enabled: true },
+    { id: 'plan', label: 'Plan', icon: Compass, enabled: true },
+    { id: 'pay', label: 'Pay&transfer', icon: Send, enabled: false },
+    { id: 'rewards', label: 'Rewards', icon: Gift, enabled: false },
+    { id: 'more', label: 'More', icon: Grid, enabled: false },
   ];
 
   return (
@@ -22,15 +22,14 @@ const BottomNavBar = ({ activeTab = 'home', onTabSelect }) => {
       {navItems.map((item) => {
         const Icon = item.icon;
         const isActive = item.id === activeTab;
-        const isHome = item.id === 'home';
 
         return (
           <button
             key={item.id}
-            disabled={!isHome}
-            onClick={() => onTabSelect?.(item.id)}
+            disabled={!item.enabled}
+            onClick={() => item.enabled && onTabSelect?.(item.id)}
             className={`flex flex-col items-center justify-center flex-1 py-1 group ${
-              isHome ? 'cursor-pointer' : 'cursor-default opacity-50'
+              item.enabled ? 'cursor-pointer' : 'cursor-default opacity-40'
             }`}
           >
             <Icon
