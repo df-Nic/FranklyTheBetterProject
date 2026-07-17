@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
 import PlanDashboardPage from './pages/PlanDashboardPage';
 import PlanDetailsPage from './pages/PlanDetailsPage';
+import PlanViewPage from './pages/PlanViewPage';
 import BottomNavBar from './components/layout/BottomNavBar';
 import ChatWidget from './components/ui/ChatWidget';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -16,8 +17,8 @@ function AppContent() {
   // Background under plan-details depends on where the user came from
   const detailsOrigin = planDetailOrigin || 'home';
 
-  const isUserLoggedIn = page === 'home' || page === 'plan-dashboard' || page === 'plan-details';
-  const activeNavTab = (page === 'plan-dashboard' || (page === 'plan-details' && detailsOrigin === 'plan-dashboard')) ? 'plan' : 'home';
+  const isUserLoggedIn = page === 'home' || page === 'plan-dashboard' || page === 'plan-details' || page === 'plan-view';
+  const activeNavTab = (page === 'plan-dashboard' || page === 'plan-view' || (page === 'plan-details' && detailsOrigin === 'plan-dashboard')) ? 'plan' : 'home';
 
   const handleTabSelect = (tabId) => {
     if (tabId === 'home') {
@@ -62,20 +63,20 @@ function AppContent() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -60 }}
             transition={{ type: 'spring', damping: 25, stiffness: 180 }}
-            className="absolute inset-0 flex flex-col overflow-hidden"
+            className="absolute inset-0 flex flex-col overflow-hidden z-10"
           >
             <HomePage />
           </motion.div>
         )}
         {/* plan-dashboard: visible on plan-dashboard page, or as background when plan-details was accepted */}
-        {(page === 'plan-dashboard' || (page === 'plan-details' && detailsOrigin === 'plan-dashboard')) && (
+        {(page === 'plan-dashboard' || page === 'plan-view' || (page === 'plan-details' && detailsOrigin === 'plan-dashboard')) && (
           <motion.div
             key="plan-dashboard"
             initial={{ opacity: 0, x: 60 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -60 }}
             transition={{ type: 'spring', damping: 25, stiffness: 180 }}
-            className="absolute inset-0 flex flex-col overflow-hidden"
+            className="absolute inset-0 flex flex-col overflow-hidden z-10"
           >
             <PlanDashboardPage />
           </motion.div>
@@ -90,10 +91,13 @@ function AppContent() {
         </>
       )}
 
-      {/* plan-details is a clip-circle overlay on top of whichever background is active */}
+      {/* plan-details and plan-view are clip-circle overlays on top of whichever background is active */}
       <AnimatePresence>
         {page === 'plan-details' && (
           <PlanDetailsPage />
+        )}
+        {page === 'plan-view' && (
+          <PlanViewPage />
         )}
       </AnimatePresence>
     </MobileFrame>

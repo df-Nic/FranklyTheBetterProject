@@ -55,7 +55,8 @@ const DeckCard = ({
   outgoingCardId,
   isAnimating,
   registerMotionValue,
-  getBottomCardX
+  getBottomCardX,
+  isReadOnly = false
 }) => {
   const isFront = stackIdx === 0;
   const isMiddle = stackIdx === 1;
@@ -190,21 +191,27 @@ const DeckCard = ({
           return (
             <div
               key={action.id}
-              onClick={() => toggleAction(action.id)}
-              className={`p-2.5 rounded-2xl border text-left flex gap-3 items-start transition-all duration-300 cursor-pointer ${
+              onClick={() => !isReadOnly && toggleAction(action.id)}
+              className={`p-2.5 rounded-2xl border text-left flex gap-3 items-start transition-all duration-300 ${
                 isExcluded
                   ? 'bg-zinc-200/20 border-zinc-300/20 opacity-40 grayscale blur-[0.4px]'
-                  : 'bg-white border-zinc-200/50 hover:border-zinc-300 hover:shadow-[0_2px_8px_rgba(0,0,0,0.02)] active:scale-[0.98]'
+                  : `bg-white border-zinc-200/50 ${isReadOnly ? '' : 'hover:border-zinc-300 hover:shadow-[0_2px_8px_rgba(0,0,0,0.02)] active:scale-[0.98] cursor-pointer'}`
               }`}
             >
               {/* Visual Toggle Circle */}
-              <div className={`w-[18px] h-[18px] rounded-full border flex items-center justify-center shrink-0 mt-0.5 transition-all duration-300 ${
-                isExcluded
-                  ? 'bg-zinc-300 border-zinc-400 text-transparent'
-                  : 'bg-brand-primary border-brand-primary text-white'
-              }`}>
-                {!isExcluded && <CheckCircle2 className="w-3.5 h-3.5 fill-current stroke-[2.5]" />}
-              </div>
+              {!isReadOnly ? (
+                <div className={`w-[18px] h-[18px] rounded-full border flex items-center justify-center shrink-0 mt-0.5 transition-all duration-300 ${
+                  isExcluded
+                    ? 'bg-zinc-300 border-zinc-400 text-transparent'
+                    : 'bg-brand-primary border-brand-primary text-white'
+                }`}>
+                  {!isExcluded && <CheckCircle2 className="w-3.5 h-3.5 fill-current stroke-[2.5]" />}
+                </div>
+              ) : (
+                <div className="w-[18px] h-[18px] rounded-full bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center shrink-0 mt-0.5 text-brand-primary">
+                  <CheckCircle2 className="w-3.5 h-3.5 fill-current stroke-[2.5]" />
+                </div>
+              )}
 
               {/* Action text content */}
               <div className="flex flex-col">
@@ -223,7 +230,7 @@ const DeckCard = ({
   );
 };
 
-const PlanCardDeck = ({ categories, pendingExcluded, toggleAction }) => {
+const PlanCardDeck = ({ categories, pendingExcluded, toggleAction, isReadOnly = false }) => {
   // Track stack ordering locally
   const [stack, setStack] = useState(() => categories.map(c => c.id));
   const [incomingCardId, setIncomingCardId] = useState(null);
@@ -319,6 +326,7 @@ const PlanCardDeck = ({ categories, pendingExcluded, toggleAction }) => {
                 isAnimating={isAnimating}
                 registerMotionValue={registerMotionValue}
                 getBottomCardX={getBottomCardX}
+                isReadOnly={isReadOnly}
               />
             );
           })}
