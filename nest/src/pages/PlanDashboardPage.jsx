@@ -106,7 +106,7 @@ const PlanDashboardPage = () => {
     }
     setActivePlanId(planId);
     setPlanDetailOrigin('plan-dashboard'); // back button returns to dashboard
-    navigate('plan-view');
+    navigate('plan-milestones');
   };
 
   return (

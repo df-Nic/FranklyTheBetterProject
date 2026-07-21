@@ -3,7 +3,7 @@ import React, { createContext, useState, useContext } from 'react';
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  const [page, setPage] = useState('landing'); // 'landing', 'login', 'home', 'plan-dashboard', 'plan-details'
+  const [page, setPage] = useState('landing'); // 'landing', 'login', 'home', 'plan-dashboard', 'plan-details', 'plan-milestones', 'plan-view'
   const [isMasked, setIsMasked] = useState(true);
   const [activeTab, setActiveTab] = useState('accounts'); // 'accounts', 'investments', 'cards', 'loans'
   const [clickPos, setClickPos] = useState(null);
