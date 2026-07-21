@@ -277,7 +277,7 @@ const PlanViewPage = () => {
         {/* Header Bar */}
         <header className="pt-6 pb-2 h-auto w-full bg-white/60 backdrop-blur-xl border-b border-zinc-200/40 px-4 flex items-center gap-3 shrink-0 z-40 sticky top-0">
           <button
-            onClick={() => setPage('plan-dashboard')}
+            onClick={() => setPage('plan-milestones')}
             className="w-9 h-9 rounded-full bg-white border border-zinc-200/50 flex items-center justify-center text-zinc-700 active:scale-90 transition-all duration-150 cursor-pointer shadow-sm"
           >
             <ArrowLeft className="w-[18px] h-[18px] stroke-[2.2]" />
