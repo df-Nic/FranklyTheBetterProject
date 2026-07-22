@@ -1,13 +1,11 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, Calculator, ChevronDown, Info, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowLeft, Calculator, ChevronDown, Sparkles } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { formatSGD, getMilestonePlan } from "../data/milestonePlans";
 import { getSavingsBreakdown, sumSavings } from "../data/savingsBreakdowns";
 
 function BreakdownItem({ item, expanded, onToggle }) {
-  const isRealized = item.status === "realized";
-
   return (
     <article className="overflow-hidden rounded-[18px] border border-[#E8DED5] bg-white shadow-[0_3px_12px_rgba(70,45,32,0.05)]">
       <button
@@ -18,8 +16,8 @@ function BreakdownItem({ item, expanded, onToggle }) {
       >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <span className={`inline-flex rounded-full px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wide ${isRealized ? "bg-[#E6F2E8] text-[#2E7D4F]" : "bg-[#FBEFD9] text-[#8B5D20]"}`}>
-              {isRealized ? "Savings achieved" : "Expected benefit"}
+            <span className="inline-flex rounded-full bg-[#E6F2E8] px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-[#2E7D4F]">
+              Savings achieved
             </span>
             <h2 className="mt-2 text-[15px] font-extrabold leading-snug text-[#2B2320]">{item.title}</h2>
             <p className="mt-1 text-[11px] leading-relaxed text-[#756A63]">{item.description}</p>
@@ -42,7 +40,7 @@ function BreakdownItem({ item, expanded, onToggle }) {
           >
             <div className="border-t border-[#F0E8E1] bg-[#FCF8F4] px-4 pb-4 pt-3">
               <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-[#7C2230]">
-                <Calculator size={14} /> {isRealized ? "How this was recorded" : "How this was estimated"}
+                <Calculator size={14} /> How this saving was calculated
               </div>
               <dl className="mt-3 space-y-2">
                 {item.calculation.map((row) => (
@@ -122,22 +120,6 @@ export default function SavingsBreakdownPage() {
           </div>
         </section>
 
-        <section className="rounded-[18px] border border-[#DFE8DF] bg-[#F4F8F3] p-4">
-          <div className="flex gap-2.5">
-            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#2E7D4F]" />
-            <div>
-              <h2 className="text-[12px] font-extrabold text-[#2E523A]">How to read this breakdown</h2>
-              <p className="mt-1 text-[10.5px] leading-relaxed text-[#597061]">
-                This demo represents an actively used plan. Every amount shown reflects an action completed in the scenario and reconciles to the savings total above.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <div className="flex items-start gap-2 px-1 text-[9.5px] leading-relaxed text-[#8A7F78]">
-          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          This is illustrative prototype data. In a live product, completed savings would be supported by linked account activity and accepted actions.
-        </div>
       </main>
     </div>
   );

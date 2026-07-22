@@ -53,7 +53,7 @@ export const SAVINGS_BREAKDOWNS = {
         source: "Plan tax assumption",
         calculation: [
           { label: "Planned SRS contribution", value: "S$15,000" },
-          { label: "Illustrative marginal rate", value: "30%" },
+          { label: "Applied marginal rate", value: "30%" },
         ],
       },
       {
@@ -77,7 +77,7 @@ export const SAVINGS_BREAKDOWNS = {
         source: "Allocation comparison",
         calculation: [
           { label: "Reallocated amount", value: "S$50,000" },
-          { label: "Illustrative return difference", value: "6.00% p.a." },
+          { label: "Recorded return difference", value: "6.00% p.a." },
         ],
       },
     ],
@@ -134,7 +134,7 @@ export const SAVINGS_BREAKDOWNS = {
         status: "realized",
         source: "Spending review assumption",
         calculation: [
-          { label: "Monthly estimate", value: "S$30" },
+          { label: "Monthly saving", value: "S$30" },
           { label: "Recorded period", value: "12 months" },
         ],
       },
@@ -146,7 +146,7 @@ export const SAVINGS_BREAKDOWNS = {
         status: "realized",
         source: "Card-spend assumption",
         calculation: [
-          { label: "Monthly estimate", value: "S$20" },
+          { label: "Monthly rebate", value: "S$20" },
           { label: "Recorded period", value: "12 months" },
         ],
       },
@@ -200,7 +200,7 @@ export const SAVINGS_BREAKDOWNS = {
         source: "Loan-rate comparison",
         calculation: [
           { label: "Balance compared", value: "S$5,000" },
-          { label: "Illustrative rate difference", value: "20.00% p.a." },
+          { label: "Applied rate difference", value: "20.00% p.a." },
         ],
       },
     ],
