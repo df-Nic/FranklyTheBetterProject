@@ -101,7 +101,7 @@ export default function PlanMilestonesPage() {
           </div>
         </button>
 
-        <AgentOwlImpactCard impact={plan.impact} />
+        <AgentOwlImpactCard impact={plan.impact} onSeeBreakdown={() => setPage("savings-breakdown")} />
         <RecommendedNextStepCard nextAction={personalCopy.nextAction} onReviewPlan={() => setPage("plan-view")} />
         <SecurityFooter />
       </div>
