@@ -16,6 +16,30 @@ export const AppProvider = ({ children }) => {
     accessId: '',
   });
 
+  const accountsData = [
+    {
+      id: 'acc-1',
+      name: '360 Account',
+      number: '001-23456-789',
+      balance: 138439.11,
+      currency: 'SGD',
+    },
+    {
+      id: 'acc-2',
+      name: 'Savings Account',
+      number: '001-98765-432',
+      balance: 15420.50,
+      currency: 'SGD',
+      isJoint: true,
+    }
+  ];
+
+  // PayNow specific states
+  const [paynowContact, setPaynowContact] = useState(null);
+  const [paynowAmount, setPaynowAmount] = useState('');
+  const [paynowReference, setPaynowReference] = useState('');
+  const [paynowSourceAccount, setPaynowSourceAccount] = useState(accountsData[0]);
+
   const navigate = (targetPage) => {
     setPage(targetPage);
   };
@@ -31,24 +55,6 @@ export const AppProvider = ({ children }) => {
   const toggleMask = () => {
     setIsMasked((prev) => !prev);
   };
-
-  const accountsData = [
-    {
-      id: 'acc-1',
-      name: '360 Account',
-      number: '• • • • 4892',
-      balance: 138439.11,
-      currency: 'SGD',
-    },
-    {
-      id: 'acc-2',
-      name: 'Savings Account',
-      number: '• • • • 1083',
-      balance: 15420.50,
-      currency: 'SGD',
-      isJoint: true,
-    }
-  ];
 
   const investmentsData = {
     totalBalance: 1800000.00,
@@ -92,6 +98,14 @@ export const AppProvider = ({ children }) => {
         setUser,
         accountsData,
         investmentsData,
+        paynowContact,
+        setPaynowContact,
+        paynowAmount,
+        setPaynowAmount,
+        paynowReference,
+        setPaynowReference,
+        paynowSourceAccount,
+        setPaynowSourceAccount,
       }}
     >
       {children}

@@ -12,6 +12,10 @@ import SavingsBreakdownPage from './pages/SavingsBreakdownPage';
 import BottomNavBar from './components/layout/BottomNavBar';
 import ChatWidget from './components/ui/ChatWidget';
 import { AnimatePresence, motion } from 'framer-motion';
+import PayNowContactsPage from './pages/PayNowContactsPage';
+import PayNowAmountPage from './pages/PayNowAmountPage';
+import PayNowConfirmPage from './pages/PayNowConfirmPage';
+import PayNowSuccessPage from './pages/PayNowSuccessPage';
 
 function AppContent() {
   const { page, planDetailOrigin, setPage } = useApp();
@@ -19,14 +23,17 @@ function AppContent() {
   // Background under plan-details depends on where the user came from
   const detailsOrigin = planDetailOrigin || 'home';
 
-  const isUserLoggedIn = page === 'home' || page === 'plan-dashboard' || page === 'plan-details' || page === 'plan-view' || page === 'plan-milestones' || page === 'savings-breakdown';
-  const activeNavTab = (page === 'plan-dashboard' || page === 'plan-view' || page === 'plan-milestones' || page === 'savings-breakdown' || (page === 'plan-details' && detailsOrigin === 'plan-dashboard')) ? 'plan' : 'home';
+  const isPayNowPage = page === 'paynow-contacts' || page === 'paynow-amount' || page === 'paynow-confirm' || page === 'paynow-success';
+  const isUserLoggedIn = page === 'home' || page === 'plan-dashboard' || page === 'plan-details' || page === 'plan-view' || page === 'plan-milestones' || page === 'savings-breakdown' || isPayNowPage;
+  const activeNavTab = isPayNowPage ? 'pay' : ((page === 'plan-dashboard' || page === 'plan-view' || page === 'plan-milestones' || page === 'savings-breakdown' || (page === 'plan-details' && detailsOrigin === 'plan-dashboard')) ? 'plan' : 'home');
 
   const handleTabSelect = (tabId) => {
     if (tabId === 'home') {
       setPage('home');
     } else if (tabId === 'plan') {
       setPage('plan-dashboard');
+    } else if (tabId === 'pay') {
+      setPage('paynow-contacts');
     }
   };
 
@@ -83,10 +90,57 @@ function AppContent() {
             <PlanDashboardPage />
           </motion.div>
         )}
+        {page === 'paynow-contacts' && (
+          <motion.div
+            key="paynow-contacts"
+            initial={{ opacity: 0, x: 60 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -60 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 180 }}
+            className="absolute inset-0 flex flex-col overflow-hidden z-10"
+          >
+            <PayNowContactsPage />
+          </motion.div>
+        )}
+        {page === 'paynow-amount' && (
+          <motion.div
+            key="paynow-amount"
+            initial={{ opacity: 0, x: 60 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -60 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 180 }}
+            className="absolute inset-0 flex flex-col overflow-hidden z-10"
+          >
+            <PayNowAmountPage />
+          </motion.div>
+        )}
+        {page === 'paynow-confirm' && (
+          <motion.div
+            key="paynow-confirm"
+            initial={{ opacity: 0, x: 60 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -60 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 180 }}
+            className="absolute inset-0 flex flex-col overflow-hidden z-10"
+          >
+            <PayNowConfirmPage />
+          </motion.div>
+        )}
+        {page === 'paynow-success' && (
+          <motion.div
+            key="paynow-success"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="absolute inset-0 flex flex-col overflow-hidden z-20"
+          >
+            <PayNowSuccessPage />
+          </motion.div>
+        )}
       </AnimatePresence>
 
       {/* Persistent overlay components for logged-in views */}
-      {isUserLoggedIn && (
+      {isUserLoggedIn && !isPayNowPage && (
         <>
           {page !== 'plan-milestones' && page !== 'savings-breakdown' && <ChatWidget />}
           <BottomNavBar activeTab={activeNavTab} onTabSelect={handleTabSelect} />
