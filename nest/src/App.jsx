@@ -9,6 +9,7 @@ import PlanDetailsPage from './pages/PlanDetailsPage';
 import PlanViewPage from './pages/PlanViewPage';
 import PlanMilestonesPage from './pages/PlanMilestonesPage';
 import SavingsBreakdownPage from './pages/SavingsBreakdownPage';
+import OpportunityDetailPage from './pages/OpportunityDetailPage';
 import BottomNavBar from './components/layout/BottomNavBar';
 import ChatWidget from './components/ui/ChatWidget';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -19,8 +20,8 @@ function AppContent() {
   // Background under plan-details depends on where the user came from
   const detailsOrigin = planDetailOrigin || 'home';
 
-  const isUserLoggedIn = page === 'home' || page === 'plan-dashboard' || page === 'plan-details' || page === 'plan-view' || page === 'plan-milestones' || page === 'savings-breakdown';
-  const activeNavTab = (page === 'plan-dashboard' || page === 'plan-view' || page === 'plan-milestones' || page === 'savings-breakdown' || (page === 'plan-details' && detailsOrigin === 'plan-dashboard')) ? 'plan' : 'home';
+  const isUserLoggedIn = page === 'home' || page === 'plan-dashboard' || page === 'plan-details' || page === 'plan-view' || page === 'plan-milestones' || page === 'savings-breakdown' || page === 'opportunity-detail';
+  const activeNavTab = (page === 'plan-dashboard' || page === 'plan-view' || page === 'plan-milestones' || page === 'savings-breakdown' || page === 'opportunity-detail' || (page === 'plan-details' && detailsOrigin === 'plan-dashboard')) ? 'plan' : 'home';
 
   const handleTabSelect = (tabId) => {
     if (tabId === 'home') {
@@ -71,7 +72,7 @@ function AppContent() {
           </motion.div>
         )}
         {/* plan-dashboard: visible on plan-dashboard page, or as background when plan-details was accepted */}
-        {(page === 'plan-dashboard' || page === 'plan-view' || page === 'plan-milestones' || page === 'savings-breakdown' || (page === 'plan-details' && detailsOrigin === 'plan-dashboard')) && (
+        {(page === 'plan-dashboard' || page === 'plan-view' || page === 'plan-milestones' || page === 'savings-breakdown' || page === 'opportunity-detail' || (page === 'plan-details' && detailsOrigin === 'plan-dashboard')) && (
           <motion.div
             key="plan-dashboard"
             initial={{ opacity: 0, x: 60 }}
@@ -88,7 +89,7 @@ function AppContent() {
       {/* Persistent overlay components for logged-in views */}
       {isUserLoggedIn && (
         <>
-          {page !== 'plan-milestones' && page !== 'savings-breakdown' && <ChatWidget />}
+          {page !== 'plan-milestones' && page !== 'savings-breakdown' && page !== 'opportunity-detail' && <ChatWidget />}
           <BottomNavBar activeTab={activeNavTab} onTabSelect={handleTabSelect} />
         </>
       )}
@@ -123,6 +124,18 @@ function AppContent() {
             className="absolute inset-0 z-30 overflow-hidden"
           >
             <SavingsBreakdownPage />
+          </motion.div>
+        )}
+        {page === 'opportunity-detail' && (
+          <motion.div
+            key="opportunity-detail"
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -40 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 180 }}
+            className="absolute inset-0 z-30 overflow-hidden"
+          >
+            <OpportunityDetailPage />
           </motion.div>
         )}
       </AnimatePresence>

@@ -3,7 +3,7 @@ import React, { createContext, useState, useContext } from 'react';
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  const [page, setPage] = useState('landing'); // 'landing', 'login', 'home', 'plan-dashboard', 'plan-details', 'plan-milestones', 'plan-view', 'savings-breakdown'
+  const [page, setPage] = useState('landing'); // includes plan milestones, savings breakdown and opportunity detail routes
   const [isMasked, setIsMasked] = useState(true);
   const [activeTab, setActiveTab] = useState('accounts'); // 'accounts', 'investments', 'cards', 'loans'
   const [clickPos, setClickPos] = useState(null);
@@ -11,6 +11,8 @@ export const AppProvider = ({ children }) => {
   const [activePlanId, setActivePlanId] = useState(null); // 'retirement' | 'savings' | 'emergency' | 'default'
   const [createdPlans, setCreatedPlans] = useState([]); // In-memory list of plan IDs the user has created (resets on app restart)
   const [planDetailOrigin, setPlanDetailOrigin] = useState('home'); // 'home' | 'plan-dashboard'
+  const [opportunityDecisions, setOpportunityDecisions] = useState({});
+  const [opportunityNotice, setOpportunityNotice] = useState(null);
   const [user, setUser] = useState({
     name: 'Olivia',
     accessId: '',
@@ -30,6 +32,31 @@ export const AppProvider = ({ children }) => {
 
   const toggleMask = () => {
     setIsMasked((prev) => !prev);
+  };
+
+  const decideOpportunity = (planId, opportunity, status) => {
+    if (!planId || !opportunity || !['accepted', 'declined'].includes(status)) return false;
+    if (opportunity.status !== 'active' || opportunityDecisions[planId]) return false;
+    if (status === 'accepted' && opportunity.eligibility?.status !== 'verified') return false;
+
+    const decidedAt = '24 Jul 2026';
+    setOpportunityDecisions((current) => ({
+      ...current,
+      [planId]: {
+        opportunityId: opportunity.id,
+        status,
+        decidedAt,
+        appliedChanges: status === 'accepted' ? opportunity.planChanges : null,
+      },
+    }));
+    setOpportunityNotice({
+      planId,
+      status,
+      message: status === 'accepted'
+        ? 'Your plan has been enhanced with this opportunity.'
+        : 'Your existing plan remains unchanged.',
+    });
+    return true;
   };
 
   const accountsData = [
@@ -88,6 +115,10 @@ export const AppProvider = ({ children }) => {
         addCreatedPlan,
         planDetailOrigin,
         setPlanDetailOrigin,
+        opportunityDecisions,
+        opportunityNotice,
+        setOpportunityNotice,
+        decideOpportunity,
         user,
         setUser,
         accountsData,
