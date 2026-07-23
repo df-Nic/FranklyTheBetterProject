@@ -24,11 +24,12 @@ function AppContent() {
   // Background under plan-details depends on where the user came from
   const detailsOrigin = planDetailOrigin || 'home';
 
-  const isUserLoggedIn = page === 'home' || page === 'plan-dashboard' || page === 'plan-details' || page === 'plan-view' || page === 'plan-milestones' || page === 'savings-breakdown' || page === 'opportunity-detail';
-  const activeNavTab = (page === 'plan-dashboard' || page === 'plan-view' || page === 'plan-milestones' || page === 'savings-breakdown' || page === 'opportunity-detail' || (page === 'plan-details' && detailsOrigin === 'plan-dashboard')) ? 'plan' : 'home';
   const isPayNowPage = page === 'paynow-contacts' || page === 'paynow-amount' || page === 'paynow-confirm' || page === 'paynow-success';
-  const isUserLoggedIn = page === 'home' || page === 'plan-dashboard' || page === 'plan-details' || page === 'plan-view' || page === 'plan-milestones' || page === 'savings-breakdown' || isPayNowPage;
-  const activeNavTab = isPayNowPage ? 'pay' : ((page === 'plan-dashboard' || page === 'plan-view' || page === 'plan-milestones' || page === 'savings-breakdown' || (page === 'plan-details' && detailsOrigin === 'plan-dashboard')) ? 'plan' : 'home');
+  const isPlanPage = page === 'plan-dashboard' || page === 'plan-view' || page === 'plan-milestones' || page === 'savings-breakdown' || page === 'opportunity-detail';
+  const isUserLoggedIn = page === 'home' || page === 'plan-details' || isPlanPage || isPayNowPage;
+  const activeNavTab = isPayNowPage
+    ? 'pay'
+    : (isPlanPage || (page === 'plan-details' && detailsOrigin === 'plan-dashboard') ? 'plan' : 'home');
 
   const handleTabSelect = (tabId) => {
     if (tabId === 'home') {

@@ -1,7 +1,6 @@
 // src/pages/PlanMilestonesPage.jsx
 import { CheckCircle2, ChevronLeft, ChevronRight, Compass, Pencil, X } from "lucide-react";
 import React, { useEffect } from "react";
-import { ChevronLeft, ChevronRight, Compass, Pencil } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import sceneImg from "../assets/images/milestone-scene-clean.png";
 import {
@@ -36,13 +35,13 @@ export default function PlanMilestonesPage() {
     opportunityDecisions,
     opportunityNotice,
     setOpportunityNotice,
+    planAdjustments,
+    adjustPlan,
   } = useApp();
-  const basePlan = getMilestonePlan(activePlanId);
+  const basePlan = getMilestonePlan(activePlanId, planAdjustments);
   const opportunity = getPlanOpportunity(basePlan.id);
   const decision = opportunityDecisions[basePlan.id];
   const plan = applyOpportunityChanges(basePlan, opportunity, decision);
-  const { activePlanId, setPage, user, planAdjustments, adjustPlan } = useApp();
-  const plan = getMilestonePlan(activePlanId, planAdjustments);
   const onTrack = deriveOnTrack(plan.onTrack);
   const personalCopy = buildPersonalizedPlanCopy({ plan, userName: user?.name, onTrack });
   const count = plan.milestones.length;

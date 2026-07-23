@@ -8,8 +8,8 @@ export const AppProvider = ({ children }) => {
   const [activeTab, setActiveTab] = useState('accounts'); // 'accounts', 'investments', 'cards', 'loans'
   const [clickPos, setClickPos] = useState(null);
   const [activePlanTitle, setActivePlanTitle] = useState('');
-  const [activePlanId, setActivePlanId] = useState('wedding-fund'); // 'retirement' | 'savings' | 'emergency' | 'default'
-  const [createdPlans, setCreatedPlans] = useState(['wedding-fund']); // In-memory list of plan IDs the user has created (resets on app restart)
+  const [activePlanId, setActivePlanId] = useState(null); // Selected proposal or accepted plan
+  const [createdPlans, setCreatedPlans] = useState([]); // Plans are added only after explicit acceptance
   const [planDetailOrigin, setPlanDetailOrigin] = useState('home'); // 'home' | 'plan-dashboard'
   const [opportunityDecisions, setOpportunityDecisions] = useState({});
   const [opportunityNotice, setOpportunityNotice] = useState(null);
@@ -96,24 +96,6 @@ export const AppProvider = ({ children }) => {
     });
     return true;
   };
-
-  const accountsData = [
-    {
-      id: 'acc-1',
-      name: '360 Account',
-      number: '• • • • 4892',
-      balance: 138439.11,
-      currency: 'SGD',
-    },
-    {
-      id: 'acc-2',
-      name: 'Savings Account',
-      number: '• • • • 1083',
-      balance: 15420.50,
-      currency: 'SGD',
-      isJoint: true,
-    }
-  ];
 
   const investmentsData = {
     totalBalance: 1800000.00,
