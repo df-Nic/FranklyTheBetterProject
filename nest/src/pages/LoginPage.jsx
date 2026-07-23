@@ -6,7 +6,7 @@ import GlassCard from '../components/ui/GlassCard';
 import { ArrowLeft, Fingerprint, Eye, EyeOff } from 'lucide-react';
 
 const LoginPage = () => {
-  const { navigate, setUser } = useApp();
+  const { navigate, setUser, loginRedirectPage, setLoginRedirectPage } = useApp();
   const [accessId, setAccessId] = useState('');
   const [pin, setPin] = useState('');
   const [showPin, setShowPin] = useState(false);
@@ -26,12 +26,16 @@ const LoginPage = () => {
     }
     
     setUser((prev) => ({ ...prev, accessId }));
-    navigate('home');
+    const target = loginRedirectPage || 'home';
+    setLoginRedirectPage(null);
+    navigate(target);
   };
 
   const handleBiometricsTap = () => {
     setUser((prev) => ({ ...prev, accessId: 'BIOMETRIC_USER' }));
-    navigate('home');
+    const target = loginRedirectPage || 'home';
+    setLoginRedirectPage(null);
+    navigate(target);
   };
 
   return (

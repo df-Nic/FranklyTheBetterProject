@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
-import { ArrowLeft, ChevronRight, Plus, CalendarDays } from 'lucide-react';
+import { ChevronRight, Plus, CalendarDays, Sparkles } from 'lucide-react';
 import { PLANS_DATA } from '../data/planTemplates';
 
 // ─── Labeled Plan Illustrations ──────────────────────────────────────────────
@@ -9,6 +9,7 @@ import retirementImg from '../assets/images/Retirement Plan Image.svg';
 import housingImg from '../assets/images/Housing Plan Image.svg';
 import protectImg from '../assets/images/Protect Image.svg';
 import savingsImg from '../assets/images/Savings Image.svg';
+import weddingImg from '../assets/images/Wedding Image.svg';
 
 // ─── Plan Card Meta ──────────────────────────────────────────────────────────
 
@@ -33,14 +34,22 @@ const PLAN_META = {
     tag: 'Wealth Builder',
     tagColor: 'bg-emerald-100 text-emerald-700',
   },
+  'wedding-fund': {
+    image: weddingImg,
+    tag: 'Wedding Fund',
+    tagColor: 'bg-pink-100 text-pink-700',
+  },
 };
 
 // ─── Single Plan Card ────────────────────────────────────────────────────────
 
 const PlanCard = ({ planId, index, onClick }) => {
+  const { planAdjustments } = useApp();
   const plan = PLANS_DATA[planId];
   const meta = PLAN_META[planId] || PLAN_META.default;
   const goalText = plan.goal.length > 92 ? plan.goal.slice(0, 92) + '\u2026' : plan.goal;
+  
+  const isHealed = planAdjustments?.[planId]?.healed;
 
   return (
     <motion.div
@@ -62,6 +71,13 @@ const PlanCard = ({ planId, index, onClick }) => {
         <span className={`absolute top-3 left-3 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full backdrop-blur-sm ${meta.tagColor}`}>
           {meta.tag}
         </span>
+        {/* Healed Badge */}
+        {isHealed && (
+          <span className="absolute top-3 right-3 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-500 text-white shadow-sm flex items-center gap-1 animate-pulse z-10">
+            <Sparkles className="w-2.5 h-2.5 stroke-[3]" />
+            <span>Plan Adjusted</span>
+          </span>
+        )}
       </div>
 
       {/* Detail panel */}
@@ -114,12 +130,6 @@ const PlanDashboardPage = () => {
       {/* Header */}
       <header className="pt-6 pb-2 h-auto w-full bg-white/70 backdrop-blur-xl border-b border-white/50 px-4 flex items-center justify-between z-40 shrink-0 sticky top-0">
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate('home')}
-            className="w-9 h-9 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-700 active:scale-90 transition-all duration-150 cursor-pointer"
-          >
-            <ArrowLeft className="w-[18px] h-[18px] stroke-[2.2]" />
-          </button>
           <div className="flex flex-col">
             <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest leading-none">NEST ADVISORY</span>
             <span className="text-sm font-black text-zinc-900 tracking-tight mt-0.5">My Plans</span>

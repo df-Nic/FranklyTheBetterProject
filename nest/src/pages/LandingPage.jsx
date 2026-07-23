@@ -5,12 +5,12 @@ import BackgroundOrb from '../components/ui/BackgroundOrb';
 import { ShieldAlert, Key, QrCode, Send, TrendingUp, Landmark, Grid, ArrowRight } from 'lucide-react';
 
 const LandingPage = () => {
-  const { navigate } = useApp();
+  const { navigate, setLoginRedirectPage } = useApp();
 
   const quickAccessItems = [
     { id: 'onetoken', label: 'OneToken', icon: Key },
     { id: 'scanpay', label: 'Scan & Pay', icon: QrCode },
-    { id: 'paynow', label: 'PayNow', icon: Send },
+    { id: 'paynow', label: 'PayNow', icon: ({ className }) => <div className={`font-black text-[10px] leading-[9px] text-center tracking-tighter ${className}`}>PAY<br />NOW</div> },
     { id: 'wealth', label: 'Wealth Insights', icon: TrendingUp },
     { id: 'forex', label: 'Foreign Exchange', icon: Landmark },
     { id: 'more', label: 'More', icon: Grid },
@@ -70,11 +70,22 @@ const LandingPage = () => {
               return (
                 <button
                   key={item.id}
-                  onClick={() => navigate('login')}
+                  onClick={() => {
+                    if (item.id === 'paynow') {
+                      setLoginRedirectPage('paynow-contacts');
+                    } else {
+                      setLoginRedirectPage(null);
+                    }
+                    navigate('login');
+                  }}
                   className="flex flex-col items-center group cursor-pointer focus:outline-none"
                 >
                   <div className="w-14 h-14 rounded-full border-[1.5px] border-zinc-300 flex items-center justify-center bg-transparent text-zinc-700 transition-all duration-200 group-hover:border-brand-primary group-hover:text-brand-primary group-active:scale-95 group-active:bg-zinc-100">
-                    <Icon className="w-6 h-6 stroke-[1.8]" />
+                    {typeof Icon === 'function' ? (
+                      <Icon className="w-6 h-6 flex items-center justify-center" />
+                    ) : (
+                      <Icon className="w-6 h-6 stroke-[1.8]" />
+                    )}
                   </div>
                   <span className="text-[11px] font-semibold text-zinc-600 text-center mt-2 leading-tight">
                     {item.label}
@@ -89,7 +100,10 @@ const LandingPage = () => {
         <motion.div variants={itemVariants} className="mb-8">
           {/* Primary Button */}
           <button
-            onClick={() => navigate('login')}
+            onClick={() => {
+              setLoginRedirectPage(null);
+              navigate('login');
+            }}
             className="w-full h-[55px] bg-brand-secondary text-white font-bold rounded-xl shadow-lg shadow-brand-secondary/20 flex items-center justify-center gap-2 transition-all duration-150 active:scale-[0.98] hover:bg-zinc-800 cursor-pointer"
           >
             <span>Log in to OCBC Singapore</span>
