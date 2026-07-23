@@ -40,6 +40,9 @@ export const AppProvider = ({ children }) => {
   const [paynowReference, setPaynowReference] = useState('');
   const [paynowSourceAccount, setPaynowSourceAccount] = useState(accountsData[0]);
 
+  // Login redirect state
+  const [loginRedirectPage, setLoginRedirectPage] = useState(null);
+
   const navigate = (targetPage) => {
     setPage(targetPage);
   };
@@ -106,6 +109,8 @@ export const AppProvider = ({ children }) => {
         setPaynowReference,
         paynowSourceAccount,
         setPaynowSourceAccount,
+        loginRedirectPage,
+        setLoginRedirectPage,
       }}
     >
       {children}
