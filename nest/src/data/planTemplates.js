@@ -159,6 +159,44 @@ export const PLANS_DATA = {
         ]
       }
     ]
+  },
+  'wedding-fund': {
+    id: "wedding-fund",
+    title: "OCBC Wedding Savings Plan",
+    goal: "Save SG$35,000 for your dream wedding by Dec 2027",
+    timelineAll: "Oct 2027 - Dec 2027",
+    timelineExcluded: (numExcluded) => {
+      if (numExcluded === 0) return "Oct 2027 - Dec 2027";
+      if (numExcluded <= 2) return "Feb 2028 - May 2028";
+      return "Jul 2028 - Oct 2028";
+    },
+    categories: [
+      {
+        id: "deposits_optimization",
+        name: "Deposits Optimization",
+        icon: "Coins",
+        actions: [
+          { id: "wed_ocbc360", name: "OCBC 360 Savings Account", desc: "Credit your salary and save SG$500/mo to hit up to 4.65% p.a. interest rate on your active deposits.", baseVal: 6000, rate: 0.0465, type: "deposit" },
+          { id: "wed_recurring", name: "Monthly Auto-Savings Flow", desc: "Configure an automatic recurring PayNow transfer of SG$500/mo directly to your wedding savings vault.", baseVal: 12000, rate: 0.038, type: "deposit" }
+        ]
+      },
+      {
+        id: "low_risk_yield",
+        name: "Low-risk Yields",
+        icon: "TrendingUp",
+        actions: [
+          { id: "wed_tbills", name: "SG Treasury Bills (T-Bills)", desc: "Buy 6-month risk-free Singapore Government Securities to capture a state-backed 3.70% p.a. yield.", baseVal: 5000, rate: 0.037, type: "yield" }
+        ]
+      },
+      {
+        id: "savings_adjustments",
+        name: "Savings Adjustments",
+        icon: "Scissors",
+        actions: [
+          { id: "wed_dine", name: "Dining & Lifestyle Cap", desc: "Restrict food delivery app orders and high-end dining to save SG$150/mo to accelerate your wedding fund.", baseVal: 1800, rate: 0.0, type: "saving" }
+        ]
+      }
+    ]
   }
 };
 
@@ -193,5 +231,11 @@ export const PLAN_ALTERNATIVES = {
   def_etfs: { id: "def_ocbc_robo_growth", name: "OCBC RoboInvest Growth Portfolio", desc: "Invest SG$400/mo in OCBC RoboInvest's aggressive growth portfolios yielding 6.80% p.a.", baseVal: 4800, rate: 0.068, type: "investment" },
   def_reits: { id: "def_ocbc_bcip_reits", name: "OCBC BCIP Lion-Phillip REIT", desc: "Invest SG$200/mo in local REIT indices via OCBC BCIP to capture high SGD yields.", baseVal: 2400, rate: 0.058, type: "investment" },
   def_refinance: { id: "def_ocbc_easicredit", name: "OCBC EasiCredit Debt Transfer", desc: "Consolidate debt into an OCBC EasiCredit balance transfer at 0% interest for 12 months.", baseVal: 3000, rate: 0.226, type: "loan" },
-  def_mortgage: { id: "def_ocbc_refi", name: "OCBC Fixed eco-Green Refinance", desc: "Refinance mortgage with OCBC Eco-Green Home Loans to lock in stable promotional rates.", baseVal: 1200, rate: 0.015, type: "loan" }
+  def_mortgage: { id: "def_ocbc_refi", name: "OCBC Fixed eco-Green Refinance", desc: "Refinance mortgage with OCBC Eco-Green Home Loans to lock in stable promotional rates.", baseVal: 1200, rate: 0.015, type: "loan" },
+
+  // Wedding alternatives
+  wed_ocbc360: { id: "wed_ocbc_boost", name: "OCBC Bonus+ Savings Yield", desc: "Save SG$500/mo into the OCBC Bonus+ Account to capture a high interest rate of up to 3.70% p.a. with zero withdrawals.", baseVal: 6000, rate: 0.037, type: "deposit" },
+  wed_recurring: { id: "wed_giro", name: "OCBC GIRO Auto-Invest Flow", desc: "Configure an automatic monthly GIRO regular invest flow of SG$500 to OCBC Blue Chip Plan.", baseVal: 6000, rate: 0.04, type: "deposit" },
+  wed_tbills: { id: "wed_mmf", name: "Lion-OCBC Money Market Fund", desc: "Allocate SG$5,000 to low-risk liquidity funds for a flexible 3.90% p.a. return with instant liquidity.", baseVal: 5000, rate: 0.039, type: "yield" },
+  wed_dine: { id: "wed_card_rebates", name: "OCBC 365 Card Spend Optimization", desc: "Direct utilities and card payments to OCBC 365 Card to earn 5% cash rebate, saving SG$80/mo.", baseVal: 960, rate: 0.0, type: "saving" }
 };

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Compass } from 'lucide-react';
 import ocbcOwl from '../../assets/images/OCBC Owl.jpg';
 import { useApp } from '../../context/AppContext';
+import { PLANS_DATA } from '../../data/planTemplates';
 
 const ChatWidget = () => {
   const { setPage, setClickPos, setActivePlanTitle, setActivePlanId, addCreatedPlan, setPlanDetailOrigin } = useApp();
@@ -33,9 +34,9 @@ const ChatWidget = () => {
 
   const planningSuggestions = [
     "Plan for Retirement",
+    "Plan a Wedding",
     "Set up a Savings Goal",
-    "Compare Credit Cards",
-    "Invest in Gold"
+    "Compare Credit Cards"
   ];
 
   // Resolve container ref on mount and measure safe bottom area
@@ -151,10 +152,40 @@ const ChatWidget = () => {
   // Resolve a stable planId from natural language plan title
   const resolvePlanId = (title) => {
     const t = (title || '').toLowerCase();
-    if (t.includes('retire')) return 'retirement';
-    if (t.includes('save') || t.includes('home') || t.includes('hdb') || t.includes('saving')) return 'savings';
-    if (t.includes('emerg') || t.includes('safe') || t.includes('shield') || t.includes('protect')) return 'emergency';
-    return 'default';
+    
+    const scores = {
+      'retirement': 0,
+      'wedding-fund': 0,
+      'savings': 0,
+      'emergency': 0
+    };
+
+    if (t.includes('retire') || t.includes('retirement')) scores['retirement'] += 10;
+    if (t.includes('wed') || t.includes('wedding') || t.includes('marry') || t.includes('marriage')) scores['wedding-fund'] += 10;
+    if (t.includes('emerg') || t.includes('emergency')) scores['emergency'] += 10;
+    if (t.includes('hdb') || t.includes('downpayment') || t.includes('flat')) scores['savings'] += 10;
+
+    const retireSupport = ['pension', 'srs'];
+    const weddingSupport = ['proposal', 'banquet'];
+    const savingsSupport = ['save', 'savings', 'home', 'house', 'deposit'];
+    const emergencySupport = ['safe', 'safety', 'shield', 'protect', 'liquid', 'buffer'];
+
+    retireSupport.forEach(kw => { if (t.includes(kw)) scores['retirement'] += 3; });
+    weddingSupport.forEach(kw => { if (t.includes(kw)) scores['wedding-fund'] += 3; });
+    savingsSupport.forEach(kw => { if (t.includes(kw)) scores['savings'] += 3; });
+    emergencySupport.forEach(kw => { if (t.includes(kw)) scores['emergency'] += 3; });
+
+    let highestScore = 0;
+    let resolvedId = 'default';
+
+    for (const [planId, score] of Object.entries(scores)) {
+      if (score > highestScore) {
+        highestScore = score;
+        resolvedId = planId;
+      }
+    }
+
+    return resolvedId;
   };
 
   // Preview only — does NOT save to dashboard
@@ -198,6 +229,8 @@ const ChatWidget = () => {
 
     // 3. Resolve plan creation after 2 seconds
     setTimeout(() => {
+      const planId = resolvePlanId(trimmed);
+      const planObj = PLANS_DATA[planId] || PLANS_DATA.default;
       setMessages(prev => {
         const filtered = prev.filter(m => m.id !== 'typing');
         return [
@@ -206,7 +239,8 @@ const ChatWidget = () => {
             id: Date.now(),
             sender: 'bot',
             isPlanProposal: true,
-            planTitle: trimmed
+            planTitle: planObj.title,
+            originalQuery: trimmed
           }
         ];
       });
@@ -302,13 +336,13 @@ const ChatWidget = () => {
                       <div className="flex flex-col gap-2">
                         <div className="flex items-center gap-1.5 text-zinc-900 font-bold border-b border-zinc-100 pb-1">
                           <Compass className="w-3.5 h-3.5 text-brand-primary animate-pulse" />
-                          <span>Financial Plan Ready</span>
+                          <span>{msg.planTitle} Ready</span>
                         </div>
-                        <p className="text-zinc-600 font-medium leading-relaxed text-[11px]">
-                          I have compiled a customized wealth plan for your target: <strong className="text-brand-primary font-bold">"{msg.planTitle}"</strong>. Would you like to review it?
+                        <p className="text-zinc-600 font-medium leading-relaxed text-[11.5px]">
+                          I have compiled a customized wealth strategy: <strong className="text-brand-primary font-bold">"{msg.planTitle}"</strong> for your target: *"{msg.originalQuery}"*.
                         </p>
                         <button
-                          onClick={(e) => handleReviewPlanClick(e, msg.planTitle)}
+                          onClick={(e) => handleReviewPlanClick(e, msg.originalQuery)}
                           className="mt-1.5 w-full py-2 bg-brand-primary hover:bg-red-600 text-white font-bold rounded-xl text-[10px] tracking-wide uppercase transition-all duration-150 active:scale-95 shadow-md shadow-brand-primary/25 cursor-pointer flex items-center justify-center gap-1.5"
                         >
                           <span>Review Plan</span>

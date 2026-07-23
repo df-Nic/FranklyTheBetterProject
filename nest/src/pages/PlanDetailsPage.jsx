@@ -25,9 +25,41 @@ const PlanDetailsPage = () => {
     if (activePlanId && PLANS_DATA[activePlanId]) return PLANS_DATA[activePlanId];
     // Legacy fuzzy title-based fallback
     const title = (activePlanTitle || '').toLowerCase();
-    if (title.includes('retire')) return PLANS_DATA.retirement;
-    if (title.includes('save') || title.includes('home') || title.includes('hdb')) return PLANS_DATA.savings;
-    if (title.includes('emerg') || title.includes('safe') || title.includes('shield') || title.includes('protect')) return PLANS_DATA.emergency;
+    const scores = {
+      'retirement': 0,
+      'wedding-fund': 0,
+      'savings': 0,
+      'emergency': 0
+    };
+
+    if (title.includes('retire') || title.includes('retirement')) scores['retirement'] += 10;
+    if (title.includes('wed') || title.includes('wedding') || title.includes('marry') || title.includes('marriage')) scores['wedding-fund'] += 10;
+    if (title.includes('emerg') || title.includes('emergency')) scores['emergency'] += 10;
+    if (title.includes('hdb') || title.includes('downpayment') || title.includes('flat')) scores['savings'] += 10;
+
+    const retireSupport = ['pension', 'srs'];
+    const weddingSupport = ['proposal', 'banquet'];
+    const savingsSupport = ['save', 'savings', 'home', 'house', 'deposit'];
+    const emergencySupport = ['safe', 'safety', 'shield', 'protect', 'liquid', 'buffer'];
+
+    retireSupport.forEach(kw => { if (title.includes(kw)) scores['retirement'] += 3; });
+    weddingSupport.forEach(kw => { if (title.includes(kw)) scores['wedding-fund'] += 3; });
+    savingsSupport.forEach(kw => { if (title.includes(kw)) scores['savings'] += 3; });
+    emergencySupport.forEach(kw => { if (title.includes(kw)) scores['emergency'] += 3; });
+
+    let highestScore = 0;
+    let resolvedId = 'default';
+
+    for (const [planId, score] of Object.entries(scores)) {
+      if (score > highestScore) {
+        highestScore = score;
+        resolvedId = planId;
+      }
+    }
+
+    if (resolvedId !== 'default' && PLANS_DATA[resolvedId]) {
+      return PLANS_DATA[resolvedId];
+    }
     return PLANS_DATA.default;
   };
 
@@ -155,6 +187,7 @@ const PlanDetailsPage = () => {
     if (plan.id === 'retirement') initialCapital = 30000;
     if (plan.id === 'savings') initialCapital = 25000;
     if (plan.id === 'emergency') initialCapital = 6000;
+    if (plan.id === 'wedding-fund') initialCapital = 10000;
 
     const allActions = [];
     categories.forEach(cat => {
@@ -206,6 +239,57 @@ const PlanDetailsPage = () => {
         const y3 = Math.round(baseGrowthVal + depositsVal + investmentsVal);
 
         return { year: month, y1, y2, y3 };
+      });
+    }
+
+    if (plan.id === 'wedding-fund') {
+      // 1.5 Years plan (Jul 2026 - Dec 2027)
+      // Steps: Jul 26, Dec 26, Jun 27, Dec 27
+      const labels = ['Jul 26', 'Dec 26', 'Jun 27', 'Dec 27'];
+      const times = [0, 0.5, 1.0, 1.5];
+
+      return labels.map((label, idx) => {
+        const t = times[idx];
+        const baseGrowthVal = initialCapital * Math.pow(1.015, t);
+        let depositsVal = 0;
+        let investmentsVal = 0;
+
+        allActions.forEach(action => {
+          if (exclusions.has(action.id)) return;
+
+          const isLump = action.isLumpSum;
+          const r = action.rate;
+          const periodicVal = action.baseVal / 2; // Semi-annual contribution
+          const stepsCount = idx;
+
+          if (action.type === 'deposit' || action.type === 'grant') {
+            if (isLump) {
+              depositsVal += action.baseVal * Math.pow(1 + r, t);
+            } else {
+              let recurringSum = 0;
+              for (let k = 1; k <= stepsCount; k++) {
+                recurringSum += periodicVal * Math.pow(1 + r, (stepsCount - k) * 0.5);
+              }
+              depositsVal += recurringSum;
+            }
+          } else if (action.type === 'investment' || action.type === 'yield' || action.type === 'saving') {
+            if (isLump) {
+              investmentsVal += action.baseVal * Math.pow(1 + r, t);
+            } else {
+              let recurringSum = 0;
+              for (let k = 1; k <= stepsCount; k++) {
+                recurringSum += periodicVal * Math.pow(1 + r, (stepsCount - k) * 0.5);
+              }
+              investmentsVal += recurringSum;
+            }
+          }
+        });
+
+        const y1 = Math.round(baseGrowthVal);
+        const y2 = Math.round(baseGrowthVal + depositsVal);
+        const y3 = Math.round(baseGrowthVal + depositsVal + investmentsVal);
+
+        return { year: label, y1, y2, y3 };
       });
     }
 
@@ -399,7 +483,7 @@ const PlanDetailsPage = () => {
         </header>
 
         {/* Main Scroll Area */}
-        <div className={`flex-1 overflow-y-auto no-scrollbar px-4 py-5 flex flex-col gap-4 z-10 ${isPlanAccepted ? 'pb-28' : 'pb-[130px]'}`}>
+        <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-5 flex flex-col gap-4 z-10 pb-[130px]">
           
           {/* Top Section: Goal & Timeline */}
           <GlassCard className="p-4 border-white/70 relative overflow-hidden bg-white/40 shadow-sm flex flex-col gap-3 shrink-0">
@@ -462,44 +546,42 @@ const PlanDetailsPage = () => {
         </div>
 
         {/* Sticky Footer CTA */}
-        {!isPlanAccepted && (
-          <div 
-            className="absolute bottom-0 left-0 right-0 bg-white/85 backdrop-blur-xl border-t border-zinc-200/40 p-4 flex flex-col z-40"
-            style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))' }}
-          >
-            <AnimatePresence mode="wait">
-              {!isModified ? (
-                <motion.button
-                  key="proceed"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                  onClick={() => {
-                    addCreatedPlan(activePlan.id);
-                    setPage('plan-dashboard');
-                  }}
-                  className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white font-extrabold rounded-2xl text-[11px] uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-md cursor-pointer flex items-center justify-center gap-2"
-                >
-                  <span>Accept & Save Plan</span>
-                </motion.button>
-              ) : (
-                <motion.button
-                  key="replan"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                  onClick={triggerReplan}
-                  className="w-full py-3.5 bg-brand-primary hover:bg-red-600 text-white font-extrabold rounded-2xl text-[11px] uppercase tracking-wider transition-all duration-150 active:scale-[0.97] shadow-lg shadow-brand-primary/20 cursor-pointer flex items-center justify-center gap-2"
-                >
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  <span>Replan with AI</span>
-                </motion.button>
-              )}
-            </AnimatePresence>
-          </div>
-        )}
+        <div 
+          className="absolute bottom-0 left-0 right-0 bg-white/85 backdrop-blur-xl border-t border-zinc-200/40 p-4 flex flex-col z-40"
+          style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))' }}
+        >
+          <AnimatePresence mode="wait">
+            {!isModified ? (
+              <motion.button
+                key="proceed"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                onClick={() => {
+                  addCreatedPlan(activePlan.id);
+                  setPage('plan-dashboard');
+                }}
+                className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white font-extrabold rounded-2xl text-[11px] uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-md cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>Accept & Save Plan</span>
+              </motion.button>
+            ) : (
+              <motion.button
+                key="replan"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                onClick={triggerReplan}
+                className="w-full py-3.5 bg-brand-primary hover:bg-red-600 text-white font-extrabold rounded-2xl text-[11px] uppercase tracking-wider transition-all duration-150 active:scale-[0.97] shadow-lg shadow-brand-primary/20 cursor-pointer flex items-center justify-center gap-2"
+              >
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                <span>Replan with AI</span>
+              </motion.button>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* Full screen AI Progress Recalculator Overlay */}
         <ReplanOverlay 

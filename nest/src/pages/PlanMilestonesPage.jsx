@@ -1,4 +1,4 @@
-// src/pages/PlanMilestonesPage.jsx
+import React, { useEffect } from "react";
 import { ChevronLeft, ChevronRight, Compass, Pencil } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import sceneImg from "../assets/images/milestone-scene-clean.png";
@@ -26,11 +26,18 @@ import {
  * PlanDetailsPage with the selected plan, and use onBack to return.
  */
 export default function PlanMilestonesPage() {
-  const { activePlanId, setPage, user } = useApp();
-  const plan = getMilestonePlan(activePlanId);
+  const { activePlanId, setPage, user, planAdjustments, adjustPlan } = useApp();
+  const plan = getMilestonePlan(activePlanId, planAdjustments);
   const onTrack = deriveOnTrack(plan.onTrack);
   const personalCopy = buildPersonalizedPlanCopy({ plan, userName: user?.name, onTrack });
   const count = plan.milestones.length;
+
+  useEffect(() => {
+    if (planAdjustments?.[activePlanId]?.healed) {
+      // Clear the healer badge status immediately upon viewing the plan details
+      adjustPlan(activePlanId, { healed: false });
+    }
+  }, [activePlanId, planAdjustments, adjustPlan]);
 
   return (
     <div className="h-full overflow-y-auto no-scrollbar bg-[#F9F4EE] text-[#2B2320]">

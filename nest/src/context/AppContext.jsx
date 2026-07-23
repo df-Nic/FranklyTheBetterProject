@@ -8,13 +8,41 @@ export const AppProvider = ({ children }) => {
   const [activeTab, setActiveTab] = useState('accounts'); // 'accounts', 'investments', 'cards', 'loans'
   const [clickPos, setClickPos] = useState(null);
   const [activePlanTitle, setActivePlanTitle] = useState('');
-  const [activePlanId, setActivePlanId] = useState(null); // 'retirement' | 'savings' | 'emergency' | 'default'
-  const [createdPlans, setCreatedPlans] = useState([]); // In-memory list of plan IDs the user has created (resets on app restart)
+  const [activePlanId, setActivePlanId] = useState('wedding-fund'); // 'retirement' | 'savings' | 'emergency' | 'default'
+  const [createdPlans, setCreatedPlans] = useState(['wedding-fund']); // In-memory list of plan IDs the user has created (resets on app restart)
   const [planDetailOrigin, setPlanDetailOrigin] = useState('home'); // 'home' | 'plan-dashboard'
+  const [planAdjustments, setPlanAdjustments] = useState({});
   const [user, setUser] = useState({
     name: 'Olivia',
     accessId: '',
   });
+
+  const accountsData = [
+    {
+      id: 'acc-1',
+      name: '360 Account',
+      number: '001-23456-789',
+      balance: 138439.11,
+      currency: 'SGD',
+    },
+    {
+      id: 'acc-2',
+      name: 'Savings Account',
+      number: '001-98765-432',
+      balance: 15420.50,
+      currency: 'SGD',
+      isJoint: true,
+    }
+  ];
+
+  // PayNow specific states
+  const [paynowContact, setPaynowContact] = useState(null);
+  const [paynowAmount, setPaynowAmount] = useState('');
+  const [paynowReference, setPaynowReference] = useState('');
+  const [paynowSourceAccount, setPaynowSourceAccount] = useState(accountsData[0]);
+
+  // Login redirect state
+  const [loginRedirectPage, setLoginRedirectPage] = useState(null);
 
   const navigate = (targetPage) => {
     setPage(targetPage);
@@ -28,27 +56,19 @@ export const AppProvider = ({ children }) => {
     });
   };
 
+  const adjustPlan = (planId, adjustments) => {
+    setPlanAdjustments(prev => ({
+      ...prev,
+      [planId]: {
+        ...(prev[planId] || {}),
+        ...adjustments
+      }
+    }));
+  };
+
   const toggleMask = () => {
     setIsMasked((prev) => !prev);
   };
-
-  const accountsData = [
-    {
-      id: 'acc-1',
-      name: '360 Account',
-      number: '• • • • 4892',
-      balance: 138439.11,
-      currency: 'SGD',
-    },
-    {
-      id: 'acc-2',
-      name: 'Savings Account',
-      number: '• • • • 1083',
-      balance: 15420.50,
-      currency: 'SGD',
-      isJoint: true,
-    }
-  ];
 
   const investmentsData = {
     totalBalance: 1800000.00,
@@ -86,12 +106,24 @@ export const AppProvider = ({ children }) => {
         setActivePlanId,
         createdPlans,
         addCreatedPlan,
+        planAdjustments,
+        adjustPlan,
         planDetailOrigin,
         setPlanDetailOrigin,
         user,
         setUser,
         accountsData,
         investmentsData,
+        paynowContact,
+        setPaynowContact,
+        paynowAmount,
+        setPaynowAmount,
+        paynowReference,
+        setPaynowReference,
+        paynowSourceAccount,
+        setPaynowSourceAccount,
+        loginRedirectPage,
+        setLoginRedirectPage,
       }}
     >
       {children}

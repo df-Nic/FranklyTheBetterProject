@@ -184,7 +184,11 @@ const HomePage = () => {
               <button
                 key={idx}
                 className="flex flex-col items-center gap-1.5 flex-1 cursor-pointer group"
-                onClick={() => {}}
+                onClick={() => {
+                  if (pill.label === 'PayNow') {
+                    navigate('paynow-contacts');
+                  }
+                }}
               >
                 <div className="w-11 h-11 rounded-full bg-white border border-zinc-200/60 shadow-sm flex items-center justify-center text-zinc-700 transition-all duration-150 active:scale-95 group-hover:border-brand-primary/45 group-hover:text-brand-primary">
                   {typeof Icon === 'function' ? (
