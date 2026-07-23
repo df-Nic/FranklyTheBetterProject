@@ -1,5 +1,6 @@
+// src/pages/PlanMilestonesPage.jsx
+import { CheckCircle2, ChevronLeft, ChevronRight, Compass, Pencil, X } from "lucide-react";
 import React, { useEffect } from "react";
-import { ChevronLeft, ChevronRight, Compass, Pencil } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import sceneImg from "../assets/images/milestone-scene-clean.png";
 import {
@@ -9,12 +10,13 @@ import {
   formatSGD,
 } from "../data/milestonePlans";
 import { buildPersonalizedPlanCopy } from "../data/personalizedPlanCopy";
+import { applyOpportunityChanges, getPlanOpportunity } from "../data/planOpportunities";
 import MilestoneNode from "../components/milestones/MilestoneNode";
 import OnTrackCard, { MilestoneReflection, OnTrackDetails } from "../components/milestones/OnTrackCard";
 import JourneyOverlay from "../components/milestones/JourneyOverlay";
 import {
   AgentOwlImpactCard,
-  RecommendedNextStepCard,
+  OpportunityCard,
   SecurityFooter,
 } from "../components/milestones/ImpactCards";
 
@@ -26,8 +28,20 @@ import {
  * PlanDetailsPage with the selected plan, and use onBack to return.
  */
 export default function PlanMilestonesPage() {
-  const { activePlanId, setPage, user, planAdjustments, adjustPlan } = useApp();
-  const plan = getMilestonePlan(activePlanId, planAdjustments);
+  const {
+    activePlanId,
+    setPage,
+    user,
+    opportunityDecisions,
+    opportunityNotice,
+    setOpportunityNotice,
+    planAdjustments,
+    adjustPlan,
+  } = useApp();
+  const basePlan = getMilestonePlan(activePlanId, planAdjustments);
+  const opportunity = getPlanOpportunity(basePlan.id);
+  const decision = opportunityDecisions[basePlan.id];
+  const plan = applyOpportunityChanges(basePlan, opportunity, decision);
   const onTrack = deriveOnTrack(plan.onTrack);
   const personalCopy = buildPersonalizedPlanCopy({ plan, userName: user?.name, onTrack });
   const count = plan.milestones.length;
@@ -86,6 +100,15 @@ export default function PlanMilestonesPage() {
 
       {/* Cards */}
       <div className="-mt-1 flex flex-col gap-3.5 px-4 pb-28 pt-3.5">
+        {opportunityNotice?.planId === plan.id && (
+          <div className="flex items-start gap-2.5 rounded-[16px] border border-[#CFE2D3] bg-[#EDF7EF] p-3.5 text-[#2E523A]">
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#2E7D4F]" />
+            <div className="flex-1 text-[11.5px] font-semibold leading-relaxed">{opportunityNotice.message}</div>
+            <button onClick={() => setOpportunityNotice(null)} aria-label="Dismiss confirmation" className="rounded-full p-0.5">
+              <X size={14} />
+            </button>
+          </div>
+        )}
         <OnTrackDetails message={personalCopy.progressMessage} />
         <MilestoneReflection reflection={personalCopy.reflection} />
 
@@ -108,8 +131,18 @@ export default function PlanMilestonesPage() {
           </div>
         </button>
 
-        <AgentOwlImpactCard impact={plan.impact} onSeeBreakdown={() => setPage("savings-breakdown")} />
-        <RecommendedNextStepCard nextAction={personalCopy.nextAction} onReviewPlan={() => setPage("plan-view")} />
+        <AgentOwlImpactCard
+          impact={{
+            ...plan.impact,
+            opportunitiesActedOn: plan.impact.opportunitiesActedOn + (decision?.status === "accepted" ? 1 : 0),
+          }}
+          onSeeBreakdown={() => setPage("savings-breakdown")}
+        />
+        <OpportunityCard
+          opportunity={opportunity}
+          decision={decision}
+          onExplore={() => setPage("opportunity-detail")}
+        />
         <SecurityFooter />
       </div>
     </div>

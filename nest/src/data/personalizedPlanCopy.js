@@ -2,15 +2,6 @@ import { formatSGD, getCurrentMilestoneIndex } from "./milestonePlans.js";
 
 const NEUTRAL_OUTCOME = "your financial goal";
 
-function lowerFirst(value = "") {
-  return value ? value.charAt(0).toLowerCase() + value.slice(1) : value;
-}
-
-function monthlyDelta(nextStep) {
-  const amount = Number(String(nextStep?.delta ?? "").replace(/[^0-9.-]/g, ""));
-  return Number.isFinite(amount) ? Math.abs(amount) : null;
-}
-
 function buildProgressMessage(plan, onTrack) {
   const delta = formatSGD(onTrack.deltaAmount);
   const date = plan.goalDate;
@@ -43,25 +34,6 @@ function buildReflection(plan) {
   return { achieved, lookingAhead };
 }
 
-function buildNextAction(plan) {
-  const nextStep = plan.nextStep ?? {};
-  const amount = monthlyDelta(nextStep);
-  const amountLabel = amount === null ? null : `${formatSGD(amount)}/month`;
-  const impact = nextStep.detail
-    ? `it could help you ${lowerFirst(nextStep.detail).replace(/[.]$/, "")}.`
-    : "it can strengthen the path to your next milestone.";
-
-  return {
-    eyebrow: "A manageable next move",
-    title: nextStep.title ? `One option: ${lowerFirst(nextStep.title)}` : "Review your next adjustment",
-    amountLabel,
-    detail: amountLabel
-      ? `If ${amountLabel} more still feels comfortable, ${impact}`
-      : impact.charAt(0).toUpperCase() + impact.slice(1),
-    cta: "Review this adjustment",
-  };
-}
-
 export function buildPersonalizedPlanCopy({ plan, userName, onTrack }) {
   const outcome = plan.personalContext?.desiredOutcome ?? NEUTRAL_OUTCOME;
   const name = userName?.trim();
@@ -77,6 +49,5 @@ export function buildPersonalizedPlanCopy({ plan, userName, onTrack }) {
         ? "Close to plan"
         : "Let’s adjust the pace",
     reflection: buildReflection(plan),
-    nextAction: buildNextAction(plan),
   };
 }

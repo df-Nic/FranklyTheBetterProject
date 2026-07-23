@@ -3,14 +3,16 @@ import React, { createContext, useState, useContext } from 'react';
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  const [page, setPage] = useState('landing'); // 'landing', 'login', 'home', 'plan-dashboard', 'plan-details', 'plan-milestones', 'plan-view', 'savings-breakdown'
+  const [page, setPage] = useState('landing'); // includes plan milestones, savings breakdown and opportunity detail routes
   const [isMasked, setIsMasked] = useState(true);
   const [activeTab, setActiveTab] = useState('accounts'); // 'accounts', 'investments', 'cards', 'loans'
   const [clickPos, setClickPos] = useState(null);
   const [activePlanTitle, setActivePlanTitle] = useState('');
-  const [activePlanId, setActivePlanId] = useState('wedding-fund'); // 'retirement' | 'savings' | 'emergency' | 'default'
-  const [createdPlans, setCreatedPlans] = useState(['wedding-fund']); // In-memory list of plan IDs the user has created (resets on app restart)
+  const [activePlanId, setActivePlanId] = useState(null); // Selected proposal or accepted plan
+  const [createdPlans, setCreatedPlans] = useState([]); // Plans are added only after explicit acceptance
   const [planDetailOrigin, setPlanDetailOrigin] = useState('home'); // 'home' | 'plan-dashboard'
+  const [opportunityDecisions, setOpportunityDecisions] = useState({});
+  const [opportunityNotice, setOpportunityNotice] = useState(null);
   const [planAdjustments, setPlanAdjustments] = useState({});
   const [user, setUser] = useState({
     name: 'Olivia',
@@ -70,6 +72,31 @@ export const AppProvider = ({ children }) => {
     setIsMasked((prev) => !prev);
   };
 
+  const decideOpportunity = (planId, opportunity, status) => {
+    if (!planId || !opportunity || !['accepted', 'declined'].includes(status)) return false;
+    if (opportunity.status !== 'active' || opportunityDecisions[planId]) return false;
+    if (status === 'accepted' && opportunity.eligibility?.status !== 'verified') return false;
+
+    const decidedAt = '24 Jul 2026';
+    setOpportunityDecisions((current) => ({
+      ...current,
+      [planId]: {
+        opportunityId: opportunity.id,
+        status,
+        decidedAt,
+        appliedChanges: status === 'accepted' ? opportunity.planChanges : null,
+      },
+    }));
+    setOpportunityNotice({
+      planId,
+      status,
+      message: status === 'accepted'
+        ? 'Your plan has been enhanced with this opportunity.'
+        : 'Your existing plan remains unchanged.',
+    });
+    return true;
+  };
+
   const investmentsData = {
     totalBalance: 1800000.00,
     currency: 'SGD',
@@ -110,6 +137,10 @@ export const AppProvider = ({ children }) => {
         adjustPlan,
         planDetailOrigin,
         setPlanDetailOrigin,
+        opportunityDecisions,
+        opportunityNotice,
+        setOpportunityNotice,
+        decideOpportunity,
         user,
         setUser,
         accountsData,

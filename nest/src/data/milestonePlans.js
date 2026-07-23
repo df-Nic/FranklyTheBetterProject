@@ -39,13 +39,7 @@ export const weddingFundPlan = {
   impact: {
     additionalSavings: 384,
     timeSaved: "6.1 hrs",
-    betterAlternatives: 2,
-  },
-
-  nextStep: {
-    title: "Increase monthly savings",
-    delta: "+$120/month",
-    detail: "Reach \u201cFinal Payment Ready\u201d 2 months earlier",
+    opportunitiesActedOn: 2,
   },
 };
 
@@ -71,12 +65,7 @@ const retirementPlan = {
     { id: "halfway", name: "Halfway Funded", date: "Mar 2038", state: "upcoming" },
     { id: "income", name: "Retirement Income Ready", date: "Oct 2045", state: "goal" },
   ],
-  impact: { additionalSavings: 9200, timeSaved: "8.4 hrs", betterAlternatives: 3 },
-  nextStep: {
-    title: "Top up your SRS contribution",
-    delta: "+S$300/month",
-    detail: "Reach 25% Funded around 4 months earlier",
-  },
+  impact: { additionalSavings: 9200, timeSaved: "8.4 hrs", opportunitiesActedOn: 3 },
 };
 
 const savingsPlan = {
@@ -101,12 +90,7 @@ const savingsPlan = {
     { id: "halfway", name: "Halfway Funded", date: "Jul 2027", state: "upcoming" },
     { id: "ready", name: "Downpayment Ready", date: "Mar 2028", state: "goal" },
   ],
-  impact: { additionalSavings: 1860, timeSaved: "5.2 hrs", betterAlternatives: 3 },
-  nextStep: {
-    title: "Increase your monthly transfer",
-    delta: "+S$250/month",
-    detail: "Reach 25% Funded around 1 month earlier",
-  },
+  impact: { additionalSavings: 1860, timeSaved: "5.2 hrs", opportunitiesActedOn: 3 },
 };
 
 const emergencyPlan = {
@@ -130,12 +114,7 @@ const emergencyPlan = {
     { id: "three-months", name: "3 Months Covered", date: "Oct 2026", state: "next" },
     { id: "six-months", name: "6-Month Safety Net", date: "Dec 2026", state: "goal" },
   ],
-  impact: { additionalSavings: 780, timeSaved: "3.8 hrs", betterAlternatives: 2 },
-  nextStep: {
-    title: "Enable monthly balance sweeps",
-    delta: "+S$200/month",
-    detail: "Close the current funding gap this quarter",
-  },
+  impact: { additionalSavings: 780, timeSaved: "3.8 hrs", opportunitiesActedOn: 2 },
 };
 
 const defaultPlan = {
@@ -160,12 +139,7 @@ const defaultPlan = {
     { id: "three-quarter", name: "75% Funded", date: "Jul 2029", state: "upcoming" },
     { id: "goal", name: "Portfolio Goal Reached", date: "Jan 2030", state: "goal" },
   ],
-  impact: { additionalSavings: 2460, timeSaved: "6.7 hrs", betterAlternatives: 3 },
-  nextStep: {
-    title: "Automate your monthly investment",
-    delta: "+S$100/month",
-    detail: "Reach 50% Funded around 2 months earlier",
-  },
+  impact: { additionalSavings: 2460, timeSaved: "6.7 hrs", opportunitiesActedOn: 3 },
 };
 
 // Registry so a page can resolve a plan by id (extend as more goals are created).
