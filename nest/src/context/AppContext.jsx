@@ -8,9 +8,10 @@ export const AppProvider = ({ children }) => {
   const [activeTab, setActiveTab] = useState('accounts'); // 'accounts', 'investments', 'cards', 'loans'
   const [clickPos, setClickPos] = useState(null);
   const [activePlanTitle, setActivePlanTitle] = useState('');
-  const [activePlanId, setActivePlanId] = useState(null); // 'retirement' | 'savings' | 'emergency' | 'default'
-  const [createdPlans, setCreatedPlans] = useState([]); // In-memory list of plan IDs the user has created (resets on app restart)
+  const [activePlanId, setActivePlanId] = useState('wedding-fund'); // 'retirement' | 'savings' | 'emergency' | 'default'
+  const [createdPlans, setCreatedPlans] = useState(['wedding-fund']); // In-memory list of plan IDs the user has created (resets on app restart)
   const [planDetailOrigin, setPlanDetailOrigin] = useState('home'); // 'home' | 'plan-dashboard'
+  const [planAdjustments, setPlanAdjustments] = useState({});
   const [user, setUser] = useState({
     name: 'Olivia',
     accessId: '',
@@ -55,6 +56,16 @@ export const AppProvider = ({ children }) => {
     });
   };
 
+  const adjustPlan = (planId, adjustments) => {
+    setPlanAdjustments(prev => ({
+      ...prev,
+      [planId]: {
+        ...(prev[planId] || {}),
+        ...adjustments
+      }
+    }));
+  };
+
   const toggleMask = () => {
     setIsMasked((prev) => !prev);
   };
@@ -95,6 +106,8 @@ export const AppProvider = ({ children }) => {
         setActivePlanId,
         createdPlans,
         addCreatedPlan,
+        planAdjustments,
+        adjustPlan,
         planDetailOrigin,
         setPlanDetailOrigin,
         user,

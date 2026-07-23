@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, ArrowRight, Share2, Download } from 'lucide-react';
+import { Check, ArrowRight, Share2, Download, Sparkles } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { getMilestonePlan } from '../data/milestonePlans';
 import BackgroundOrb from '../components/ui/BackgroundOrb';
 import GlassCard from '../components/ui/GlassCard';
 
@@ -14,7 +15,9 @@ const PayNowSuccessPage = () => {
     paynowSourceAccount,
     setPaynowContact,
     setPaynowAmount,
-    setPaynowReference
+    setPaynowReference,
+    planAdjustments,
+    setActivePlanId
   } = useApp();
 
   const [refId, setRefId] = useState('');
@@ -97,6 +100,88 @@ const PayNowSuccessPage = () => {
           </div>
         </div>
 
+        {/* Healer AI Auto-Adjustment Success Card */}
+        {(() => {
+          const healedPlanId = Object.keys(planAdjustments || {}).find(
+            (key) => planAdjustments[key]?.healed
+          );
+          if (!healedPlanId) return null;
+          
+          const healedPlan = getMilestonePlan(healedPlanId, planAdjustments);
+          const healedPlanName = healedPlan?.goalName || 'Active Plan';
+          const basePlan = getMilestonePlan(healedPlanId, {});
+          const baseContribution = basePlan?.monthlyContribution || 1200;
+          const baseDate = basePlan?.goalDate || 'Dec 2027';
+          
+          const adjustments = planAdjustments[healedPlanId] || {};
+          const strategy = adjustments?.strategy || 'deposit';
+          const numPaynowAmount = parseFloat(paynowAmount || '0');
+
+          return (
+            <GlassCard className="w-full p-4 border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 flex flex-col gap-2.5 shadow-md shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-emerald-500/25 flex items-center justify-center text-emerald-600 shrink-0">
+                  <Sparkles className="w-3.5 h-3.5" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest leading-none">Nest AI Healer Success</span>
+                  <span className="text-xs font-black text-zinc-900 tracking-tight mt-0.5">Plan Adjusted & Secured</span>
+                </div>
+              </div>
+              <p className="text-[11px] font-medium text-zinc-600 leading-normal">
+                Your <span className="font-bold text-zinc-950">{healedPlanName}</span> has been automatically adjusted to accommodate the S$${amountDisplay} transaction.
+              </p>
+              
+              {strategy === 'deposit' && (
+                <div className="bg-white/55 border border-emerald-500/10 rounded-xl p-2.5 flex items-center justify-between text-[10px] font-bold">
+                  <span className="text-zinc-500">Monthly Contribution:</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-zinc-400 line-through font-semibold">S$${baseContribution.toLocaleString('en-SG')}</span>
+                    <span className="text-zinc-400">→</span>
+                    <span className="text-emerald-600 font-extrabold">S$${(adjustments.monthlyContribution || 1350).toLocaleString('en-SG')}/mo</span>
+                  </div>
+                </div>
+              )}
+
+              {strategy === 'timeline' && (
+                <div className="bg-white/55 border border-emerald-500/10 rounded-xl p-2.5 flex items-center justify-between text-[10px] font-bold">
+                  <span className="text-zinc-500">Plan Target Date:</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-zinc-400 line-through font-semibold">{baseDate}</span>
+                    <span className="text-zinc-400">→</span>
+                    <span className="text-emerald-600 font-extrabold">{adjustments.goalDate}</span>
+                  </div>
+                </div>
+              )}
+
+              {strategy === 'yield' && (
+                <div className="bg-white/55 border border-emerald-500/10 rounded-xl p-2.5 flex items-center justify-between text-[10px] font-bold">
+                  <span className="text-zinc-500">Asset Yield Reallocation:</span>
+                  <div className="text-right">
+                    <span className="text-emerald-600 font-extrabold">OCBC 360 Account (4.65% p.a.)</span>
+                  </div>
+                </div>
+              )}
+
+              {strategy === 'sweep' && (
+                <div className="bg-white/55 border border-emerald-500/10 rounded-xl p-2.5 flex items-center justify-between text-[10px] font-bold">
+                  <span className="text-zinc-500">Auto-Sweep Trigger:</span>
+                  <div className="text-right">
+                    <span className="text-emerald-600 font-extrabold">S$85/mo Cashback Sweeps</span>
+                  </div>
+                </div>
+              )}
+
+              <p className="text-[9px] font-semibold text-zinc-400 italic">
+                {strategy === 'deposit' && `This auto-adjustment keeps your Target Date of ${baseDate} intact.`}
+                {strategy === 'timeline' && `This keeps your monthly savings of S$${baseContribution.toLocaleString('en-SG')} unchanged.`}
+                {strategy === 'yield' && `Reallocating S$${numPaynowAmount.toLocaleString('en-SG')} balances to optimize returns without changing timeline.`}
+                {strategy === 'sweep' && `Taps discretionary cashback automatically to close the gap without changing timeline.`}
+              </p>
+            </GlassCard>
+          );
+        })()}
+
         {/* Digital Receipt Card */}
         <GlassCard className="w-full p-5 border-white/70 flex flex-col gap-4 shadow-md">
           {/* Header Row */}
@@ -153,9 +238,31 @@ const PayNowSuccessPage = () => {
         </GlassCard>
 
         {/* Complete Action Button */}
+        {(() => {
+          const healedPlanId = Object.keys(planAdjustments || {}).find(
+            (key) => planAdjustments[key]?.healed
+          );
+          if (!healedPlanId) return null;
+          return (
+            <button
+              onClick={() => {
+                setPaynowContact(null);
+                setPaynowAmount('');
+                setPaynowReference('');
+                setActivePlanId(healedPlanId);
+                navigate('plan-milestones');
+              }}
+              className="w-full mt-2 py-3.5 rounded-xl bg-zinc-900 text-white text-xs font-black tracking-wider transition-all duration-150 active:scale-98 cursor-pointer shadow-md flex items-center justify-center gap-1.5"
+            >
+              <span>View Healed Plan Journey</span>
+              <ArrowRight className="w-4 h-4 stroke-[2.5] text-emerald-400" />
+            </button>
+          );
+        })()}
+
         <button
           onClick={handleFinish}
-          className="w-full mt-4 py-3.5 rounded-xl bg-brand-primary text-white text-xs font-black tracking-wider transition-all duration-150 active:scale-98 cursor-pointer shadow-md shadow-brand-primary/15 flex items-center justify-center gap-1.5"
+          className="w-full mt-2 py-3.5 rounded-xl bg-brand-primary text-white text-xs font-black tracking-wider transition-all duration-150 active:scale-98 cursor-pointer shadow-md shadow-brand-primary/15 flex items-center justify-center gap-1.5"
         >
           <span>Done</span>
           <ArrowRight className="w-4 h-4 stroke-[2.5]" />

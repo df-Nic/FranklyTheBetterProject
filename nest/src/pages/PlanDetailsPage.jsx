@@ -483,7 +483,7 @@ const PlanDetailsPage = () => {
         </header>
 
         {/* Main Scroll Area */}
-        <div className={`flex-1 overflow-y-auto no-scrollbar px-4 py-5 flex flex-col gap-4 z-10 ${isPlanAccepted ? 'pb-28' : 'pb-[130px]'}`}>
+        <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-5 flex flex-col gap-4 z-10 pb-[130px]">
           
           {/* Top Section: Goal & Timeline */}
           <GlassCard className="p-4 border-white/70 relative overflow-hidden bg-white/40 shadow-sm flex flex-col gap-3 shrink-0">
@@ -546,44 +546,42 @@ const PlanDetailsPage = () => {
         </div>
 
         {/* Sticky Footer CTA */}
-        {!isPlanAccepted && (
-          <div 
-            className="absolute bottom-0 left-0 right-0 bg-white/85 backdrop-blur-xl border-t border-zinc-200/40 p-4 flex flex-col z-40"
-            style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))' }}
-          >
-            <AnimatePresence mode="wait">
-              {!isModified ? (
-                <motion.button
-                  key="proceed"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                  onClick={() => {
-                    addCreatedPlan(activePlan.id);
-                    setPage('plan-dashboard');
-                  }}
-                  className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white font-extrabold rounded-2xl text-[11px] uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-md cursor-pointer flex items-center justify-center gap-2"
-                >
-                  <span>Accept & Save Plan</span>
-                </motion.button>
-              ) : (
-                <motion.button
-                  key="replan"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                  onClick={triggerReplan}
-                  className="w-full py-3.5 bg-brand-primary hover:bg-red-600 text-white font-extrabold rounded-2xl text-[11px] uppercase tracking-wider transition-all duration-150 active:scale-[0.97] shadow-lg shadow-brand-primary/20 cursor-pointer flex items-center justify-center gap-2"
-                >
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  <span>Replan with AI</span>
-                </motion.button>
-              )}
-            </AnimatePresence>
-          </div>
-        )}
+        <div 
+          className="absolute bottom-0 left-0 right-0 bg-white/85 backdrop-blur-xl border-t border-zinc-200/40 p-4 flex flex-col z-40"
+          style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))' }}
+        >
+          <AnimatePresence mode="wait">
+            {!isModified ? (
+              <motion.button
+                key="proceed"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                onClick={() => {
+                  addCreatedPlan(activePlan.id);
+                  setPage('plan-dashboard');
+                }}
+                className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white font-extrabold rounded-2xl text-[11px] uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-md cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>Accept & Save Plan</span>
+              </motion.button>
+            ) : (
+              <motion.button
+                key="replan"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                onClick={triggerReplan}
+                className="w-full py-3.5 bg-brand-primary hover:bg-red-600 text-white font-extrabold rounded-2xl text-[11px] uppercase tracking-wider transition-all duration-150 active:scale-[0.97] shadow-lg shadow-brand-primary/20 cursor-pointer flex items-center justify-center gap-2"
+              >
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                <span>Replan with AI</span>
+              </motion.button>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* Full screen AI Progress Recalculator Overlay */}
         <ReplanOverlay 

@@ -177,8 +177,31 @@ export const MILESTONE_PLANS = {
   [weddingFundPlan.id]: weddingFundPlan,
 };
 
-export function getMilestonePlan(planId) {
-  return MILESTONE_PLANS[planId] ?? defaultPlan;
+export function getMilestonePlan(planId, adjustments) {
+  const basePlan = MILESTONE_PLANS[planId] ?? defaultPlan;
+  if (adjustments && adjustments[planId]) {
+    const adj = adjustments[planId];
+    let updatedPlan = {
+      ...basePlan,
+      ...adj
+    };
+
+    if (adj.strategy === 'timeline') {
+      updatedPlan.milestones = basePlan.milestones.map((m, idx) => {
+        if (idx === basePlan.milestones.length - 1) {
+          return { ...m, date: adj.goalDate };
+        }
+        return m;
+      });
+    } else if (adj.strategy === 'yield') {
+      updatedPlan.strategy = "OCBC High-Yield reallocation active (4.65% p.a.)";
+    } else if (adj.strategy === 'sweep') {
+      updatedPlan.strategy = "Cashback sweeps active (S$85/mo auto-sweep)";
+    }
+
+    return updatedPlan;
+  }
+  return basePlan;
 }
 
 // ---- helpers ----

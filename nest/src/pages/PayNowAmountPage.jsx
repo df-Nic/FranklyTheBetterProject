@@ -54,6 +54,10 @@ const PayNowAmountPage = () => {
       setError('Insufficient funds in the selected account');
       return;
     }
+    if (numAmount > 5000) {
+      setError('Amount exceeds your remaining daily PayNow transfer limit of 5,000.00 SGD');
+      return;
+    }
     
     setPaynowAmount(amount);
     setPaynowReference(reference);

@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
-import { ChevronRight, Plus, CalendarDays } from 'lucide-react';
+import { ChevronRight, Plus, CalendarDays, Sparkles } from 'lucide-react';
 import { PLANS_DATA } from '../data/planTemplates';
 
 // ─── Labeled Plan Illustrations ──────────────────────────────────────────────
@@ -44,9 +44,12 @@ const PLAN_META = {
 // ─── Single Plan Card ────────────────────────────────────────────────────────
 
 const PlanCard = ({ planId, index, onClick }) => {
+  const { planAdjustments } = useApp();
   const plan = PLANS_DATA[planId];
   const meta = PLAN_META[planId] || PLAN_META.default;
   const goalText = plan.goal.length > 92 ? plan.goal.slice(0, 92) + '\u2026' : plan.goal;
+  
+  const isHealed = planAdjustments?.[planId]?.healed;
 
   return (
     <motion.div
@@ -68,6 +71,13 @@ const PlanCard = ({ planId, index, onClick }) => {
         <span className={`absolute top-3 left-3 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full backdrop-blur-sm ${meta.tagColor}`}>
           {meta.tag}
         </span>
+        {/* Healed Badge */}
+        {isHealed && (
+          <span className="absolute top-3 right-3 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-500 text-white shadow-sm flex items-center gap-1 animate-pulse z-10">
+            <Sparkles className="w-2.5 h-2.5 stroke-[3]" />
+            <span>Plan Adjusted</span>
+          </span>
+        )}
       </div>
 
       {/* Detail panel */}
