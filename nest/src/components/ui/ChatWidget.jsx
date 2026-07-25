@@ -150,17 +150,61 @@ const ChatWidget = () => {
     if (parent) {
       containerRef.current = parent;
 
-      const parentRect = parent.getBoundingClientRect();
-      const bubbleRect = bubbleRef.current.getBoundingClientRect();
+      const initializePosition = () => {
+        const parentWidth = parent.offsetWidth;
+        const parentHeight = parent.offsetHeight;
+        const bubbleWidth = bubbleRef.current?.offsetWidth || 56;
+        const bubbleHeight = bubbleRef.current?.offsetHeight || 56;
 
-      // Initial position: snap to right edge with 16px padding, offset by safe bottom inset & navbar clearance
-      const initX = parentRect.width - bubbleRect.width - 16;
-      const initY = parentRect.height - bubbleRect.height - 180 - measuredSafeBottom;
+        // Initial position: snap to right edge with 16px padding, offset by safe bottom inset & navbar clearance
+        const initX = parentWidth - bubbleWidth - 16;
+        const initY = parentHeight - bubbleHeight - 180 - measuredSafeBottom;
 
-      setPosition({ x: initX, y: initY });
-      setHasInitialized(true);
+        setPosition({ x: initX, y: initY });
+        setHasInitialized(true);
+      };
+
+      // Run immediately
+      initializePosition();
+
+      // Recalculate after 100ms to ensure transitions/layouts have completed
+      const timer = setTimeout(initializePosition, 100);
+
+      // Handle window resize dynamically
+      const handleResize = () => {
+        if (!isOpen && bubbleRef.current) {
+          const parentWidth = parent.offsetWidth;
+          const parentHeight = parent.offsetHeight;
+          const bubbleWidth = bubbleRef.current.offsetWidth || 56;
+          const bubbleHeight = bubbleRef.current.offsetHeight || 56;
+
+          setPosition(prev => {
+            const paddingX = 16;
+            const paddingY = 96 + measuredSafeBottom;
+            
+            // Check if the previous X was closer to the right side of the screen
+            const isRightSnapped = prev.x > (parentWidth / 2) - (bubbleWidth / 2);
+            let targetX = isRightSnapped ? (parentWidth - bubbleWidth - paddingX) : paddingX;
+            
+            let targetY = prev.y;
+            const minY = 16;
+            const maxY = parentHeight - bubbleHeight - paddingY;
+            if (targetY < minY) targetY = minY;
+            if (targetY > maxY) targetY = maxY;
+
+            return { x: targetX, y: targetY };
+          });
+        }
+      };
+
+      window.addEventListener('resize', handleResize);
+
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('resize', handleResize);
+      };
     }
-  }, []);
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
