@@ -142,6 +142,79 @@ const defaultPlan = {
   impact: { additionalSavings: 2460, timeSaved: "6.7 hrs", opportunitiesActedOn: 3 },
 };
 
+const childrenEducationPlan = {
+  id: "children-education",
+  goalName: "Children's Education",
+  targetAmount: 80000,
+  goalDate: "Oct 2035",
+  monthlyContribution: 500,
+  planType: "Education savings",
+  strategy: "High-yield savings and investments",
+  personalContext: {
+    motivation: "Provide the best academic start without severe financial sacrifice.",
+    desiredOutcome: "a fully funded tuition plan ready by college admission",
+    priority: "balance",
+    flexibility: "some",
+  },
+  onTrack: { expected: 12000, saved: 13500 },
+  milestones: [
+    { id: "created", name: "Goal Created", date: "21 Jul 2026", state: "completed" },
+    { id: "savings-start", name: "First S$10k Saved", date: "Feb 2027", state: "completed" },
+    { id: "halfway", name: "Halfway to Tuition", date: "Jun 2031", state: "next" },
+    { id: "final-stretch", name: "Final Stretch Ready", date: "Jan 2034", state: "upcoming" },
+    { id: "goal", name: "University Matriculation!", date: "Oct 2035", state: "goal" },
+  ],
+  impact: { additionalSavings: 1800, timeSaved: "4.8 hrs", opportunitiesActedOn: 2 },
+};
+
+const careerBreakPlan = {
+  id: "career-break",
+  goalName: "Career Break Fund",
+  targetAmount: 25000,
+  goalDate: "Jun 2028",
+  monthlyContribution: 800,
+  planType: "Short-term savings",
+  strategy: "Liquid savings and sweeps",
+  personalContext: {
+    motivation: "Take a sabbatical or transition careers with secure financial backing.",
+    desiredOutcome: "six months of comfortable expenses covered during a break",
+    priority: "flexibility",
+    flexibility: "some",
+  },
+  onTrack: { expected: 6400, saved: 6900 },
+  milestones: [
+    { id: "created", name: "Goal Created", date: "21 Jul 2026", state: "completed" },
+    { id: "one-month", name: "1 Month Covered", date: "Nov 2026", state: "completed" },
+    { id: "halfway", name: "Halfway there", date: "May 2027", state: "next" },
+    { id: "goal", name: "Career Break Commences!", date: "Jun 2028", state: "goal" },
+  ],
+  impact: { additionalSavings: 540, timeSaved: "3.2 hrs", opportunitiesActedOn: 1 },
+};
+
+const parentsRetirementPlan = {
+  id: "parents-retirement",
+  goalName: "Parents' Retirement",
+  targetAmount: 120000,
+  goalDate: "Dec 2032",
+  monthlyContribution: 1000,
+  planType: "Elderly support",
+  strategy: "CPF top-ups and defense plans",
+  personalContext: {
+    motivation: "Support parents' post-work life and medical needs stress-free.",
+    desiredOutcome: "a solid security buffer for parents' medical and living bills",
+    priority: "certainty",
+    flexibility: "some",
+  },
+  onTrack: { expected: 18000, saved: 19800 },
+  milestones: [
+    { id: "created", name: "Goal Created", date: "21 Jul 2026", state: "completed" },
+    { id: "cpf-link", name: "CPF Account Linked", date: "Oct 2026", state: "completed" },
+    { id: "halfway", name: "Halfway Funded", date: "Jul 2029", state: "next" },
+    { id: "goal", name: "Security Milestone Achieved!", date: "Dec 2032", state: "goal" },
+  ],
+  impact: { additionalSavings: 2200, timeSaved: "6.5 hrs", opportunitiesActedOn: 2 },
+};
+
 // Registry so a page can resolve a plan by id (extend as more goals are created).
 export const MILESTONE_PLANS = {
   retirement: retirementPlan,
@@ -149,6 +222,9 @@ export const MILESTONE_PLANS = {
   emergency: emergencyPlan,
   default: defaultPlan,
   [weddingFundPlan.id]: weddingFundPlan,
+  'children-education': childrenEducationPlan,
+  'career-break': careerBreakPlan,
+  'parents-retirement': parentsRetirementPlan,
 };
 
 export function getMilestonePlan(planId, adjustments) {

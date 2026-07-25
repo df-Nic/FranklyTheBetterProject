@@ -26,23 +26,41 @@ const PlanViewPage = () => {
       'retirement': 0,
       'wedding-fund': 0,
       'savings': 0,
-      'emergency': 0
+      'emergency': 0,
+      'children-education': 0,
+      'career-break': 0,
+      'parents-retirement': 0
     };
 
-    if (title.includes('retire') || title.includes('retirement')) scores['retirement'] += 10;
+    if (title.includes('retire') || title.includes('retirement')) {
+      if (title.includes('parent') || title.includes('father') || title.includes('mother') || title.includes('parents')) {
+        scores['parents-retirement'] += 10;
+      } else {
+        scores['retirement'] += 10;
+      }
+    }
     if (title.includes('wed') || title.includes('wedding') || title.includes('marry') || title.includes('marriage')) scores['wedding-fund'] += 10;
     if (title.includes('emerg') || title.includes('emergency')) scores['emergency'] += 10;
     if (title.includes('hdb') || title.includes('downpayment') || title.includes('flat')) scores['savings'] += 10;
+    if (title.includes('child') || title.includes('children') || title.includes('education') || title.includes('school') || title.includes('uni') || title.includes('university') || title.includes('tuition')) scores['children-education'] += 10;
+    if (title.includes('career') || title.includes('break') || title.includes('sabbatical') || title.includes('transition')) scores['career-break'] += 10;
+    if (title.includes('parent') || title.includes('parents') || title.includes('elderly')) scores['parents-retirement'] += 10;
 
     const retireSupport = ['pension', 'srs'];
     const weddingSupport = ['proposal', 'banquet'];
     const savingsSupport = ['save', 'savings', 'home', 'house', 'deposit'];
     const emergencySupport = ['safe', 'safety', 'shield', 'protect', 'liquid', 'buffer'];
+    const educationSupport = ['cda', 'tuition', 'study', 'student'];
+    const careerSupport = ['job', 'leave', 'work', 'months'];
+    const parentsSupport = ['mother', 'father', 'elder', 'senior', 'dad', 'mom'];
 
     retireSupport.forEach(kw => { if (title.includes(kw)) scores['retirement'] += 3; });
     weddingSupport.forEach(kw => { if (title.includes(kw)) scores['wedding-fund'] += 3; });
     savingsSupport.forEach(kw => { if (title.includes(kw)) scores['savings'] += 3; });
     emergencySupport.forEach(kw => { if (title.includes(kw)) scores['emergency'] += 3; });
+    educationSupport.forEach(kw => { if (title.includes(kw)) scores['children-education'] += 3; });
+    careerSupport.forEach(kw => { if (title.includes(kw)) scores['career-break'] += 3; });
+    parentsSupport.forEach(kw => { if (title.includes(kw)) scores['parents-retirement'] += 3; });
 
     let highestScore = 0;
     let resolvedId = 'default';
@@ -69,6 +87,9 @@ const PlanViewPage = () => {
     if (plan.id === 'savings') initialCapital = 25000;
     if (plan.id === 'emergency') initialCapital = 6000;
     if (plan.id === 'wedding-fund') initialCapital = 10000;
+    if (plan.id === 'children-education') initialCapital = 12000;
+    if (plan.id === 'career-break') initialCapital = 5000;
+    if (plan.id === 'parents-retirement') initialCapital = 15000;
 
     const allActions = [];
     categories.forEach(cat => {
@@ -242,6 +263,148 @@ const PlanViewPage = () => {
               depositsVal += recurringSum;
             }
           } else if (action.type === 'investment' || action.type === 'yield' || action.type === 'saving') {
+            if (isLump) {
+              investmentsVal += action.baseVal * Math.pow(1 + r, t);
+            } else {
+              let recurringSum = 0;
+              for (let k = 1; k <= stepsCount; k++) {
+                recurringSum += action.baseVal * Math.pow(1 + r, stepsCount - k);
+              }
+              investmentsVal += recurringSum;
+            }
+          }
+        });
+
+        const y1 = Math.round(baseGrowthVal);
+        const y2 = Math.round(baseGrowthVal + depositsVal);
+        const y3 = Math.round(baseGrowthVal + depositsVal + investmentsVal);
+
+        return { year: label, y1, y2, y3 };
+      });
+    }
+
+    if (plan.id === 'children-education') {
+      // 9-10 Years plan (2026 - 2035)
+      const labels = ['2026', '2028', '2030', '2032', '2034', '2035'];
+      const times = [0, 2, 4, 6, 8, 9];
+
+      return labels.map((label, idx) => {
+        const t = times[idx];
+        const baseGrowthVal = initialCapital * Math.pow(1.015, t);
+        let depositsVal = 0;
+        let investmentsVal = 0;
+
+        allActions.forEach(action => {
+          const isLump = action.isLumpSum;
+          const r = action.rate;
+          const stepsCount = t;
+
+          if (action.type === 'deposit' || action.type === 'grant') {
+            if (isLump) {
+              depositsVal += action.baseVal * Math.pow(1 + r, t);
+            } else {
+              let recurringSum = 0;
+              for (let k = 1; k <= stepsCount; k++) {
+                recurringSum += action.baseVal * Math.pow(1 + r, stepsCount - k);
+              }
+              depositsVal += recurringSum;
+            }
+          } else if (action.type === 'investment' || action.type === 'yield' || action.type === 'saving' || action.type === 'defense') {
+            if (isLump) {
+              investmentsVal += action.baseVal * Math.pow(1 + r, t);
+            } else {
+              let recurringSum = 0;
+              for (let k = 1; k <= stepsCount; k++) {
+                recurringSum += action.baseVal * Math.pow(1 + r, stepsCount - k);
+              }
+              investmentsVal += recurringSum;
+            }
+          }
+        });
+
+        const y1 = Math.round(baseGrowthVal);
+        const y2 = Math.round(baseGrowthVal + depositsVal);
+        const y3 = Math.round(baseGrowthVal + depositsVal + investmentsVal);
+
+        return { year: label, y1, y2, y3 };
+      });
+    }
+
+    if (plan.id === 'career-break') {
+      // 2 Years plan (Jul 2026 - Jun 2028)
+      const labels = ['Jul 26', 'Dec 26', 'Jun 27', 'Dec 27', 'Jun 28'];
+      const times = [0, 0.5, 1.0, 1.5, 2.0];
+
+      return labels.map((label, idx) => {
+        const t = times[idx];
+        const baseGrowthVal = initialCapital * Math.pow(1.015, t);
+        let depositsVal = 0;
+        let investmentsVal = 0;
+
+        allActions.forEach(action => {
+          const isLump = action.isLumpSum;
+          const r = action.rate;
+          const periodicVal = action.baseVal / 2;
+          const stepsCount = idx;
+
+          if (action.type === 'deposit' || action.type === 'grant') {
+            if (isLump) {
+              depositsVal += action.baseVal * Math.pow(1 + r, t);
+            } else {
+              let recurringSum = 0;
+              for (let k = 1; k <= stepsCount; k++) {
+                recurringSum += periodicVal * Math.pow(1 + r, (stepsCount - k) * 0.5);
+              }
+              depositsVal += recurringSum;
+            }
+          } else if (action.type === 'investment' || action.type === 'yield' || action.type === 'saving') {
+            if (isLump) {
+              investmentsVal += action.baseVal * Math.pow(1 + r, t);
+            } else {
+              let recurringSum = 0;
+              for (let k = 1; k <= stepsCount; k++) {
+                recurringSum += periodicVal * Math.pow(1 + r, (stepsCount - k) * 0.5);
+              }
+              investmentsVal += recurringSum;
+            }
+          }
+        });
+
+        const y1 = Math.round(baseGrowthVal);
+        const y2 = Math.round(baseGrowthVal + depositsVal);
+        const y3 = Math.round(baseGrowthVal + depositsVal + investmentsVal);
+
+        return { year: label, y1, y2, y3 };
+      });
+    }
+
+    if (plan.id === 'parents-retirement') {
+      // 6 Years plan (2026 - 2032)
+      const labels = ['2026', '2027', '2028', '2029', '2030', '2031', '2032'];
+      const times = [0, 1, 2, 3, 4, 5, 6];
+
+      return labels.map((label, idx) => {
+        const t = times[idx];
+        const baseGrowthVal = initialCapital * Math.pow(1.015, t);
+        let depositsVal = 0;
+        let investmentsVal = 0;
+
+        allActions.forEach(action => {
+          const isLump = action.isLumpSum;
+          const r = action.rate;
+          const stepsCount = t;
+
+          if (action.type === 'deposit' || action.type === 'grant') {
+            if (isLump) {
+              depositsVal += action.baseVal * Math.pow(1 + r, t);
+            } else {
+              let recurringSum = 0;
+              for (let k = 1; k <= stepsCount; k++) {
+                recurringSum += action.baseVal * Math.pow(1 + r, stepsCount - k);
+              }
+              depositsVal += recurringSum;
+            }
+          } else if (action.type === 'investment' || action.type === 'yield' || action.type === 'saving' || action.type === 'defense') {
             if (isLump) {
               investmentsVal += action.baseVal * Math.pow(1 + r, t);
             } else {

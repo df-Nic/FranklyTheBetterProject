@@ -12,6 +12,8 @@ const ChatWidget = () => {
   const [hasInitialized, setHasInitialized] = useState(false);
   const [inputText, setInputText] = useState('');
   const [safeBottom, setSafeBottom] = useState(0);
+  const [scrollProgress, setScrollProgress] = useState({ left: 0, width: 100 });
+  const suggestionsRef = useRef(null);
 
   const bubbleRef = useRef(null);
   const containerRef = useRef(null);
@@ -34,9 +36,8 @@ const ChatWidget = () => {
 
   const planningSuggestions = [
     "Plan for Retirement",
-    "Plan a Wedding",
-    "Set up a Savings Goal",
-    "Compare Credit Cards"
+    "Children's Education Plan",
+    "Career Break Savings"
   ];
 
   // Resolve container ref on mount and measure safe bottom area
@@ -64,6 +65,34 @@ const ChatWidget = () => {
       setHasInitialized(true);
     }
   }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        if (suggestionsRef.current) {
+          const { scrollLeft, scrollWidth, clientWidth } = suggestionsRef.current;
+          if (scrollWidth > clientWidth) {
+            setScrollProgress({
+              left: (scrollLeft / scrollWidth) * 100,
+              width: (clientWidth / scrollWidth) * 100
+            });
+          } else {
+            setScrollProgress({ left: 0, width: 100 });
+          }
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  const handleSuggestionsScroll = (e) => {
+    const { scrollLeft, scrollWidth, clientWidth } = e.currentTarget;
+    if (scrollWidth > clientWidth) {
+      const widthPct = (clientWidth / scrollWidth) * 100;
+      const leftPct = (scrollLeft / scrollWidth) * 100;
+      setScrollProgress({ left: leftPct, width: widthPct });
+    }
+  };
 
   // Scroll to bottom when messages list changes
   useEffect(() => {
@@ -157,23 +186,41 @@ const ChatWidget = () => {
       'retirement': 0,
       'wedding-fund': 0,
       'savings': 0,
-      'emergency': 0
+      'emergency': 0,
+      'children-education': 0,
+      'career-break': 0,
+      'parents-retirement': 0
     };
 
-    if (t.includes('retire') || t.includes('retirement')) scores['retirement'] += 10;
+    if (t.includes('retire') || t.includes('retirement')) {
+      if (t.includes('parent') || t.includes('father') || t.includes('mother') || t.includes('parents')) {
+        scores['parents-retirement'] += 10;
+      } else {
+        scores['retirement'] += 10;
+      }
+    }
     if (t.includes('wed') || t.includes('wedding') || t.includes('marry') || t.includes('marriage')) scores['wedding-fund'] += 10;
     if (t.includes('emerg') || t.includes('emergency')) scores['emergency'] += 10;
     if (t.includes('hdb') || t.includes('downpayment') || t.includes('flat')) scores['savings'] += 10;
+    if (t.includes('child') || t.includes('children') || t.includes('education') || t.includes('school') || t.includes('uni') || t.includes('university') || t.includes('tuition')) scores['children-education'] += 10;
+    if (t.includes('career') || t.includes('break') || t.includes('sabbatical') || t.includes('transition')) scores['career-break'] += 10;
+    if (t.includes('parent') || t.includes('parents') || t.includes('elderly')) scores['parents-retirement'] += 10;
 
     const retireSupport = ['pension', 'srs'];
     const weddingSupport = ['proposal', 'banquet'];
     const savingsSupport = ['save', 'savings', 'home', 'house', 'deposit'];
     const emergencySupport = ['safe', 'safety', 'shield', 'protect', 'liquid', 'buffer'];
+    const educationSupport = ['cda', 'tuition', 'study', 'student'];
+    const careerSupport = ['job', 'leave', 'work', 'months'];
+    const parentsSupport = ['mother', 'father', 'elder', 'senior', 'dad', 'mom'];
 
     retireSupport.forEach(kw => { if (t.includes(kw)) scores['retirement'] += 3; });
     weddingSupport.forEach(kw => { if (t.includes(kw)) scores['wedding-fund'] += 3; });
     savingsSupport.forEach(kw => { if (t.includes(kw)) scores['savings'] += 3; });
     emergencySupport.forEach(kw => { if (t.includes(kw)) scores['emergency'] += 3; });
+    educationSupport.forEach(kw => { if (t.includes(kw)) scores['children-education'] += 3; });
+    careerSupport.forEach(kw => { if (t.includes(kw)) scores['career-break'] += 3; });
+    parentsSupport.forEach(kw => { if (t.includes(kw)) scores['parents-retirement'] += 3; });
 
     let highestScore = 0;
     let resolvedId = 'default';
@@ -358,12 +405,16 @@ const ChatWidget = () => {
             </div>
 
             {/* Suggestion Pills Container */}
-            <div className="px-4 py-3 border-t border-zinc-200/40 bg-zinc-50/50 shrink-0">
-              <div className="flex items-center gap-1.5 mb-2">
+            <div className="px-4 py-3 border-t border-zinc-200/40 bg-zinc-50/50 shrink-0 flex flex-col gap-1.5">
+              <div className="flex items-center gap-1.5 mb-1.5">
                 <Compass className="w-3.5 h-3.5 text-brand-primary" />
                 <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Plan suggestions based on your portfolio</span>
               </div>
-              <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+              <div 
+                ref={suggestionsRef}
+                onScroll={handleSuggestionsScroll}
+                className="flex gap-2 overflow-x-auto no-scrollbar pb-1"
+              >
                 {planningSuggestions.map((suggestion, idx) => (
                   <button
                     key={idx}
@@ -374,6 +425,17 @@ const ChatWidget = () => {
                   </button>
                 ))}
               </div>
+              {scrollProgress.width < 100 && (
+                <div className="w-full h-[3px] bg-zinc-200/40 rounded-full overflow-hidden relative mt-1">
+                  <div 
+                    className="h-full bg-brand-primary/45 rounded-full absolute top-0 transition-all duration-75"
+                    style={{
+                      width: `${scrollProgress.width}%`,
+                      left: `${scrollProgress.left}%`
+                    }}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Input Bar */}

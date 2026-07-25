@@ -105,6 +105,9 @@ const PayNowConfirmPage = () => {
     'savings': 'May 2028',
     'retirement': 'Dec 2045',
     'emergency': 'Feb 2027',
+    'children-education': 'Feb 2036',
+    'career-break': 'Aug 2028',
+    'parents-retirement': 'Apr 2033',
     'default': 'Mar 2030'
   };
   const extendedDate = EXTENDED_DATES[selectedPlanId] || '2 months delayed';

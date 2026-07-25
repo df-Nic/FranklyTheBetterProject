@@ -10,6 +10,9 @@ import housingImg from '../assets/images/Housing Plan Image.svg';
 import protectImg from '../assets/images/Protect Image.svg';
 import savingsImg from '../assets/images/Savings Image.svg';
 import weddingImg from '../assets/images/Wedding Image.svg';
+import childrenEduImg from '../assets/images/Children Education.svg';
+import careerBreakImg from '../assets/images/Career Break.svg';
+import parentsRetireImg from '../assets/images/Parents Retirement.svg';
 
 // ─── Plan Card Meta ──────────────────────────────────────────────────────────
 
@@ -38,6 +41,21 @@ const PLAN_META = {
     image: weddingImg,
     tag: 'Wedding Fund',
     tagColor: 'bg-pink-100 text-pink-700',
+  },
+  'children-education': {
+    image: childrenEduImg,
+    tag: "Children's Education",
+    tagColor: 'bg-purple-100 text-purple-700',
+  },
+  'career-break': {
+    image: careerBreakImg,
+    tag: 'Career Break',
+    tagColor: 'bg-teal-100 text-teal-700',
+  },
+  'parents-retirement': {
+    image: parentsRetireImg,
+    tag: "Parents' Retirement",
+    tagColor: 'bg-rose-100 text-rose-700',
   },
 };
 

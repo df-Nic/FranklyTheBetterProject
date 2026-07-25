@@ -197,6 +197,106 @@ export const PLANS_DATA = {
         ]
       }
     ]
+  },
+  'children-education': {
+    id: "children-education",
+    title: "OCBC Children Education Fund",
+    goal: "Save SG$80,000 for your children's future university tuition fee by Oct 2035",
+    timelineAll: "Oct 2035 - Dec 2037",
+    timelineExcluded: (numExcluded) => {
+      if (numExcluded === 0) return "Oct 2035 - Dec 2037";
+      if (numExcluded <= 2) return "Feb 2036 - May 2038";
+      return "Jul 2036 - Oct 2038";
+    },
+    categories: [
+      {
+        id: "education_savings",
+        name: "Education Savings Vault",
+        icon: "Coins",
+        actions: [
+          { id: "edu_saver", name: "OCBC CDA Savings Account", desc: "Contribute to Child Development Account to earn up to 2.0% p.a. and receive dollar-for-dollar matching.", baseVal: 3000, rate: 0.02, type: "deposit" },
+          { id: "edu_srs", name: "OCBC SRS Education Investment", desc: "Top up SRS account to lower taxes while growing funds at an estimated 3.0% p.a.", baseVal: 4000, rate: 0.03, type: "deposit" }
+        ]
+      },
+      {
+        id: "education_investments",
+        name: "OCBC Growth Portfolios",
+        icon: "TrendingUp",
+        actions: [
+          { id: "edu_robo", name: "OCBC RoboInvest (Balanced)", desc: "Automate SG$400/mo into balanced portfolios to compound returns at an estimated 6.8% p.a.", baseVal: 4800, rate: 0.068, type: "investment" },
+          { id: "edu_unit_trust", name: "Lion-OCBC Global Core Fund", desc: "Allocate SG$300/mo to diversified global core equities yielding 5.5% annual returns.", baseVal: 3600, rate: 0.055, type: "investment" }
+        ]
+      },
+      {
+        id: "education_defense",
+        name: "GE Protection Plans",
+        icon: "ShieldCheck",
+        actions: [
+          { id: "edu_ge_endowment", name: "GE GREAT Wealth Accumulator", desc: "Place SG$200/mo into an endowment plan returning guaranteed 3.5% p.a. + non-guaranteed bonuses.", baseVal: 2400, rate: 0.035, type: "defense" }
+        ]
+      }
+    ]
+  },
+  'career-break': {
+    id: "career-break",
+    title: "OCBC Career Break Fund",
+    goal: "Accumulate SG$25,000 to fund a 6-month career transition or break by Jun 2028",
+    timelineAll: "Jun 2028 - Sep 2028",
+    timelineExcluded: (numExcluded) => {
+      if (numExcluded === 0) return "Jun 2028 - Sep 2028";
+      if (numExcluded <= 2) return "Nov 2028 - Feb 2029";
+      return "Jan 2029 - Apr 2029";
+    },
+    categories: [
+      {
+        id: "career_deposits",
+        name: "High-Yield Cash Vault",
+        icon: "Coins",
+        actions: [
+          { id: "car_ocbc360", name: "OCBC 360 Account", desc: "Credit salary and save SG$500/mo to capture up to 4.65% p.a. high interest yield.", baseVal: 6000, rate: 0.0465, type: "deposit" },
+          { id: "car_bonus", name: "OCBC Bonus+ Account", desc: "Save SG$300/mo to receive high interest of 3.70% p.a. with zero withdrawals.", baseVal: 4000, rate: 0.037, type: "deposit" }
+        ]
+      },
+      {
+        id: "career_sweeps",
+        name: "Automated Sweeps",
+        icon: "Scissors",
+        actions: [
+          { id: "car_sweep", name: "OCBC Auto-Sweep Plan", desc: "Automatically sweep end-of-month excess balances into savings vaults at 3.50% p.a. yield.", baseVal: 2000, rate: 0.035, type: "saving" },
+          { id: "car_lifestyle", name: "Spend Fit Tracker Cap", desc: "Configure smart alerts to save SG$100/mo on redundant dining/lifestyle expenses.", baseVal: 1200, rate: 0.0, type: "saving" }
+        ]
+      }
+    ]
+  },
+  'parents-retirement': {
+    id: "parents-retirement",
+    title: "Parents' Retirement Support",
+    goal: "Secure SG$120,000 to assist with parents' healthcare and retirement expenses by Dec 2032",
+    timelineAll: "Dec 2032 - Mar 2034",
+    timelineExcluded: (numExcluded) => {
+      if (numExcluded === 0) return "Dec 2032 - Mar 2034";
+      if (numExcluded <= 2) return "Apr 2033 - Jul 2034";
+      return "Aug 2033 - Nov 2034";
+    },
+    categories: [
+      {
+        id: "parents_cpf",
+        name: "Parents' CPF Top-ups",
+        icon: "Coins",
+        actions: [
+          { id: "par_cpf_ra", name: "CPF Retirement Sum Topping-Up", desc: "Top up your parents' CPF Retirement Account directly to earn up to 4.0% p.a. interest plus tax relief.", baseVal: 8000, rate: 0.04, type: "deposit" }
+        ]
+      },
+      {
+        id: "parents_defense",
+        name: "GE Senior Shielding",
+        icon: "ShieldCheck",
+        actions: [
+          { id: "par_ge_elderly", name: "GE GREAT SupremeHealth Senior", desc: "Allocate SG$300/mo to secure premium hospital care and shield parents against rising medical bills.", baseVal: 3600, rate: 0.02, type: "defense" },
+          { id: "par_ge_life", name: "GE GREAT Senior Life Plan", desc: "Commit SG$400/mo to life insurance coverage returning stable yields and protection layers.", baseVal: 4800, rate: 0.03, type: "defense" }
+        ]
+      }
+    ]
   }
 };
 
@@ -237,5 +337,23 @@ export const PLAN_ALTERNATIVES = {
   wed_ocbc360: { id: "wed_ocbc_boost", name: "OCBC Bonus+ Savings Yield", desc: "Save SG$500/mo into the OCBC Bonus+ Account to capture a high interest rate of up to 3.70% p.a. with zero withdrawals.", baseVal: 6000, rate: 0.037, type: "deposit" },
   wed_recurring: { id: "wed_giro", name: "OCBC GIRO Auto-Invest Flow", desc: "Configure an automatic monthly GIRO regular invest flow of SG$500 to OCBC Blue Chip Plan.", baseVal: 6000, rate: 0.04, type: "deposit" },
   wed_tbills: { id: "wed_mmf", name: "Lion-OCBC Money Market Fund", desc: "Allocate SG$5,000 to low-risk liquidity funds for a flexible 3.90% p.a. return with instant liquidity.", baseVal: 5000, rate: 0.039, type: "yield" },
-  wed_dine: { id: "wed_card_rebates", name: "OCBC 365 Card Spend Optimization", desc: "Direct utilities and card payments to OCBC 365 Card to earn 5% cash rebate, saving SG$80/mo.", baseVal: 960, rate: 0.0, type: "saving" }
+  wed_dine: { id: "wed_card_rebates", name: "OCBC 365 Card Spend Optimization", desc: "Direct utilities and card payments to OCBC 365 Card to earn 5% cash rebate, saving SG$80/mo.", baseVal: 960, rate: 0.0, type: "saving" },
+
+  // Children's education alternatives
+  edu_saver: { id: "edu_saver_alt", name: "OCBC CDA Savings Account (Promo)", desc: "Open CDA with OCBC partner platforms to secure a 2.5% promotional interest yield.", baseVal: 3000, rate: 0.025, type: "deposit" },
+  edu_srs: { id: "edu_srs_alt", name: "OCBC Lion-OCBC Global Core Fund UT", desc: "Allocate SRS funds to high-yield unit trusts targeting an estimated 6.0% p.a. long-term return.", baseVal: 4000, rate: 0.06, type: "deposit" },
+  edu_robo: { id: "edu_robo_alt", name: "OCBC RoboInvest (Conservative Portfolio)", desc: "Adjust RoboInvest risk score to conservative model yielding a steady 5.0% p.a. average returns.", baseVal: 4800, rate: 0.05, type: "investment" },
+  edu_unit_trust: { id: "edu_unit_trust_alt", name: "Lion-OCBC Global Income Fund", desc: "Reallocate unit trusts into monthly dividend-paying global income funds at 5.2% yield.", baseVal: 3600, rate: 0.052, type: "investment" },
+  edu_ge_endowment: { id: "edu_ge_endowment_alt", name: "GE GREAT Wealth Accumulator (Lump Sum)", desc: "Opt for a single-premium GE endowment plan locking S$5,000 for a guaranteed 3.8% p.a. return.", baseVal: 5000, rate: 0.038, type: "defense", isLumpSum: true },
+
+  // Career break alternatives
+  car_ocbc360: { id: "car_ocbc360_alt", name: "OCBC Bonus+ Savings Yield", desc: "Direct transition savings to the Bonus+ Account to capture a high interest rate of up to 3.70% p.a.", baseVal: 6000, rate: 0.037, type: "deposit" },
+  car_bonus: { id: "car_bonus_alt", name: "OCBC 360 Savings Account", desc: "Credit your salary and save SG$500/mo to hit up to 4.65% p.a. interest rate on active deposits.", baseVal: 4000, rate: 0.0465, type: "deposit" },
+  car_sweep: { id: "car_sweep_alt", name: "Lion-OCBC Enhanced Liquidity Fund", desc: "Deploy swept funds to the flexible Lion-OCBC cash management fund returning 3.85% p.a.", baseVal: 2000, rate: 0.0385, type: "saving" },
+  car_lifestyle: { id: "car_lifestyle_alt", name: "OCBC 365 Card Cashbacks", desc: "Direct utilities and dining spends through OCBC 365 Card to earn up to 5% cash rebate.", baseVal: 1200, rate: 0.0, type: "saving" },
+
+  // Parents' retirement alternatives
+  par_cpf_ra: { id: "par_cpf_ra_alt", name: "OCBC Fixed Deposit Sweep", desc: "Lock SG$8,000 in a secure 12-month OCBC Fixed Deposit yielding 3.35% p.a. risk-free.", baseVal: 8000, rate: 0.0335, type: "deposit" },
+  par_ge_elderly: { id: "par_ge_elderly_alt", name: "GE GREAT SupremeHealth Standard Plan", desc: "Opt for the standard Medisave-approved health plan to cover up to 90% of ward costs.", baseVal: 3600, rate: 0.02, type: "defense" },
+  par_ge_life: { id: "par_ge_life_alt", name: "GE GREAT Senior Term Insurance", desc: "Switch from life insurance to term coverage for high payout limits at lower monthly fees.", baseVal: 4800, rate: 0.03, type: "defense" }
 };
