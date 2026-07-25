@@ -390,7 +390,8 @@ const ChatWidget = () => {
       updateCustomPlanData(planId, {
         targetAmount: targetAmount,
         targetDate: targetDate,
-        subgoals: generatedSubgoals
+        subgoals: generatedSubgoals,
+        paymentStrategy: paymentStrategy
       });
     }
 

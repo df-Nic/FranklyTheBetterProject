@@ -22,7 +22,7 @@ import BackgroundOrb from '../components/ui/BackgroundOrb';
 // Modular Imports
 import { PLANS_DATA, PLAN_ALTERNATIVES } from '../data/planTemplates';
 import PlanAreaChart from '../components/ui/PlanAreaChart';
-import PlanCardDeck from '../components/ui/PlanCardDeck';
+import PlanTabbedDeck from '../components/ui/PlanTabbedDeck';
 import ReplanOverlay from '../components/ui/ReplanOverlay';
 
 // Default subgoals registry mapping matching chat widget proposals
@@ -1010,20 +1010,54 @@ const PlanDetailsPage = () => {
             </div>
           </GlassCard>
 
-          {/* Section Indicator */}
-          <div className="flex flex-col mt-2 shrink-0">
+          {/* Section Indicator & Instructions */}
+          <div className="flex flex-col gap-2 shrink-0 mt-1">
             <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Execution Roadmap</span>
-            <span className="text-[9px] text-zinc-400 leading-normal mt-1 text-zinc-400 font-medium">
-              Swipe right to cycle, swipe left to bring bottom card up, or tap checkboxes to deselect suggestions you do not want.
-            </span>
+            <div className="bg-white/50 border border-zinc-200/50 backdrop-blur-md rounded-2xl p-3 flex flex-col gap-2.5 shadow-sm">
+              <span className="text-xs font-bold text-zinc-800 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-brand-primary animate-pulse" />
+                Review your Nest Plan
+              </span>
+              <ul className="flex flex-col gap-2 text-[10px] text-zinc-600 font-semibold leading-normal list-none pl-0">
+                <li className="flex gap-2 items-start">
+                  <span className="w-4 h-4 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0 font-black text-[9px]">1</span>
+                  <span><strong>Inspect Suggestions:</strong> Tap the category tabs below to see recommended wealth products.</span>
+                </li>
+                <li className="flex gap-2 items-start">
+                  <span className="w-4 h-4 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0 font-black text-[9px]">2</span>
+                  <span><strong>Swap Products:</strong> Click the swap icon (🔄) on any card to request an alternative suggestion. To undo, click the restore icon (↺).</span>
+                </li>
+                <li className="flex gap-2 items-start">
+                  <span className="w-4 h-4 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0 font-black text-[9px]">3</span>
+                  <span><strong>Replan with AI:</strong> Tap <strong>Replan with AI</strong> below to calculate new projections. Click <strong>Accept & Save Plan</strong> when satisfied.</span>
+                </li>
+              </ul>
+            </div>
           </div>
 
-          {/* Main Category Action Card Deck Stack Component */}
-          <PlanCardDeck 
+          {/* Main Category Action Tabbed View Component */}
+          <PlanTabbedDeck 
             categories={categoriesList} 
             pendingExcluded={pendingExcluded} 
             toggleAction={toggleAction} 
           />
+
+          {/* Staggered Payments Callout Notice */}
+          {userPlanMeta.paymentStrategy === 'Staggered' && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-3 bg-blue-50/60 border border-blue-200/50 rounded-2xl flex gap-2.5 items-start mt-1 shrink-0 shadow-sm"
+            >
+              <AlertCircle className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] font-black text-blue-800 uppercase tracking-wider">Payment Flexibility Activated</span>
+                <span className="text-[9.2px] font-bold text-blue-700 leading-relaxed">
+                  Based on your choice of <strong>Staggered Payments</strong> and your target timeline, these recommendations are structured to prioritize products with flexible exits and zero penalty fees. You retain the freedom to redirect cash without lock-in constraints.
+                </span>
+              </div>
+            </motion.div>
+          )}
 
           {/* Compliance statement */}
           <div className="bg-zinc-200/30 border border-zinc-200/40 rounded-xl p-2.5 flex gap-2 items-start mt-2 shrink-0">

@@ -13,7 +13,7 @@ import BackgroundOrb from '../components/ui/BackgroundOrb';
 // Modular Imports
 import { PLANS_DATA } from '../data/planTemplates';
 import PlanAreaChart from '../components/ui/PlanAreaChart';
-import PlanCardDeck from '../components/ui/PlanCardDeck';
+import PlanTabbedDeck from '../components/ui/PlanTabbedDeck';
 
 const PlanViewPage = () => {
   const { clickPos, activePlanId, activePlanTitle, setPage } = useApp();
@@ -574,13 +574,13 @@ const PlanViewPage = () => {
           {/* Section Indicator */}
           <div className="flex flex-col mt-2 shrink-0">
             <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Execution Roadmap</span>
-            <span className="text-[9px] text-zinc-400 leading-normal mt-1 text-zinc-400 font-medium">
-              Swipe right to cycle, swipe left to bring bottom card up.
+            <span className="text-[9px] text-zinc-400 leading-normal mt-1 font-medium">
+              Select category tabs to view included products in your saved plan.
             </span>
           </div>
 
-          {/* Main Category Action Card Deck Stack Component */}
-          <PlanCardDeck 
+          {/* Main Category Action Tabbed View Component */}
+          <PlanTabbedDeck 
             categories={categoriesList} 
             pendingExcluded={new Set()} 
             toggleAction={() => {}} 
