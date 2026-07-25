@@ -218,11 +218,18 @@ const RiskProfilingPage = () => {
     if (e) {
       setClickPos({ x: e.clientX, y: e.clientY });
     } else {
+      // Center of screen for a smooth Iris expansion
       setClickPos({ x: 195, y: 422 });
     }
-    setPlanDetailOrigin('home');
+    setPlanDetailOrigin('risk-profiling');
     setPage('plan-details');
   };
+// Auto-redirect after risk profiling is complete
+useEffect(() => {
+  if (isComplete) {
+    handleProceedToPlanDetails();
+  }
+}, [isComplete]);
 
   return (
     <div className="flex-1 w-full bg-[#F5F5F7] flex flex-col relative px-6 py-6 overflow-y-auto no-scrollbar select-none text-zinc-800">

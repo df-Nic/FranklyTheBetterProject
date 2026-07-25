@@ -186,11 +186,11 @@ const ChatWidget = () => {
           setPosition(prev => {
             const paddingX = 16;
             const paddingY = 96 + measuredSafeBottom;
-            
+
             // Check if the previous X was closer to the right side of the screen
             const isRightSnapped = prev.x > (parentWidth / 2) - (bubbleWidth / 2);
             let targetX = isRightSnapped ? (parentWidth - bubbleWidth - paddingX) : paddingX;
-            
+
             let targetY = prev.y;
             const minY = 16;
             const maxY = parentHeight - bubbleHeight - paddingY;
@@ -328,7 +328,7 @@ const ChatWidget = () => {
   // Resolve a stable planId from natural language plan title
   const resolvePlanId = (title) => {
     const t = (title || '').toLowerCase();
-    
+
     const scores = {
       'retirement': 0,
       'wedding-fund': 0,
@@ -398,52 +398,51 @@ const ChatWidget = () => {
     setIsOpen(false);
     setTimeout(() => { setPage('plan-details'); }, 50);
   };
+  const handleRiskPromptSelect = (agree, e) => {
+    // If user agrees to redo risk profiling (Yes), navigate immediately with Iris curtain
+    if (agree) {
+      // Capture real click position for the Iris origin
+      if (e && containerRef.current) {
+        const parentRect = containerRef.current.getBoundingClientRect();
+        setClickPos({ x: e.clientX - parentRect.left, y: e.clientY - parentRect.top });
+      } else {
+        setClickPos({ x: 195, y: 422 });
+      }
+      // Pre-set the plan data so plan-details renders correctly after risk profiling
+      const planId = resolvePlanId(planTitle);
+      setActivePlanTitle(planTitle);
+      setActivePlanId(planId);
+      setIsOpen(false);
+      setHasCreatedFirstPlan(true);
+      setTimeout(() => setPage('risk-profiling'), 50);
+      return;
+    }
 
-
-
-  const handleRiskPromptSelect = (agree) => {
-    const trimmed = agree ? 'Yes' : 'No';
-    setMessages(prev => [
-      ...prev,
-      { id: Date.now(), sender: 'user', text: trimmed }
-    ]);
-
+    // For No (user does not redo), show "No" message and bot typing, then display plan review
+    setMessages(prev => [...prev, { id: Date.now(), sender: 'user', text: 'No' }]);
     setHasCreatedFirstPlan(true);
-
     setMessages(prev => [...prev, { id: 'typing', sender: 'bot', isTyping: true }]);
 
     setTimeout(() => {
       setMessages(prev => prev.filter(m => m.id !== 'typing'));
-
-      if (agree) {
-        setMessages(prev => [
-          ...prev,
-          { id: Date.now(), sender: 'bot', text: 'Great! Directing you to our Risk Profiler...' }
-        ]);
-
-        setTimeout(() => {
-          setIsOpen(false);
-          setPage('risk-profiling');
-        }, 1000);
-      } else {
-        setMessages(prev => [
-          ...prev,
-          {
-            id: Date.now(),
-            sender: 'bot',
-            isFirstPlanReview: true,
-            planTitle: planTitle,
-            text: (
-              <span>
-                No problem! Your custom wealth plan is ready. <span className="text-brand-primary font-black">Tap below to review your plan details and activate it.</span>
-              </span>
-            )
-          }
-        ]);
-      }
+      setMessages(prev => [
+        ...prev,
+        {
+          id: Date.now(),
+          sender: 'bot',
+          isFirstPlanReview: true,
+          planTitle: planTitle,
+          text: (
+            <span>
+              No problem! Your custom wealth plan is ready. <span className="text-brand-primary font-black">Tap below to review your plan details and activate it.</span>
+            </span>
+          ),
+        },
+      ]);
       setFlowState('idle');
     }, 1500);
   };
+
 
   const handleSend = (textToSend = inputText) => {
     const trimmed = textToSend.trim();
@@ -471,10 +470,10 @@ const ChatWidget = () => {
       if (flowState === 'idle') {
         const planId = resolvePlanId(trimmed);
         const planObj = PLANS_DATA[planId] || PLANS_DATA.default;
-        
+
         setPlanGoal(planId);
         setPlanTitle(planObj.title);
-        
+
         setMessages(prev => [
           ...prev,
           {
@@ -507,7 +506,7 @@ const ChatWidget = () => {
             sender: 'bot',
             text: (
               <span>
-                Understood, S$${num.toLocaleString()}. When would you like to achieve this goal? Please <span className="text-brand-primary font-black">specify an overall target date (e.g. Dec 2027)</span>.
+                Understood, S${num.toLocaleString()}. When would you like to achieve this goal? Please <span className="text-brand-primary font-black">specify an overall target date (e.g. Dec 2027)</span>.
               </span>
             )
           }
@@ -516,14 +515,14 @@ const ChatWidget = () => {
 
       } else if (flowState === 'asking_date') {
         setTargetDate(trimmed);
-        
+
         const now = new Date();
         const parsedDate = parseDateInput(trimmed);
         const totalMonths = (parsedDate.getFullYear() - now.getFullYear()) * 12 + (parsedDate.getMonth() - now.getMonth());
         const validMonths = totalMonths > 0 ? totalMonths : 24;
 
         const planObj = PLANS_DATA[planGoal] || PLANS_DATA.default;
-        
+
         // Check if there are subgoals configured for this plan type
         const subgoals = PLAN_SUBGOALS[planGoal];
         let messagePayload = {
@@ -538,11 +537,11 @@ const ChatWidget = () => {
           const K = subgoals.length;
           const breakdownSubgoals = subgoals.map((sub, i) => {
             const allocated = Math.round(sub.pct * targetAmount);
-            
+
             const milestoneOffsetMonths = Math.round((validMonths * (i + 1)) / (K + 1));
             const milestoneDate = new Date();
             milestoneDate.setMonth(now.getMonth() + milestoneOffsetMonths);
-            
+
             return {
               name: sub.name,
               icon: sub.icon,
@@ -568,7 +567,7 @@ const ChatWidget = () => {
             ...prev,
             { id: 'typing-strategy', sender: 'bot', isTyping: true }
           ]);
-          
+
           setTimeout(() => {
             setMessages(prev => [
               ...prev.filter(m => m.id !== 'typing-strategy'),
@@ -588,7 +587,7 @@ const ChatWidget = () => {
 
       } else if (flowState === 'asking_strategy') {
         setPaymentStrategy(trimmed);
-        
+
         // Post-plan Routing decision
         if (!hasCreatedFirstPlan) {
           // First time user risk profiling prompt
@@ -692,8 +691,8 @@ const ChatWidget = () => {
                 >
                   <div
                     className={`max-w-[82%] rounded-2xl px-4 py-3 text-xs leading-relaxed ${msg.sender === 'user'
-                        ? 'bg-brand-primary text-white font-medium rounded-tr-none shadow-md shadow-brand-primary/10'
-                        : 'bg-white text-zinc-800 font-medium rounded-tl-none border border-zinc-200/40 shadow-sm'
+                      ? 'bg-brand-primary text-white font-medium rounded-tr-none shadow-md shadow-brand-primary/10'
+                      : 'bg-white text-zinc-800 font-medium rounded-tl-none border border-zinc-200/40 shadow-sm'
                       }`}
                   >
                     {msg.isTyping ? (
@@ -817,7 +816,7 @@ const ChatWidget = () => {
                   <Compass className="w-3.5 h-3.5 text-brand-primary" />
                   <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Plan suggestions based on your portfolio</span>
                 </div>
-                <div 
+                <div
                   ref={suggestionsRef}
                   onScroll={handleSuggestionsScroll}
                   className="flex gap-2 overflow-x-auto no-scrollbar pb-1"
@@ -834,7 +833,7 @@ const ChatWidget = () => {
                 </div>
                 {scrollProgress.width < 100 && (
                   <div className="w-full h-[3px] bg-zinc-200/40 rounded-full overflow-hidden relative mt-1">
-                    <div 
+                    <div
                       className="h-full bg-brand-primary/45 rounded-full absolute top-0 transition-all duration-75"
                       style={{
                         width: `${scrollProgress.width}%`,
@@ -866,13 +865,13 @@ const ChatWidget = () => {
               ) : flowState === 'asking_risk_prompt' ? (
                 <div className="flex gap-2 w-full justify-between">
                   <button
-                    onClick={() => handleRiskPromptSelect(false)}
+                  onClick={(e) => handleRiskPromptSelect(false, e)}
                     className="flex-1 h-10 bg-white border border-zinc-200 shadow-sm text-zinc-700 font-bold rounded-xl text-xs active:scale-95 transition-all cursor-pointer hover:bg-zinc-50"
                   >
                     No, skip it
                   </button>
                   <button
-                    onClick={() => handleRiskPromptSelect(true)}
+                  onClick={(e) => handleRiskPromptSelect(true, e)}
                     className="flex-1 h-10 bg-brand-primary hover:bg-[#c11e15] text-white font-bold rounded-xl text-xs active:scale-95 transition-all cursor-pointer shadow-sm shadow-brand-primary/10"
                   >
                     Yes, update
@@ -888,8 +887,8 @@ const ChatWidget = () => {
                     flowState === 'asking_amount'
                       ? "Enter total target amount..."
                       : flowState === 'asking_date'
-                      ? "Enter target achievement date..."
-                      : "How can we plan for you today?"
+                        ? "Enter target achievement date..."
+                        : "How can we plan for you today?"
                   }
                   className="flex-1 h-10 px-3.5 bg-zinc-100 border border-zinc-200/50 rounded-xl text-xs font-medium focus:outline-none focus:ring-1 focus:ring-brand-primary focus:border-brand-primary placeholder-zinc-400 transition-all duration-150"
                 />
@@ -923,8 +922,8 @@ const ChatWidget = () => {
             whileTap={!isOpen || inputText.trim() ? { scale: 0.95 } : { scale: 1 }}
             transition={{ type: 'spring', stiffness: 220, damping: 22 }}
             className={`w-14 h-14 rounded-full border-2 border-brand-primary bg-white shadow-xl flex items-center justify-center overflow-hidden select-none z-50 ${isOpen
-                ? 'pointer-events-auto cursor-pointer shadow-md'
-                : 'pointer-events-auto cursor-grab active:cursor-grabbing'
+              ? 'pointer-events-auto cursor-pointer shadow-md'
+              : 'pointer-events-auto cursor-grab active:cursor-grabbing'
               }`}
           >
             <img
