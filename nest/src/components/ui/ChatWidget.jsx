@@ -136,6 +136,11 @@ const ChatWidget = () => {
     "Career Break Savings"
   ];
 
+  const isOpenRef = useRef(isOpen);
+  useEffect(() => {
+    isOpenRef.current = isOpen;
+  }, [isOpen]);
+
   // Resolve container ref on mount and measure safe bottom area
   useEffect(() => {
     // Dynamically measure the bottom safe area inset in pixels
@@ -153,8 +158,8 @@ const ChatWidget = () => {
       const initializePosition = () => {
         const parentWidth = parent.offsetWidth;
         const parentHeight = parent.offsetHeight;
-        const bubbleWidth = bubbleRef.current?.offsetWidth || 56;
-        const bubbleHeight = bubbleRef.current?.offsetHeight || 56;
+        const bubbleWidth = 56;
+        const bubbleHeight = 56;
 
         // Initial position: snap to right edge with 16px padding, offset by safe bottom inset & navbar clearance
         const initX = parentWidth - bubbleWidth - 16;
@@ -172,11 +177,11 @@ const ChatWidget = () => {
 
       // Handle window resize dynamically
       const handleResize = () => {
-        if (!isOpen && bubbleRef.current) {
+        if (!isOpenRef.current && bubbleRef.current) {
           const parentWidth = parent.offsetWidth;
           const parentHeight = parent.offsetHeight;
-          const bubbleWidth = bubbleRef.current.offsetWidth || 56;
-          const bubbleHeight = bubbleRef.current.offsetHeight || 56;
+          const bubbleWidth = 56;
+          const bubbleHeight = 56;
 
           setPosition(prev => {
             const paddingX = 16;
@@ -204,7 +209,7 @@ const ChatWidget = () => {
         window.removeEventListener('resize', handleResize);
       };
     }
-  }, [isOpen]);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -245,17 +250,19 @@ const ChatWidget = () => {
   }, [messages]);
 
   const handleOpen = () => {
-    if (!containerRef.current || !bubbleRef.current) return;
+    if (!containerRef.current) return;
 
-    const parentRect = containerRef.current.getBoundingClientRect();
-    const bubbleRect = bubbleRef.current.getBoundingClientRect();
+    const parent = containerRef.current;
+    const parentWidth = parent.offsetWidth;
+    const parentHeight = parent.offsetHeight;
+    const bubbleSize = 56;
 
     // Save previous drag coordinates
     lastPosition.current = { x: position.x, y: position.y };
 
     // Target position: horizontally centered in the input bar gap, vertically centered with the text input
-    const targetX = parentRect.width - bubbleRect.width - 28;
-    const targetY = parentRect.height - bubbleRect.height - 100 - safeBottom;
+    const targetX = parentWidth - bubbleSize - 28;
+    const targetY = parentHeight - bubbleSize - 100 - safeBottom;
 
     setPosition({ x: targetX, y: targetY });
     setIsOpen(true);
