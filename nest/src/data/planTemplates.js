@@ -40,14 +40,45 @@ export const PLANS_DATA = {
       }
     ]
   },
-  savings: {
-    id: "savings",
-    title: "OCBC Savings & HDB Goal",
-    goal: "Save SG$150,000 for a downpayment on a HDB flat in Singapore by 2028",
+  housing: {
+    id: "housing",
+    title: "OCBC HDB Housing Plan",
+    goal: "Save SG$150,000 for a downpayment and loan setup on an HDB flat in Singapore by 2028",
     timelineAll: "Mar 2028 - Jun 2029",
     timelineExcluded: (numExcluded, grantsExcluded) => {
       if (grantsExcluded) return "Oct 2031 - Dec 2033";
       if (numExcluded === 0) return "Mar 2028 - Jun 2029";
+      if (numExcluded <= 2) return "Nov 2029 - Feb 2031";
+      return "Jan 2031 - Sep 2032";
+    },
+    categories: [
+      {
+        id: "govt_grants",
+        name: "Housing Subsidies & Loans",
+        icon: "Gift",
+        actions: [
+          { id: "sav_cpf_grant", name: "Enhanced CPF Housing Grant", desc: "Claim up to SG$80,000 in government housing subsidies based on household income guidelines.", baseVal: 80000, rate: 0.0, type: "grant", isLumpSum: true },
+          { id: "sav_hdb_loan", name: "HDB Concessionary Loan Setup", desc: "Keep SG$20,000 in your Ordinary Account to qualify for HDB's 2.6% p.a. stable interest rate loan.", baseVal: 2000, rate: 0.026, type: "grant" }
+        ]
+      },
+      {
+        id: "hy_deposits",
+        name: "HDB Downpayment Vault",
+        icon: "Coins",
+        actions: [
+          { id: "sav_ocbc360", name: "OCBC 360 Savings Account", desc: "Credit your salary and save SG$500/mo to hit up to 4.65% p.a. interest rate on your active deposits.", baseVal: 6000, rate: 0.0465, type: "deposit" },
+          { id: "sav_fd_promo", name: "OCBC Fixed Deposit Sweep", desc: "Lock SG$20,000 idle cash in a promotional 6-month OCBC Fixed Deposit yielding 3.40% p.a. risk-free.", baseVal: 20000, rate: 0.034, type: "deposit", isLumpSum: true }
+        ]
+      }
+    ]
+  },
+  savings: {
+    id: "savings",
+    title: "OCBC General Wealth Accumulation",
+    goal: "Save SG$50,000 in high-yield liquid reserves over 3 years",
+    timelineAll: "Dec 2027 - Mar 2029",
+    timelineExcluded: (numExcluded) => {
+      if (numExcluded === 0) return "Dec 2027 - Mar 2029";
       if (numExcluded <= 2) return "Nov 2029 - Feb 2031";
       return "Jan 2031 - Sep 2032";
     },
@@ -59,15 +90,6 @@ export const PLANS_DATA = {
         actions: [
           { id: "sav_ocbc360", name: "OCBC 360 Savings Account", desc: "Credit your salary and save SG$500/mo to hit up to 4.65% p.a. interest rate on your active deposits.", baseVal: 6000, rate: 0.0465, type: "deposit" },
           { id: "sav_fd_promo", name: "OCBC Fixed Deposit Sweep", desc: "Lock SG$20,000 idle cash in a promotional 6-month OCBC Fixed Deposit yielding 3.40% p.a. risk-free.", baseVal: 20000, rate: 0.034, type: "deposit", isLumpSum: true }
-        ]
-      },
-      {
-        id: "govt_grants",
-        name: "Housing Subsidies & Loans",
-        icon: "Gift",
-        actions: [
-          { id: "sav_cpf_grant", name: "Enhanced CPF Housing Grant", desc: "Claim up to SG$80,000 in government housing subsidies based on household income guidelines.", baseVal: 80000, rate: 0.0, type: "grant", isLumpSum: true },
-          { id: "sav_hdb_loan", name: "HDB Concessionary Loan Setup", desc: "Keep SG$20,000 in your Ordinary Account to qualify for HDB's 2.6% p.a. stable interest rate loan.", baseVal: 2000, rate: 0.026, type: "grant" }
         ]
       },
       {

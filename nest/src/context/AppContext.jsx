@@ -116,6 +116,18 @@ export const AppProvider = ({ children }) => {
     ]
   };
 
+  const [customPlanData, setCustomPlanData] = useState({});
+
+  const updateCustomPlanData = (planId, data) => {
+    setCustomPlanData(prev => ({
+      ...prev,
+      [planId]: {
+        ...(prev[planId] || {}),
+        ...data
+      }
+    }));
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -138,6 +150,8 @@ export const AppProvider = ({ children }) => {
         setHasCreatedFirstPlan,
         planAdjustments,
         adjustPlan,
+        customPlanData,
+        updateCustomPlanData,
         planDetailOrigin,
         setPlanDetailOrigin,
         opportunityDecisions,

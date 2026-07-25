@@ -6,10 +6,15 @@ import { useApp } from '../../context/AppContext';
 import { PLANS_DATA } from '../../data/planTemplates';
 
 const PLAN_SUBGOALS = {
+  'housing': [
+    { name: "First down payment", pct: 0.25, icon: "Coins" },
+    { name: "Second down payment", pct: 0.35, icon: "TrendingUp" },
+    { name: "Rest of the housing loan", pct: 0.40, icon: "Gift" }
+  ],
   'savings': [
-    { name: "HDB Downpayment Saving Target", pct: 0.20, icon: "Coins" },
-    { name: "Initial Option Fee & Installment Goal", pct: 0.30, icon: "TrendingUp" },
-    { name: "Final Key Collection Booking Goal", pct: 0.50, icon: "Gift" }
+    { name: "Emergency Buffer Deposit Goal", pct: 0.30, icon: "Coins" },
+    { name: "High-Yield Vault Target", pct: 0.30, icon: "TrendingUp" },
+    { name: "Growth Reserves Allocation Goal", pct: 0.40, icon: "Gift" }
   ],
   'retirement': [
     { name: "SRS & CPF Retirement Sum Target", pct: 0.15, icon: "Coins" },
@@ -39,7 +44,7 @@ const PLAN_SUBGOALS = {
 };
 
 const ChatWidget = () => {
-  const { setPage, setClickPos, setActivePlanTitle, setActivePlanId, addCreatedPlan, setPlanDetailOrigin, hasCreatedFirstPlan, setHasCreatedFirstPlan } = useApp();
+  const { setPage, setClickPos, setActivePlanTitle, setActivePlanId, addCreatedPlan, setPlanDetailOrigin, hasCreatedFirstPlan, setHasCreatedFirstPlan, updateCustomPlanData } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -54,6 +59,7 @@ const ChatWidget = () => {
   const [targetAmount, setTargetAmount] = useState(0);
   const [targetDate, setTargetDate] = useState('');
   const [paymentStrategy, setPaymentStrategy] = useState('');
+  const [generatedSubgoals, setGeneratedSubgoals] = useState([]);
 
   const parseDateInput = (str) => {
     const now = new Date();
@@ -86,7 +92,7 @@ const ChatWidget = () => {
       month = 11;
     }
 
-    return new Date(year, month, 15);
+    return new Date(year, month, 1);
   };
 
   const formatDate = (date) => {
@@ -332,6 +338,7 @@ const ChatWidget = () => {
     const scores = {
       'retirement': 0,
       'wedding-fund': 0,
+      'housing': 0,
       'savings': 0,
       'emergency': 0,
       'children-education': 0,
@@ -348,26 +355,11 @@ const ChatWidget = () => {
     }
     if (t.includes('wed') || t.includes('wedding') || t.includes('marry') || t.includes('marriage')) scores['wedding-fund'] += 10;
     if (t.includes('emerg') || t.includes('emergency')) scores['emergency'] += 10;
-    if (t.includes('hdb') || t.includes('downpayment') || t.includes('flat')) scores['savings'] += 10;
+    if (t.includes('hdb') || t.includes('downpayment') || t.includes('flat') || t.includes('house') || t.includes('housing') || t.includes('property')) scores['housing'] += 10;
+    if (t.includes('save') || t.includes('savings') || t.includes('vault') || t.includes('buffer')) scores['savings'] += 10;
     if (t.includes('child') || t.includes('children') || t.includes('education') || t.includes('school') || t.includes('uni') || t.includes('university') || t.includes('tuition')) scores['children-education'] += 10;
     if (t.includes('career') || t.includes('break') || t.includes('sabbatical') || t.includes('transition')) scores['career-break'] += 10;
     if (t.includes('parent') || t.includes('parents') || t.includes('elderly')) scores['parents-retirement'] += 10;
-
-    const retireSupport = ['pension', 'srs'];
-    const weddingSupport = ['proposal', 'banquet'];
-    const savingsSupport = ['save', 'savings', 'home', 'house', 'deposit'];
-    const emergencySupport = ['safe', 'safety', 'shield', 'protect', 'liquid', 'buffer'];
-    const educationSupport = ['cda', 'tuition', 'study', 'student'];
-    const careerSupport = ['job', 'leave', 'work', 'months'];
-    const parentsSupport = ['mother', 'father', 'elder', 'senior', 'dad', 'mom'];
-
-    retireSupport.forEach(kw => { if (t.includes(kw)) scores['retirement'] += 3; });
-    weddingSupport.forEach(kw => { if (t.includes(kw)) scores['wedding-fund'] += 3; });
-    savingsSupport.forEach(kw => { if (t.includes(kw)) scores['savings'] += 3; });
-    emergencySupport.forEach(kw => { if (t.includes(kw)) scores['emergency'] += 3; });
-    educationSupport.forEach(kw => { if (t.includes(kw)) scores['children-education'] += 3; });
-    careerSupport.forEach(kw => { if (t.includes(kw)) scores['career-break'] += 3; });
-    parentsSupport.forEach(kw => { if (t.includes(kw)) scores['parents-retirement'] += 3; });
 
     let highestScore = 0;
     let resolvedId = 'default';
@@ -383,7 +375,7 @@ const ChatWidget = () => {
   };
 
   // Preview only — does NOT save to dashboard
-  const handleReviewPlanClick = (e, planTitle) => {
+  const handleReviewPlanClick = (e, planTitle, generatedSubgoals = []) => {
     e.stopPropagation();
     if (containerRef.current) {
       const parentRect = containerRef.current.getBoundingClientRect();
@@ -392,6 +384,16 @@ const ChatWidget = () => {
       setClickPos({ x: 195, y: 422 });
     }
     const planId = resolvePlanId(planTitle);
+
+    // Save custom user parameters to AppContext
+    if (targetAmount > 0 || targetDate) {
+      updateCustomPlanData(planId, {
+        targetAmount: targetAmount,
+        targetDate: targetDate,
+        subgoals: generatedSubgoals
+      });
+    }
+
     setActivePlanTitle(planTitle);
     setActivePlanId(planId);
     setPlanDetailOrigin('home'); // back button returns to home
@@ -514,10 +516,11 @@ const ChatWidget = () => {
         setFlowState('asking_date');
 
       } else if (flowState === 'asking_date') {
-        setTargetDate(trimmed);
-
         const now = new Date();
         const parsedDate = parseDateInput(trimmed);
+        const formattedTargetDate = formatDate(parsedDate);
+        setTargetDate(formattedTargetDate);
+
         const totalMonths = (parsedDate.getFullYear() - now.getFullYear()) * 12 + (parsedDate.getMonth() - now.getMonth());
         const validMonths = totalMonths > 0 ? totalMonths : 24;
 
@@ -530,7 +533,7 @@ const ChatWidget = () => {
           sender: 'bot',
           planTitle: planObj.title,
           targetAmount: targetAmount,
-          targetDate: trimmed
+          targetDate: formattedTargetDate
         };
 
         if (subgoals) {
@@ -538,11 +541,18 @@ const ChatWidget = () => {
           const breakdownSubgoals = subgoals.map((sub, i) => {
             const allocated = Math.round(sub.pct * targetAmount);
 
-            const milestoneOffsetMonths = Math.round((validMonths * (i + 1)) / (K + 1));
-            const milestoneDate = new Date();
-            milestoneDate.setMonth(now.getMonth() + milestoneOffsetMonths);
+            // Last subgoal is set precisely on the target deadline date indicated by user
+            let milestoneDate;
+            if (i === K - 1) {
+              milestoneDate = parsedDate;
+            } else {
+              const milestoneOffsetMonths = Math.round((validMonths * (i + 1)) / K);
+              milestoneDate = new Date();
+              milestoneDate.setMonth(now.getMonth() + milestoneOffsetMonths);
+            }
 
             return {
+              id: i + 1,
               name: sub.name,
               icon: sub.icon,
               amount: allocated,
@@ -551,8 +561,21 @@ const ChatWidget = () => {
           });
           messagePayload.isPlanBreakdown = true;
           messagePayload.categories = breakdownSubgoals;
+
+          setGeneratedSubgoals(breakdownSubgoals);
+
+          // Immediately persist target amount, date, and generated subgoals into AppContext
+          updateCustomPlanData(planGoal, {
+            targetAmount: targetAmount,
+            targetDate: formattedTargetDate,
+            subgoals: breakdownSubgoals
+          });
         } else {
           messagePayload.isSimpleSummary = true;
+          updateCustomPlanData(planGoal, {
+            targetAmount: targetAmount,
+            targetDate: formattedTargetDate
+          });
         }
 
         // Add plan breakdown card or summary
