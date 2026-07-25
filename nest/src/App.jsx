@@ -17,6 +17,37 @@ import PayNowContactsPage from './pages/PayNowContactsPage';
 import PayNowAmountPage from './pages/PayNowAmountPage';
 import PayNowConfirmPage from './pages/PayNowConfirmPage';
 import PayNowSuccessPage from './pages/PayNowSuccessPage';
+import RiskProfilingPage from './pages/RiskProfilingPage';
+
+// Iris-animated wrapper for RiskProfilingPage — mirrors how PlanDetailsPage enters/exits
+function RiskProfilingIrisWrapper() {
+  const { clickPos } = useApp();
+  const x = clickPos?.x ?? 195;
+  const y = clickPos?.y ?? 422;
+  const initialClip = `circle(0% at ${x}px ${y}px)`;
+  const animateClip = `circle(150% at ${x}px ${y}px)`;
+
+  return (
+    <motion.div
+      initial={{ clipPath: initialClip }}
+      animate={{ clipPath: animateClip }}
+      exit={{ clipPath: initialClip }}
+      transition={{ duration: 0.75, ease: [0.76, 0, 0.24, 1] }}
+      className="absolute inset-0 z-50 bg-brand-primary flex flex-col overflow-hidden"
+    >
+      {/* Delayed content fade-in: lets the red iris expand first before content appears */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ delay: 0.3, duration: 0.4, ease: 'easeOut' }}
+        className="w-full h-full flex flex-col"
+      >
+        <RiskProfilingPage />
+      </motion.div>
+    </motion.div>
+  );
+}
 
 function AppContent() {
   const { page, planDetailOrigin, setPage } = useApp();
@@ -26,7 +57,8 @@ function AppContent() {
 
   const isPayNowPage = page === 'paynow-contacts' || page === 'paynow-amount' || page === 'paynow-confirm' || page === 'paynow-success';
   const isPlanPage = page === 'plan-dashboard' || page === 'plan-view' || page === 'plan-milestones' || page === 'savings-breakdown' || page === 'opportunity-detail';
-  const isUserLoggedIn = page === 'home' || page === 'plan-details' || isPlanPage || isPayNowPage;
+  const isUserLoggedIn = page === 'home' || page === 'plan-details' || isPlanPage || isPayNowPage || page === 'risk-profiling';
+  const isRiskProfilingBackground = page === 'plan-details' && detailsOrigin === 'risk-profiling';
   const activeNavTab = isPayNowPage
     ? 'pay'
     : (isPlanPage || (page === 'plan-details' && detailsOrigin === 'plan-dashboard') ? 'plan' : 'home');
@@ -79,6 +111,16 @@ function AppContent() {
             className="absolute inset-0 flex flex-col overflow-hidden z-10"
           >
             <HomePage />
+          </motion.div>
+        )}
+        {/* risk-profiling stays mounted as background only when plan-details opens on top of it */}
+        {isRiskProfilingBackground && (
+          <motion.div
+            key="risk-profiling-bg"
+            animate={{ opacity: 1, x: 0 }}
+            className="absolute inset-0 flex flex-col overflow-hidden z-10"
+          >
+            <RiskProfilingPage />
           </motion.div>
         )}
         {/* plan-dashboard: visible on plan-dashboard page, or as background when plan-details was accepted */}
@@ -141,23 +183,28 @@ function AppContent() {
             <PayNowSuccessPage />
           </motion.div>
         )}
+      
       </AnimatePresence>
 
       {/* Persistent overlay components for logged-in views */}
-      {isUserLoggedIn && !isPayNowPage && (
+      {isUserLoggedIn && !isPayNowPage && page !== 'risk-profiling' && !isRiskProfilingBackground && (
         <>
           {page !== 'plan-milestones' && page !== 'savings-breakdown' && page !== 'opportunity-detail' && <ChatWidget />}
           <BottomNavBar activeTab={activeNavTab} onTabSelect={handleTabSelect} />
         </>
       )}
 
-      {/* plan-details and plan-view are clip-circle overlays on top of whichever background is active */}
+      {/* plan-details, plan-view, and risk-profiling are clip-circle overlays on top of whichever background is active */}
       <AnimatePresence>
         {page === 'plan-details' && (
           <PlanDetailsPage />
         )}
         {page === 'plan-view' && (
           <PlanViewPage />
+        )}
+        {/* risk-profiling uses the same Iris clip-circle animation as plan-details */}
+        {page === 'risk-profiling' && (
+          <RiskProfilingIrisWrapper key="risk-profiling-iris" />
         )}
         {page === 'plan-milestones' && (
           <motion.div

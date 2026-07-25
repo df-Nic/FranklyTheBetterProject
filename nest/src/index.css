@@ -79,3 +79,26 @@
 .pb-safe-nav {
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 160px) !important;
 }
+
+/* Thin premium horizontal scrollbar */
+.custom-horizontal-scrollbar::-webkit-scrollbar {
+  height: 4px;
+}
+.custom-horizontal-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+}
+.custom-horizontal-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(225, 37, 27, 0.35); /* brand red accent */
+  border-radius: 10px;
+}
+.custom-horizontal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(225, 37, 27, 0.6);
+}
+.custom-horizontal-scrollbar::-webkit-scrollbar-button {
+  display: none;
+}
+.custom-horizontal-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(225, 37, 27, 0.35) rgba(0, 0, 0, 0.05);
+}

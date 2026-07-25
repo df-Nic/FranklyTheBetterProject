@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { ChevronRight, Plus, CalendarDays, Sparkles } from 'lucide-react';
 import { PLANS_DATA } from '../data/planTemplates';
+import { getOpportunityStatus, getPlanOpportunity, getRecommendedPlan } from '../data/planOpportunities';
+import { getMilestonePlan } from '../data/milestonePlans';
 
 // ─── Labeled Plan Illustrations ──────────────────────────────────────────────
 import retirementImg from '../assets/images/Retirement Plan Image.svg';
@@ -10,6 +12,9 @@ import housingImg from '../assets/images/Housing Plan Image.svg';
 import protectImg from '../assets/images/Protect Image.svg';
 import savingsImg from '../assets/images/Savings Image.svg';
 import weddingImg from '../assets/images/Wedding Image.svg';
+import childrenEduImg from '../assets/images/Children Education.svg';
+import careerBreakImg from '../assets/images/Career Break.svg';
+import parentsRetireImg from '../assets/images/Parents Retirement.svg';
 
 // ─── Plan Card Meta ──────────────────────────────────────────────────────────
 
@@ -20,6 +25,11 @@ const PLAN_META = {
     tagColor: 'bg-orange-100 text-orange-700',
   },
   savings: {
+    image: housingImg,
+    tag: 'Savings & HDB',
+    tagColor: 'bg-blue-100 text-blue-700',
+  },
+  housing: {
     image: housingImg,
     tag: 'Savings & HDB',
     tagColor: 'bg-blue-100 text-blue-700',
@@ -39,17 +49,39 @@ const PLAN_META = {
     tag: 'Wedding Fund',
     tagColor: 'bg-pink-100 text-pink-700',
   },
+  'children-education': {
+    image: childrenEduImg,
+    tag: "Children's Education",
+    tagColor: 'bg-purple-100 text-purple-700',
+  },
+  'career-break': {
+    image: careerBreakImg,
+    tag: 'Career Break',
+    tagColor: 'bg-teal-100 text-teal-700',
+  },
+  'parents-retirement': {
+    image: parentsRetireImg,
+    tag: "Parents' Retirement",
+    tagColor: 'bg-rose-100 text-rose-700',
+  },
 };
 
 // ─── Single Plan Card ────────────────────────────────────────────────────────
 
 const PlanCard = ({ planId, index, onClick }) => {
-  const { planAdjustments } = useApp();
+  const { planAdjustments, opportunityDecisions, createdPlans } = useApp();
   const plan = PLANS_DATA[planId];
+  const displayPlan = getMilestonePlan(planId, planAdjustments);
   const meta = PLAN_META[planId] || PLAN_META.default;
   const goalText = plan.goal.length > 92 ? plan.goal.slice(0, 92) + '\u2026' : plan.goal;
   
   const isHealed = planAdjustments?.[planId]?.healed;
+  const opportunity = getPlanOpportunity(planId);
+  const recommendedPlan = getRecommendedPlan(createdPlans.map((id) => getMilestonePlan(id, planAdjustments)));
+  const opportunityAlreadyHandled = Object.values(opportunityDecisions).some((item) => item.opportunityId === opportunity.id);
+  const hasActiveOpportunity = recommendedPlan?.id === planId
+    && !opportunityAlreadyHandled
+    && getOpportunityStatus(opportunity, opportunityDecisions[planId]) === 'active';
 
   return (
     <motion.div
@@ -71,20 +103,27 @@ const PlanCard = ({ planId, index, onClick }) => {
         <span className={`absolute top-3 left-3 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full backdrop-blur-sm ${meta.tagColor}`}>
           {meta.tag}
         </span>
-        {/* Healed Badge */}
-        {isHealed && (
-          <span className="absolute top-3 right-3 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-500 text-white shadow-sm flex items-center gap-1 animate-pulse z-10">
-            <Sparkles className="w-2.5 h-2.5 stroke-[3]" />
-            <span>Plan Adjusted</span>
-          </span>
-        )}
+        <div className="absolute right-3 top-3 z-10 flex flex-col items-end gap-1.5">
+          {hasActiveOpportunity && (
+            <span className="flex items-center gap-1 rounded-full bg-[#7C2230] px-2.5 py-1 text-[8px] font-black uppercase tracking-wider text-white shadow-[0_4px_12px_rgba(124,34,48,0.24)]">
+              <Sparkles className="h-2.5 w-2.5 stroke-[3]" />
+              New opportunity
+            </span>
+          )}
+          {isHealed && (
+            <span className="flex items-center gap-1 rounded-full bg-emerald-500 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-white shadow-sm animate-pulse">
+              <Sparkles className="h-2.5 w-2.5 stroke-[3]" />
+              Plan Adjusted
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Detail panel */}
       <div className="p-4 flex flex-col gap-2">
         <div className="flex items-start justify-between gap-2">
           <h3 className="text-sm font-black text-zinc-900 tracking-tight leading-snug flex-1">
-            {plan.title}
+            {displayPlan.goalName}
           </h3>
           <div className="w-7 h-7 rounded-full bg-zinc-100 flex items-center justify-center shrink-0 mt-0.5">
             <ChevronRight className="w-4 h-4 text-zinc-500 stroke-[2.2]" />
@@ -99,7 +138,7 @@ const PlanCard = ({ planId, index, onClick }) => {
           <CalendarDays className="w-3 h-3 text-zinc-400" />
           <span className="text-[9px] font-semibold text-zinc-400">
             Target:{' '}
-            <span className="text-zinc-600 font-bold">{plan.timelineAll}</span>
+            <span className="text-zinc-600 font-bold">{displayPlan.goalDate}</span>
           </span>
         </div>
       </div>

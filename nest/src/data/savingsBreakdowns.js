@@ -205,9 +205,97 @@ export const SAVINGS_BREAKDOWNS = {
       },
     ],
   },
+  "children-education": {
+    asOf: "24 Jul 2026",
+    items: [
+      {
+        id: "edu-cda-grant",
+        title: "CDA matching grant secured",
+        description: "Dollar-for-dollar matching grant applied directly to the savings vault.",
+        amount: 3000,
+        status: "realized",
+        source: "Government matching grant",
+        calculation: [
+          { label: "Eligible matching limit", value: "S$3,000" },
+          { label: "Co-funding ratio", value: "100%" },
+        ],
+      },
+      {
+        id: "edu-tax-savings",
+        title: "Tax rebates on SRS top-up",
+        description: "Tax deduction recorded from supplementary retirement education investments.",
+        amount: 800,
+        status: "realized",
+        source: "Annual tax relief estimate",
+        calculation: [
+          { label: "SRS allocation", value: "S$4,000" },
+          { label: "Estimated tax bracket", value: "20%" },
+        ],
+      },
+    ],
+  },
+  "career-break": {
+    asOf: "24 Jul 2026",
+    items: [
+      {
+        id: "car-savings-bonus",
+        title: "OCBC Bonus+ extra interest",
+        description: "Accumulated interest yield from monthly zero-withdrawal savings bonuses.",
+        amount: 320,
+        status: "realized",
+        source: "Account rate statement",
+        calculation: [
+          { label: "Savings balance", value: "S$15,000" },
+          { label: "Bonus+ rate premium", value: "1.55% p.a." },
+        ],
+      },
+      {
+        id: "car-sweep-interest",
+        title: "Smart auto-sweep accumulation",
+        description: "Additional return recorded from sweeping low-yield checking account balances.",
+        amount: 220,
+        status: "realized",
+        source: "Sweeps performance",
+        calculation: [
+          { label: "Swept cash base", value: "S$8,000" },
+          { label: "Average yield difference", value: "2.75% p.a." },
+        ],
+      },
+    ],
+  },
+  "parents-retirement": {
+    asOf: "24 Jul 2026",
+    items: [
+      {
+        id: "par-cpf-topup-tax",
+        title: "CPF cash top-up tax relief",
+        description: "Tax savings realized by topping up parents' CPF Retirement Accounts.",
+        amount: 1600,
+        status: "realized",
+        source: "CPF tax schedule",
+        calculation: [
+          { label: "Top-up amount", value: "S$8,000" },
+          { label: "Marginal tax relief rate", value: "20%" },
+        ],
+      },
+      {
+        id: "par-ge-policy-bonus",
+        title: "GE protection premium discount",
+        description: "Promotional premium discount secured during the Great Eastern senior campaign.",
+        amount: 600,
+        status: "realized",
+        source: "GE Campaign terms",
+        calculation: [
+          { label: "Eldercare bundle value", value: "S$3,600" },
+          { label: "Bundled discount rate", value: "16.6%" },
+        ],
+      },
+    ],
+  },
 };
 
 export function getSavingsBreakdown(planId) {
+  if (planId === "housing") return SAVINGS_BREAKDOWNS.savings;
   return SAVINGS_BREAKDOWNS[planId] ?? SAVINGS_BREAKDOWNS.default;
 }
 

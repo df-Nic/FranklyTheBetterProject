@@ -165,25 +165,260 @@ export const PLAN_OPPORTUNITIES = {
       onTrackSavedDelta: 144,
     },
   },
+  "children-education": {
+    id: "education-robo-upgrade",
+    status: "active",
+    title: "Optimize growth on education savings portfolios",
+    summary: "A new children-education specific investment tier became available to boost returns.",
+    triggerType: "New allocation",
+    trigger: "OCBC RoboInvest added a dedicated Education Savings Tier yielding up to 7.20% p.a.",
+    detectedDate: "24 Jul 2026",
+    checkedDate: "24 Jul 2026",
+    expiryDate: "30 Nov 2026",
+    benefitType: "Greater yield with security",
+    benefitLabel: "+S$680 estimated interest",
+    benefitValue: "S$680",
+    benefitCaption: "Potential additional interest",
+    benefitContext: "Based on regular monthly contributions until matriculation.",
+    relevance: [
+      "Your plan allocates funds to children's education targeted for October 2035.",
+      "The upgrade keeps the same risk tolerance while boosting targeted growth.",
+    ],
+    comparisons: [
+      { label: "Monthly contribution", current: "S$500", proposed: "S$500" },
+      { label: "Growth rate", current: "6.80% p.a.", proposed: "7.20% p.a." },
+      { label: "Estimated value by 2035", current: "S$82,300", proposed: "S$84,100" },
+    ],
+    assumptions: ["S$500 monthly contributions remain uninterrupted.", "Promotional rates remain applicable."],
+    tradeoffs: ["Subject to market volatility.", "Withdrawals before 2035 may incur small admin fees."],
+    eligibility: { status: "verified", label: "Verified", detail: "Your linked CDA account status qualifies you for the tier." },
+    source: "OCBC Education Fund product terms",
+    planChanges: {
+      strategy: "High-yield savings and optimized investment portfolios",
+    },
+  },
+  "career-break": {
+    id: "career-yield-booster",
+    status: "active",
+    title: "Improve rate on liquid short-term funds",
+    summary: "Move transition savings to a high-yield liquid option preserving full access.",
+    triggerType: "Rate optimization",
+    trigger: "The Bonus+ savings interest rate tier increased from 3.00% to 3.70% p.a. for career savers.",
+    detectedDate: "24 Jul 2026",
+    checkedDate: "24 Jul 2026",
+    expiryDate: "31 Oct 2026",
+    benefitType: "Improved liquid yield",
+    benefitLabel: "+S$190 estimated interest",
+    benefitValue: "S$190",
+    benefitCaption: "Estimated additional yield",
+    benefitContext: "Without locking up funds or changing the June 2028 break date.",
+    relevance: [
+      "You are saving SG$25,000 for a transition planned in June 2028.",
+      "Full liquidity is critical so the option has zero lock-in penalty.",
+    ],
+    comparisons: [
+      { label: "Monthly contribution", current: "S$800", proposed: "S$800" },
+      { label: "Liquid savings rate", current: "3.00% p.a.", proposed: "3.70% p.a." },
+      { label: "Estimated interest", current: "S$380", proposed: "S$570" },
+    ],
+    assumptions: ["Contributions are held in the Bonus+ account.", "Promo rates remain valid through 2027."],
+    tradeoffs: ["Requires zero withdrawals during the deposit month.", "Rate is variable post-promotional period."],
+    eligibility: { status: "verified", label: "Verified", detail: "Your current monthly transfer meets the deposit criteria." },
+    source: "OCBC Bonus+ product schedule",
+    planChanges: {
+      strategy: "Optimized liquid savings and automated sweeps",
+    },
+  },
+  "parents-retirement": {
+    id: "parents-senior-care-upgrade",
+    status: "active",
+    title: "Ensure sufficient protection against medical inflation",
+    summary: "Adjust eldercare insurance protection to cover 95% of senior medical bills.",
+    triggerType: "Policy update",
+    trigger: "Great Eastern enhanced GREAT SupremeHealth Senior benefits for active policy holders.",
+    detectedDate: "24 Jul 2026",
+    checkedDate: "24 Jul 2026",
+    expiryDate: "31 Dec 2026",
+    benefitType: "Lower medical exposure",
+    benefitLabel: "Up to S$15,000 yearly coverage boost",
+    benefitValue: "95%",
+    benefitCaption: "Hospital bill coverage limit",
+    benefitContext: "Protecting retirement savings from sudden medical drawdowns.",
+    relevance: [
+      "Your plan supports parents' retirement with milestones ending in Dec 2032.",
+      "Ensuring health protection preserves cash buffers for living costs.",
+    ],
+    comparisons: [
+      { label: "Monthly contribution", current: "S$1,000", proposed: "S$1,000" },
+      { label: "Senior hospital coverage", current: "90%", proposed: "95%" },
+      { label: "Estimated cash-out-of-pocket", current: "S$3,000", proposed: "S$1,000" },
+    ],
+    assumptions: ["Parents' health declarations remain verified.", "Medisave limits permit the upgrade fee."],
+    tradeoffs: ["Rider premiums are subject to age-band adjustments over time.", "Slightly higher premium deducted from Medisave."],
+    eligibility: { status: "verified", label: "Verified", detail: "Linked parental details meet age limits for senior coverage." },
+    source: "Great Eastern Senior Health terms",
+    planChanges: {
+      strategy: "CPF top-ups and enhanced senior protection plans",
+    },
+  }
 };
 
-export function getPlanOpportunity(planId) {
-  return PLAN_OPPORTUNITIES[planId] ?? PLAN_OPPORTUNITIES.default;
+const CASH_INFLUX_OPPORTUNITY = {
+  id: "bonus-influx-jul-2026",
+  status: "active",
+  title: "Put your S$8,000 bonus to work",
+  summary: "Agent Owl detected a salary bonus and compared how it could strengthen each active plan.",
+  triggerType: "Extra funds detected",
+  trigger: "A salary bonus of S$8,000 was credited to your 360 Account.",
+  detectedDate: "24 Jul 2026",
+  checkedDate: "24 Jul 2026",
+  expiryDate: "31 Aug 2026",
+  sourceAmount: 8000,
+  benefitType: "Faster plan progress",
+  benefitLabel: "Give your next goal a meaningful head start",
+  benefitValue: "S$8,000",
+  benefitCaption: "Unallocated bonus",
+  benefitContext: "Choose the plan where these extra funds will make the most useful difference.",
+  relevance: ["The funds are above your usual monthly income.", "Allocating them will not change recurring contributions."],
+  comparisons: [],
+  assumptions: ["The full S$8,000 remains available.", "No emergency cash requirement takes priority."],
+  tradeoffs: ["Allocated funds become committed to the selected goal.", "Keeping the bonus unallocated preserves immediate flexibility."],
+  eligibility: { status: "verified", label: "Verified", detail: "The bonus has cleared and is available in your linked 360 Account." },
+  source: "360 Account credit transaction",
+  planChanges: { strategy: "One-time bonus allocation" },
+};
+
+export function getPlanOpportunity() {
+  return CASH_INFLUX_OPPORTUNITY;
+}
+
+export function getAllocationImpact(plan, amount = CASH_INFLUX_OPPORTUNITY.sourceAmount) {
+  const saved = plan.onTrack?.saved ?? 0;
+  const target = plan.targetAmount || 1;
+  const remaining = Math.max(0, target - saved);
+  const applied = Math.min(amount, remaining || amount);
+  return {
+    applied,
+    currentProgress: Math.min(100, Math.round((saved / target) * 100)),
+    newProgress: Math.min(100, Math.round(((saved + applied) / target) * 100)),
+    monthsSaved: Math.max(1, Math.round(applied / Math.max(plan.monthlyContribution || 1, 1))),
+    pressure: remaining / target + ((plan.onTrack?.expected ?? 0) > saved ? 0.35 : 0),
+  };
+}
+
+export function getRecommendedPlan(plans) {
+  return [...plans].sort((a, b) => getAllocationImpact(b).pressure - getAllocationImpact(a).pressure)[0] ?? null;
+}
+
+const ALLOCATION_USES = {
+  retirement: [
+    { product: "OCBC SRS Account", purpose: "Tax-efficient retirement contribution", amount: 5000 },
+    { product: "OCBC Balanced Portfolio", purpose: "Long-term diversified growth", amount: 3000 },
+  ],
+  housing: [
+    { product: "OCBC 360 Account", purpose: "Accessible downpayment reserve", amount: 5000 },
+    { product: "OCBC Fixed Deposit", purpose: "Higher yield for later payments", amount: 3000 },
+  ],
+  savings: [
+    { product: "OCBC 360 Account", purpose: "Liquid high-yield savings", amount: 5000 },
+    { product: "OCBC Fixed Deposit", purpose: "Higher yield on planned funds", amount: 3000 },
+  ],
+  emergency: [
+    { product: "OCBC 360 Account", purpose: "Immediately accessible safety buffer", amount: 8000 },
+  ],
+  "wedding-fund": [
+    { product: "OCBC 360 Account", purpose: "Upcoming vendor payments", amount: 6000 },
+    { product: "OCBC Fixed Deposit", purpose: "Yield on later-stage payments", amount: 2000 },
+  ],
+  "children-education": [
+    { product: "OCBC Child Development Account", purpose: "Near-term education expenses", amount: 3000 },
+    { product: "OCBC Balanced Portfolio", purpose: "Longer-term tuition growth", amount: 5000 },
+  ],
+  "career-break": [
+    { product: "OCBC 360 Account", purpose: "Liquid career-break runway", amount: 6000 },
+    { product: "OCBC Fixed Deposit", purpose: "Yield before the break begins", amount: 2000 },
+  ],
+  "parents-retirement": [
+    { product: "CPF Cash Top-up via OCBC", purpose: "Parents’ retirement income", amount: 5000 },
+    { product: "OCBC 360 Account", purpose: "Accessible medical reserve", amount: 3000 },
+  ],
+  default: [
+    { product: "OCBC 360 Account", purpose: "Short-term liquidity", amount: 2000 },
+    { product: "OCBC Balanced Portfolio", purpose: "Diversified long-term growth", amount: 6000 },
+  ],
+};
+
+export function getAllocationUses(planId) {
+  return (ALLOCATION_USES[planId] ?? ALLOCATION_USES.default).map((item) => {
+    const product = item.product.toLowerCase();
+    let annualRate = 0.025;
+    let years = 2;
+    let benefitType = "estimated interest";
+
+    if (product.includes("balanced portfolio")) {
+      annualRate = 0.05;
+      years = 5;
+      benefitType = "illustrative investment growth";
+    } else if (product.includes("fixed deposit")) {
+      annualRate = 0.03;
+      years = 1;
+    } else if (product.includes("child development")) {
+      annualRate = 0.02;
+      years = 3;
+    } else if (product.includes("cpf")) {
+      annualRate = 0.04;
+      years = 5;
+      benefitType = "estimated CPF interest";
+    } else if (product.includes("srs")) {
+      return {
+        ...item,
+        projectedGain: Math.round(item.amount * 0.15),
+        growthLabel: "potential one-time tax saving",
+        assumption: "Illustrated at a 15% marginal tax rate",
+      };
+    }
+
+    return {
+      ...item,
+      projectedGain: Math.round(item.amount * (Math.pow(1 + annualRate, years) - 1)),
+      growthLabel: `${benefitType} over ${years} ${years === 1 ? "year" : "years"}`,
+      assumption: `Illustrated at ${(annualRate * 100).toFixed(1)}% p.a.`,
+    };
+  });
+}
+
+function accelerateGoalDate(value, months) {
+  if (!months) return value;
+  const parsed = Date.parse(value);
+  if (!Number.isFinite(parsed)) return value;
+  const date = new Date(parsed);
+  date.setMonth(date.getMonth() - months);
+  return date.toLocaleDateString("en-SG", {
+    ...(String(value).match(/\d{1,2}\s/) ? { day: "numeric" } : {}),
+    month: "short",
+    year: "numeric",
+  });
 }
 
 export function applyOpportunityChanges(plan, opportunity, decision) {
-  if (!opportunity || decision?.status !== "accepted") return plan;
+  if (!opportunity || decision?.status !== "accepted" || (decision.destinationPlanId && decision.destinationPlanId !== plan.id)) return plan;
   const changes = opportunity.planChanges ?? {};
   const milestoneDates = changes.milestoneDates ?? {};
+  const acceleratedGoalDate = accelerateGoalDate(plan.goalDate, decision.monthsSaved);
   return {
     ...plan,
-    ...(changes.goalDate ? { goalDate: changes.goalDate } : {}),
+    goalDate: changes.goalDate ?? acceleratedGoalDate,
     ...(changes.monthlyContribution ? { monthlyContribution: changes.monthlyContribution } : {}),
     ...(changes.strategy ? { strategy: changes.strategy } : {}),
-    onTrack: { ...plan.onTrack },
-    milestones: plan.milestones.map((milestone) => (
-      milestoneDates[milestone.id] ? { ...milestone, date: milestoneDates[milestone.id] } : milestone
-    )),
+    onTrack: {
+      ...plan.onTrack,
+      saved: plan.onTrack.saved + (decision.allocatedAmount ?? opportunity.sourceAmount ?? 0),
+    },
+    milestones: plan.milestones.map((milestone, index) => {
+      if (milestoneDates[milestone.id]) return { ...milestone, date: milestoneDates[milestone.id] };
+      if (index === plan.milestones.length - 1) return { ...milestone, date: acceleratedGoalDate };
+      return milestone;
+    }),
   };
 }
 

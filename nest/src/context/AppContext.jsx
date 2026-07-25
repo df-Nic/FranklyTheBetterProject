@@ -10,10 +10,12 @@ export const AppProvider = ({ children }) => {
   const [activePlanTitle, setActivePlanTitle] = useState('');
   const [activePlanId, setActivePlanId] = useState(null); // Selected proposal or accepted plan
   const [createdPlans, setCreatedPlans] = useState([]); // Plans are added only after explicit acceptance
+  const [hasCreatedFirstPlan, setHasCreatedFirstPlan] = useState(false);
   const [planDetailOrigin, setPlanDetailOrigin] = useState('home'); // 'home' | 'plan-dashboard'
   const [opportunityDecisions, setOpportunityDecisions] = useState({});
   const [opportunityNotice, setOpportunityNotice] = useState(null);
   const [planAdjustments, setPlanAdjustments] = useState({});
+  const [planActivity, setPlanActivity] = useState([]);
   const [user, setUser] = useState({
     name: 'Olivia',
     accessId: '',
@@ -68,11 +70,16 @@ export const AppProvider = ({ children }) => {
     }));
   };
 
+  const addPlanActivity = (planId, event) => {
+    if (!planId || !event?.id) return;
+    setPlanActivity(prev => [...prev.filter(item => item.id !== event.id), { ...event, planId }]);
+  };
+
   const toggleMask = () => {
     setIsMasked((prev) => !prev);
   };
 
-  const decideOpportunity = (planId, opportunity, status) => {
+  const decideOpportunity = (planId, opportunity, status, destinationPlanId = planId, allocationImpact = null) => {
     if (!planId || !opportunity || !['accepted', 'declined'].includes(status)) return false;
     if (opportunity.status !== 'active' || opportunityDecisions[planId]) return false;
     if (status === 'accepted' && opportunity.eligibility?.status !== 'verified') return false;
@@ -84,16 +91,32 @@ export const AppProvider = ({ children }) => {
         opportunityId: opportunity.id,
         status,
         decidedAt,
+        sourcePlanId: planId,
+        destinationPlanId,
+        allocatedAmount: status === 'accepted' ? opportunity.sourceAmount : 0,
+        monthsSaved: status === 'accepted' ? allocationImpact?.monthsSaved : 0,
         appliedChanges: status === 'accepted' ? opportunity.planChanges : null,
       },
     }));
     setOpportunityNotice({
-      planId,
+      planId: destinationPlanId,
       status,
       message: status === 'accepted'
         ? 'Your plan has been enhanced with this opportunity.'
         : 'Your existing plan remains unchanged.',
     });
+    setPlanActivity(prev => [...prev.filter(item => item.id !== `decision-${opportunity.id}-${status}`), {
+      id: `decision-${opportunity.id}-${status}`,
+      planId: destinationPlanId,
+      actor: 'user',
+      type: 'decision',
+      title: status === 'accepted' ? 'Opportunity accepted' : 'Current plan kept',
+      description: status === 'accepted'
+        ? 'You approved Agent Owl’s recommendation and updated the plan.'
+        : 'You reviewed the recommendation and chose not to change the plan.',
+      timestamp: decidedAt,
+      status,
+    }]);
     return true;
   };
 
@@ -115,6 +138,18 @@ export const AppProvider = ({ children }) => {
     ]
   };
 
+  const [customPlanData, setCustomPlanData] = useState({});
+
+  const updateCustomPlanData = (planId, data) => {
+    setCustomPlanData(prev => ({
+      ...prev,
+      [planId]: {
+        ...(prev[planId] || {}),
+        ...data
+      }
+    }));
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -133,8 +168,14 @@ export const AppProvider = ({ children }) => {
         setActivePlanId,
         createdPlans,
         addCreatedPlan,
+        hasCreatedFirstPlan,
+        setHasCreatedFirstPlan,
         planAdjustments,
         adjustPlan,
+        planActivity,
+        addPlanActivity,
+        customPlanData,
+        updateCustomPlanData,
         planDetailOrigin,
         setPlanDetailOrigin,
         opportunityDecisions,
