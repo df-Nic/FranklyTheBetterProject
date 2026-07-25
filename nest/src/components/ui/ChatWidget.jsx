@@ -609,7 +609,9 @@ const ChatWidget = () => {
         }, 1200);
 
       } else if (flowState === 'asking_strategy') {
-        setPaymentStrategy(trimmed);
+        const normalizedStrategy = /stagger/i.test(trimmed) ? 'staggered' : 'lump-sum';
+        setPaymentStrategy(normalizedStrategy);
+        updateCustomPlanData(planGoal, { paymentStrategy: normalizedStrategy });
 
         // Post-plan Routing decision
         if (!hasCreatedFirstPlan) {

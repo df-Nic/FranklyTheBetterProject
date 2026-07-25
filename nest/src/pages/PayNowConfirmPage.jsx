@@ -17,7 +17,9 @@ const PayNowConfirmPage = () => {
     setPage,
     createdPlans,
     activePlanId,
-    adjustPlan
+    adjustPlan,
+    planAdjustments,
+    addPlanActivity
   } = useApp();
 
   const [sliderWidth, setSliderWidth] = useState(0);
@@ -91,7 +93,7 @@ const PayNowConfirmPage = () => {
   const isTargetAmount = parseFloat(paynowAmount || '0') >= 3000;
   const showHealerWarning = hasPlan && isTargetAmount;
 
-  const selectedPlan = getMilestonePlan(selectedPlanId);
+  const selectedPlan = getMilestonePlan(selectedPlanId, planAdjustments);
   const planName = selectedPlan.goalName || 'Wedding Fund';
   const baseContribution = selectedPlan.monthlyContribution || 1200;
   const baseDate = selectedPlan.goalDate || 'Dec 2027';
@@ -168,6 +170,15 @@ const PayNowConfirmPage = () => {
                 monthlyContribution: dynamicNewContribution,
                 goalDate: extendedDate,
                 selectedPlanId: selectedPlanId
+              });
+              addPlanActivity(selectedPlanId, {
+                id: `adjustment-${Date.now()}`,
+                actor: 'owl',
+                type: 'adjustment',
+                title: 'Plan adjusted after payment',
+                description: `${activeStrategy.title} was applied to keep your goal recoverable.`,
+                timestamp: new Date().toISOString(),
+                status: 'completed'
               });
               setTimeout(() => {
                 setIsHealing(false);

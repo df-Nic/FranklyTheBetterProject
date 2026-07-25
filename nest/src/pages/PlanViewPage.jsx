@@ -14,9 +14,10 @@ import BackgroundOrb from '../components/ui/BackgroundOrb';
 import { PLANS_DATA } from '../data/planTemplates';
 import PlanAreaChart from '../components/ui/PlanAreaChart';
 import PlanCardDeck from '../components/ui/PlanCardDeck';
+import { getMilestonePlan } from '../data/milestonePlans';
 
 const PlanViewPage = () => {
-  const { clickPos, activePlanId, activePlanTitle, setPage } = useApp();
+  const { clickPos, activePlanId, activePlanTitle, setPage, planAdjustments } = useApp();
 
   // Identify active plan template
   const getActivePlan = () => {
@@ -79,6 +80,7 @@ const PlanViewPage = () => {
   };
 
   const activePlan = getActivePlan();
+  const displayPlan = getMilestonePlan(activePlanId, planAdjustments);
   
   // Projections calculations based on specific targets and timelines
   const calculateDataPoints = (plan, categories) => {
@@ -529,7 +531,7 @@ const PlanViewPage = () => {
           </button>
           <div className="flex flex-col">
             <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest leading-none">NEST ADVISORY BOARD</span>
-            <span className="text-sm font-black text-zinc-900 tracking-tight mt-0.5">{activePlan.title}</span>
+            <span className="text-sm font-black text-zinc-900 tracking-tight mt-0.5">{displayPlan.goalName}</span>
           </div>
         </header>
 

@@ -295,6 +295,7 @@ export const SAVINGS_BREAKDOWNS = {
 };
 
 export function getSavingsBreakdown(planId) {
+  if (planId === "housing") return SAVINGS_BREAKDOWNS.savings;
   return SAVINGS_BREAKDOWNS[planId] ?? SAVINGS_BREAKDOWNS.default;
 }
 

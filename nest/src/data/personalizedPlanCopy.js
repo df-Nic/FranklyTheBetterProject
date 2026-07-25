@@ -34,14 +34,39 @@ function buildReflection(plan) {
   return { achieved, lookingAhead };
 }
 
-export function buildPersonalizedPlanCopy({ plan, userName, onTrack }) {
+export function buildPersonalizedPlanCopy({ plan, userName, onTrack, recentActivity, decision, wasHealed = false }) {
   const outcome = plan.personalContext?.desiredOutcome ?? NEUTRAL_OUTCOME;
   const name = userName?.trim();
+  const prefix = name ? `${name}, ` : "";
+  const latestCompleted = plan.milestones?.filter((item) => item.state === "completed").at(-1);
+  let situation = onTrack.ahead ? "ahead" : onTrack.onTrack ? "close" : "behind";
+  let introduction = onTrack.ahead
+    ? `${prefix}you’ve built valuable breathing room. Keep your next contribution steady to protect it.`
+    : onTrack.onTrack
+      ? `${prefix}you’re still within reach of your plan. One steady contribution keeps the next milestone moving closer.`
+      : `${prefix}this plan is behind pace, but it is recoverable. Start with the smallest adjustment that closes the gap.`;
+
+  if (latestCompleted) {
+    situation = "milestone-completed";
+    introduction = `${prefix}${latestCompleted.name} is complete—a real step toward ${outcome}. Keep that momentum on the next milestone.`;
+  }
+  if (wasHealed || recentActivity?.type === "adjustment") {
+    situation = "adjusted";
+    introduction = `${prefix}your plan has adapted to the latest change. Review the new path, then keep the next contribution on course.`;
+  } else if (decision?.status === "accepted") {
+    situation = "opportunity-accepted";
+    introduction = `${prefix}your approved opportunity is now strengthening this plan. The next step is simply to stay consistent.`;
+  } else if (decision?.status === "declined") {
+    situation = "opportunity-declined";
+    introduction = `${prefix}you kept the plan you know. That clarity matters—continue with the next scheduled step.`;
+  } else if (recentActivity?.type === "opportunity") {
+    situation = "opportunity-identified";
+    introduction = `${prefix}Agent Owl found a possible improvement. Review the trade-offs before deciding whether it belongs in your plan.`;
+  }
 
   return {
-    introduction: name
-      ? `${name}, you’re building toward ${outcome}.`
-      : `You’re building toward ${outcome}.`,
+    introduction,
+    situation,
     progressMessage: buildProgressMessage(plan, onTrack),
     statusLabel: onTrack.ahead
       ? "Ahead of pace"
