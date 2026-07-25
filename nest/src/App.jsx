@@ -17,6 +17,7 @@ import PayNowContactsPage from './pages/PayNowContactsPage';
 import PayNowAmountPage from './pages/PayNowAmountPage';
 import PayNowConfirmPage from './pages/PayNowConfirmPage';
 import PayNowSuccessPage from './pages/PayNowSuccessPage';
+import RiskProfilingPage from './pages/RiskProfilingPage';
 
 function AppContent() {
   const { page, planDetailOrigin, setPage } = useApp();
@@ -26,7 +27,7 @@ function AppContent() {
 
   const isPayNowPage = page === 'paynow-contacts' || page === 'paynow-amount' || page === 'paynow-confirm' || page === 'paynow-success';
   const isPlanPage = page === 'plan-dashboard' || page === 'plan-view' || page === 'plan-milestones' || page === 'savings-breakdown' || page === 'opportunity-detail';
-  const isUserLoggedIn = page === 'home' || page === 'plan-details' || isPlanPage || isPayNowPage;
+  const isUserLoggedIn = page === 'home' || page === 'plan-details' || isPlanPage || isPayNowPage || page === 'risk-profiling';
   const activeNavTab = isPayNowPage
     ? 'pay'
     : (isPlanPage || (page === 'plan-details' && detailsOrigin === 'plan-dashboard') ? 'plan' : 'home');
@@ -141,10 +142,22 @@ function AppContent() {
             <PayNowSuccessPage />
           </motion.div>
         )}
+        {page === 'risk-profiling' && (
+          <motion.div
+            key="risk-profiling"
+            initial={{ opacity: 0, x: 60 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -60 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 180 }}
+            className="absolute inset-0 flex flex-col overflow-hidden z-10"
+          >
+            <RiskProfilingPage />
+          </motion.div>
+        )}
       </AnimatePresence>
 
       {/* Persistent overlay components for logged-in views */}
-      {isUserLoggedIn && !isPayNowPage && (
+      {isUserLoggedIn && !isPayNowPage && page !== 'risk-profiling' && (
         <>
           {page !== 'plan-milestones' && page !== 'savings-breakdown' && page !== 'opportunity-detail' && <ChatWidget />}
           <BottomNavBar activeTab={activeNavTab} onTabSelect={handleTabSelect} />

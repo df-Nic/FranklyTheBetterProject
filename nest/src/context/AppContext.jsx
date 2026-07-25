@@ -10,6 +10,7 @@ export const AppProvider = ({ children }) => {
   const [activePlanTitle, setActivePlanTitle] = useState('');
   const [activePlanId, setActivePlanId] = useState(null); // Selected proposal or accepted plan
   const [createdPlans, setCreatedPlans] = useState([]); // Plans are added only after explicit acceptance
+  const [hasCreatedFirstPlan, setHasCreatedFirstPlan] = useState(false);
   const [planDetailOrigin, setPlanDetailOrigin] = useState('home'); // 'home' | 'plan-dashboard'
   const [opportunityDecisions, setOpportunityDecisions] = useState({});
   const [opportunityNotice, setOpportunityNotice] = useState(null);
@@ -133,6 +134,8 @@ export const AppProvider = ({ children }) => {
         setActivePlanId,
         createdPlans,
         addCreatedPlan,
+        hasCreatedFirstPlan,
+        setHasCreatedFirstPlan,
         planAdjustments,
         adjustPlan,
         planDetailOrigin,
