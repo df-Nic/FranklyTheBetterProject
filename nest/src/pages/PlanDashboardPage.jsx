@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { ChevronRight, Plus, CalendarDays, Sparkles } from 'lucide-react';
 import { PLANS_DATA } from '../data/planTemplates';
-import { getOpportunityStatus, getPlanOpportunity, getRecommendedPlan } from '../data/planOpportunities';
+import { getPlanOpportunity, getRecommendedPlan } from '../data/planOpportunities';
 import { getMilestonePlan } from '../data/milestonePlans';
 
 // ─── Labeled Plan Illustrations ──────────────────────────────────────────────
@@ -69,19 +69,13 @@ const PLAN_META = {
 // ─── Single Plan Card ────────────────────────────────────────────────────────
 
 const PlanCard = ({ planId, index, onClick }) => {
-  const { planAdjustments, opportunityDecisions, createdPlans } = useApp();
+  const { planAdjustments } = useApp();
   const plan = PLANS_DATA[planId];
   const displayPlan = getMilestonePlan(planId, planAdjustments);
   const meta = PLAN_META[planId] || PLAN_META.default;
   const goalText = plan.goal.length > 92 ? plan.goal.slice(0, 92) + '\u2026' : plan.goal;
   
   const isHealed = planAdjustments?.[planId]?.healed;
-  const opportunity = getPlanOpportunity(planId);
-  const recommendedPlan = getRecommendedPlan(createdPlans.map((id) => getMilestonePlan(id, planAdjustments)));
-  const opportunityAlreadyHandled = Object.values(opportunityDecisions).some((item) => item.opportunityId === opportunity.id);
-  const hasActiveOpportunity = recommendedPlan?.id === planId
-    && !opportunityAlreadyHandled
-    && getOpportunityStatus(opportunity, opportunityDecisions[planId]) === 'active';
 
   return (
     <motion.div
@@ -104,12 +98,6 @@ const PlanCard = ({ planId, index, onClick }) => {
           {meta.tag}
         </span>
         <div className="absolute right-3 top-3 z-10 flex flex-col items-end gap-1.5">
-          {hasActiveOpportunity && (
-            <span className="flex items-center gap-1 rounded-full bg-[#7C2230] px-2.5 py-1 text-[8px] font-black uppercase tracking-wider text-white shadow-[0_4px_12px_rgba(124,34,48,0.24)]">
-              <Sparkles className="h-2.5 w-2.5 stroke-[3]" />
-              New opportunity
-            </span>
-          )}
           {isHealed && (
             <span className="flex items-center gap-1 rounded-full bg-emerald-500 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-white shadow-sm animate-pulse">
               <Sparkles className="h-2.5 w-2.5 stroke-[3]" />
@@ -149,7 +137,15 @@ const PlanCard = ({ planId, index, onClick }) => {
 // ─── Plan Dashboard Page ─────────────────────────────────────────────────────
 
 const PlanDashboardPage = () => {
-  const { navigate, createdPlans, setActivePlanId, setClickPos, setPlanDetailOrigin } = useApp();
+  const { navigate, createdPlans, setActivePlanId, setClickPos, setPlanDetailOrigin, planAdjustments, opportunityDecisions, requestPlanChatOpen } = useApp();
+  const dashboardPlans = createdPlans.map((id) => getMilestonePlan(id, planAdjustments));
+  const recommendedPlan = getRecommendedPlan(dashboardPlans);
+  const opportunity = getPlanOpportunity();
+  const opportunityHandled = Object.values(opportunityDecisions).some((item) => item.opportunityId === opportunity.id);
+  const startNewPlan = () => {
+    requestPlanChatOpen();
+    navigate('home');
+  };
 
   const handleCardClick = (e, planId) => {
     const mobileFrame = e.currentTarget.closest('[data-mobile-frame]');
@@ -176,7 +172,7 @@ const PlanDashboardPage = () => {
         </div>
 
         <button
-          onClick={() => navigate('home')}
+          onClick={startNewPlan}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-primary text-white text-[10px] font-bold transition-all duration-150 active:scale-95 shadow-sm cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -186,6 +182,23 @@ const PlanDashboardPage = () => {
 
       {/* Cards area */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-4 py-5 pb-28 flex flex-col gap-4 z-10">
+        {createdPlans.length > 0 && !opportunityHandled && (
+          <button
+            onClick={() => {
+              setActivePlanId(recommendedPlan?.id ?? createdPlans[0]);
+              navigate('opportunity-detail');
+            }}
+            className="relative min-h-[142px] shrink-0 overflow-hidden rounded-[22px] bg-[#7C2230] p-4 text-left text-white shadow-[0_10px_24px_rgba(124,34,48,0.24)]"
+          >
+            <Sparkles className="absolute -right-3 -top-3 h-20 w-20 text-white/10" />
+            <div className="relative text-[9px] font-black uppercase tracking-[0.15em] text-white/65">Opportunity starts now</div>
+            <div className="relative mt-1 text-[18px] font-black">Put your S$8,000 bonus to work</div>
+            <p className="relative mt-1 text-[10.5px] leading-relaxed text-white/75">
+              Owl compared {createdPlans.length} {createdPlans.length === 1 ? 'plan' : 'plans'} and recommends {recommendedPlan?.goalName}.
+            </p>
+            <span className="relative mt-3 inline-flex rounded-full bg-white px-3 py-1.5 text-[9px] font-black text-[#7C2230]">Compare and allocate</span>
+          </button>
+        )}
         {createdPlans.length === 0 ? (
           /* Empty state */
           <div className="flex flex-col items-center justify-center flex-1 gap-4 pt-20">
@@ -199,7 +212,7 @@ const PlanDashboardPage = () => {
               </p>
             </div>
             <button
-              onClick={() => navigate('home')}
+              onClick={startNewPlan}
               className="mt-2 px-5 py-2.5 rounded-full bg-brand-primary text-white text-xs font-bold shadow-sm active:scale-95 transition-all cursor-pointer"
             >
               Create a Plan

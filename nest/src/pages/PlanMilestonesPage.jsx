@@ -10,14 +10,13 @@ import {
   formatSGD,
 } from "../data/milestonePlans";
 import { buildPersonalizedPlanCopy } from "../data/personalizedPlanCopy";
-import { applyOpportunityChanges, getPlanOpportunity, getRecommendedPlan } from "../data/planOpportunities";
+import { applyOpportunityChanges, getPlanOpportunity } from "../data/planOpportunities";
 import { getPlanActivity } from "../data/planActivity";
 import MilestoneNode from "../components/milestones/MilestoneNode";
 import OnTrackCard from "../components/milestones/OnTrackCard";
 import JourneyOverlay from "../components/milestones/JourneyOverlay";
 import {
   AgentOwlImpactCard,
-  OpportunityCard,
 } from "../components/milestones/ImpactCards";
 
 /**
@@ -39,18 +38,12 @@ export default function PlanMilestonesPage() {
     adjustPlan,
     planActivity,
     addPlanActivity,
-    createdPlans,
   } = useApp();
   const basePlan = getMilestonePlan(activePlanId, planAdjustments);
   const opportunity = getPlanOpportunity(basePlan.id);
-  const decision = opportunityDecisions[basePlan.id]
-    ?? Object.values(opportunityDecisions).find((item) => item.status === "accepted" && item.destinationPlanId === basePlan.id);
+  const decision = Object.values(opportunityDecisions).find((item) =>
+    item.status === "accepted" && item.allocations?.some((allocation) => allocation.planId === basePlan.id));
   const plan = applyOpportunityChanges(basePlan, opportunity, decision);
-  const candidatePlans = (createdPlans.length ? createdPlans : [basePlan.id])
-    .map((id) => getMilestonePlan(id, planAdjustments));
-  const recommendedPlan = getRecommendedPlan(candidatePlans);
-  const sourceDecision = Object.values(opportunityDecisions).find((item) => item.opportunityId === opportunity.id);
-  const showOpportunity = recommendedPlan?.id === basePlan.id && !sourceDecision;
   const onTrack = deriveOnTrack(plan.onTrack);
   const activities = getPlanActivity({ plan, opportunity, decision, runtimeEvents: planActivity });
   const wasHealed = Boolean(planAdjustments?.[activePlanId]?.healed);
@@ -106,12 +99,6 @@ export default function PlanMilestonesPage() {
           </button>
           <span className="text-[10px] font-extrabold uppercase tracking-[0.18em]">Plan journey</span>
         </div>
-
-        <OpportunityCard
-          opportunity={showOpportunity ? opportunity : null}
-          decision={decision}
-          onExplore={() => setPage("opportunity-detail")}
-        />
 
         <div className="mt-2.5 flex min-h-9 items-center gap-2">
           {isEditingTitle ? (
@@ -195,7 +182,7 @@ export default function PlanMilestonesPage() {
           onClick={() => setPage("plan-view")}
           className="flex w-full items-center justify-between rounded-[14px] px-1 py-2 text-left text-[12px] font-extrabold text-[#7C2230] active:scale-[0.99]"
         >
-          <span>View plan strategy and forecast</span>
+          <span>View plan breakdown</span>
           <ChevronRight size={16} className="shrink-0" />
         </button>
       </div>

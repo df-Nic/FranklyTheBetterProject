@@ -9,11 +9,9 @@ function buildProgressMessage(plan, onTrack) {
   if (onTrack.ahead) {
     return `You’re ${delta} ahead of the pace for ${date}. That extra room can help absorb an uneven month without moving your goal date.`;
   }
-
   if (onTrack.onTrack) {
     return `You’re ${delta} below the pace for ${date}, and still within the plan’s normal buffer. A small adjustment can bring the next milestone closer without changing the whole plan.`;
   }
-
   return `You’re ${delta} below the pace for ${date}. The plan can focus first on the smallest adjustment that improves your path forward.`;
 }
 
@@ -22,34 +20,61 @@ function buildReflection(plan) {
   const latest = milestones[getCurrentMilestoneIndex(milestones)];
   const next = milestones.find((milestone) => milestone.state === "next");
   const outcome = plan.personalContext?.desiredOutcome ?? NEUTRAL_OUTCOME;
-
   const achieved = latest
     ? `You’ve reached ${latest.name}. That is another concrete step toward ${outcome}.`
     : `Your journey toward ${outcome} is underway.`;
-
   const lookingAhead = next
     ? `Next is ${next.name} by ${next.date}.`
     : "Your planned milestones are complete.";
-
   return { achieved, lookingAhead };
 }
 
-export function buildPersonalizedPlanCopy({ plan, userName, onTrack, recentActivity, decision, wasHealed = false }) {
+function buildEmotionalProgressMessage(plan, onTrack, prefix) {
+  const focusByPlan = {
+    "wedding-fund": "the celebration you want without putting pressure on the life that follows",
+    retirement: "a future with more freedom and fewer financial worries",
+    housing: "the security and breathing room of having a home of your own",
+    savings: "the security and breathing room of having a home of your own",
+    emergency: "the confidence to handle surprises without disrupting everyday life",
+    "career-break": "the freedom to take your break without carrying financial worry into it",
+    "parents-retirement": "greater comfort and security for your parents",
+    default: "the future you want with less financial uncertainty",
+  };
+
+  if (plan.id === "children-education") {
+    if (onTrack.ahead) {
+      return `${prefix}you’re giving your child’s future more possibilities with every contribution. You’re already ahead of pace—keep going, because the steady progress you’re making today means greater freedom when university begins.`;
+    }
+    if (onTrack.onTrack) {
+      return `${prefix}every contribution is helping turn your hopes for your child’s education into something real. You’re within reach of the pace you need, and staying steady now will give your family more choices when university begins.`;
+    }
+    return `${prefix}this goal may need a little more attention, but the future you’re building for your child is still within reach. One manageable step now can restore momentum and keep more university choices open later.`;
+  }
+
+  const focus = focusByPlan[plan.id] || plan.personalContext?.desiredOutcome || focusByPlan.default;
+  if (onTrack.ahead) {
+    return `${prefix}the steady choices you’re making are bringing you closer to ${focus}. You’re ahead of pace—keep going, because that extra breathing room gives you more choice when it matters.`;
+  }
+  if (onTrack.onTrack) {
+    return `${prefix}you’re turning ${focus} into something achievable, one steady step at a time. You’re within reach of the pace you need, and consistency now will make the road ahead feel lighter.`;
+  }
+  return `${prefix}${focus} is still within reach, even if this plan needs a little more attention today. One manageable step can restore momentum without asking you to solve everything at once.`;
+}
+
+export function buildPersonalizedPlanCopy({
+  plan, userName, onTrack, recentActivity, decision, wasHealed = false,
+}) {
   const outcome = plan.personalContext?.desiredOutcome ?? NEUTRAL_OUTCOME;
   const name = userName?.trim();
   const prefix = name ? `${name}, ` : "";
-  const latestCompleted = plan.milestones?.filter((item) => item.state === "completed").at(-1);
   let situation = onTrack.ahead ? "ahead" : onTrack.onTrack ? "close" : "behind";
-  let introduction = onTrack.ahead
-    ? `${prefix}you’ve built valuable breathing room. Keep your next contribution steady to protect it.`
-    : onTrack.onTrack
-      ? `${prefix}you’re still within reach of your plan. One steady contribution keeps the next milestone moving closer.`
-      : `${prefix}this plan is behind pace, but it is recoverable. Start with the smallest adjustment that closes the gap.`;
+  let introduction = buildEmotionalProgressMessage(plan, onTrack, prefix);
 
-  if (latestCompleted) {
+  if (recentActivity?.type === "milestone") {
     situation = "milestone-completed";
-    introduction = `${prefix}${latestCompleted.name} is complete—a real step toward ${outcome}. Keep that momentum on the next milestone.`;
+    introduction = `${prefix}${recentActivity.title} is complete—a meaningful step toward ${outcome}. Take a moment to recognise that progress, then carry the momentum into what comes next.`;
   }
+
   if (wasHealed || recentActivity?.type === "adjustment") {
     situation = "adjusted";
     introduction = `${prefix}your plan has adapted to the latest change. Review the new path, then keep the next contribution on course.`;

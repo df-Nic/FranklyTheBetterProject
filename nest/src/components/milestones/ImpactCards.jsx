@@ -25,7 +25,7 @@ export function AgentOwlImpactCard({ latestActivity, eventCount, onSeeBreakdown 
           <ShieldCheck size={17} className="text-[#2E7D4F]" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-[9px] font-black uppercase tracking-[0.12em] text-[#8A7F78]">Agent Owl activity</span>
+          <span className="block text-[9px] font-black uppercase tracking-[0.12em] text-[#8A7F78]">Agent Owl history</span>
           <span className="mt-0.5 block text-[12.5px] font-extrabold text-[#2B2320]">
             {latestActivity?.title || "Your plan history is ready"}
           </span>

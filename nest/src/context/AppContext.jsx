@@ -31,6 +31,7 @@ export const AppProvider = ({ children }) => {
   const [opportunityNotice, setOpportunityNotice] = useState(null);
   const [planAdjustments, setPlanAdjustments] = useState({});
   const [planActivity, setPlanActivity] = useState([]);
+  const [planChatRequest, setPlanChatRequest] = useState(0);
   const [user, setUser] = useState({
     name: 'Olivia',
     accessId: '',
@@ -89,17 +90,32 @@ export const AppProvider = ({ children }) => {
     if (!planId || !event?.id) return;
     setPlanActivity(prev => [...prev.filter(item => item.id !== event.id), { ...event, planId }]);
   };
+  const requestPlanChatOpen = () => setPlanChatRequest(value => value + 1);
+  const consumePlanChatRequest = () => setPlanChatRequest(0);
 
   const toggleMask = () => {
     setIsMasked((prev) => !prev);
   };
 
-  const decideOpportunity = (planId, opportunity, status, destinationPlanId = planId, allocationImpact = null) => {
+  const decideOpportunity = (planId, opportunity, status, allocations = []) => {
     if (!planId || !opportunity || !['accepted', 'declined'].includes(status)) return false;
     if (opportunity.status !== 'active' || opportunityDecisions[planId]) return false;
     if (status === 'accepted' && opportunity.eligibility?.status !== 'verified') return false;
 
+    const allocatedAmount = status === 'accepted'
+      ? allocations.reduce((sum, allocation) => sum + allocation.amount, 0)
+      : 0;
+    if (status === 'accepted' && (
+      allocatedAmount <= 0
+      || allocatedAmount > (opportunity.sourceAmount ?? 0)
+      || allocations.some((allocation) => !Number.isInteger(allocation.amount) || allocation.amount < 0)
+    )) return false;
+
     const decidedAt = '24 Jul 2026';
+    const returnedAmount = status === 'accepted'
+      ? Math.max(0, (opportunity.sourceAmount ?? 0) - allocatedAmount)
+      : opportunity.sourceAmount ?? 0;
+    const formatAmount = (amount) => `S$${amount.toLocaleString('en-SG')}`;
     setOpportunityDecisions((current) => ({
       ...current,
       [planId]: {
@@ -107,22 +123,25 @@ export const AppProvider = ({ children }) => {
         status,
         decidedAt,
         sourcePlanId: planId,
-        destinationPlanId,
-        allocatedAmount: status === 'accepted' ? opportunity.sourceAmount : 0,
-        monthsSaved: status === 'accepted' ? allocationImpact?.monthsSaved : 0,
+        allocations: status === 'accepted' ? allocations : [],
+        allocatedAmount,
+        returnedAmount,
+        sourceAccount: opportunity.sourceAccount ?? 'source account',
         appliedChanges: status === 'accepted' ? opportunity.planChanges : null,
       },
     }));
     setOpportunityNotice({
-      planId: destinationPlanId,
+      planId,
       status,
       message: status === 'accepted'
-        ? 'Your plan has been enhanced with this opportunity.'
+        ? returnedAmount > 0
+          ? `${formatAmount(allocatedAmount)} was added to your plan. ${formatAmount(returnedAmount)} was returned to your ${opportunity.sourceAccount ?? 'source account'}, and this opportunity is complete.`
+          : 'Your plan has been enhanced with this opportunity.'
         : 'Your existing plan remains unchanged.',
     });
     setPlanActivity(prev => [...prev.filter(item => item.id !== `decision-${opportunity.id}-${status}`), {
       id: `decision-${opportunity.id}-${status}`,
-      planId: destinationPlanId,
+      planId,
       actor: 'user',
       type: 'decision',
       title: status === 'accepted' ? 'Opportunity accepted' : 'Current plan kept',
@@ -189,6 +208,9 @@ export const AppProvider = ({ children }) => {
         adjustPlan,
         planActivity,
         addPlanActivity,
+        planChatRequest,
+        requestPlanChatOpen,
+        consumePlanChatRequest,
         customPlanData,
         updateCustomPlanData,
         planDetailOrigin,
