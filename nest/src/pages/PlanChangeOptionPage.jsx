@@ -350,7 +350,7 @@ const PlanChangeOptionPage = () => {
     // Exclude alternatives that are identical to the original action
     filteredAlts = filteredAlts.filter(alt => {
       const normAltName = alt.name.toLowerCase();
-      const normOrigName = (changingAction.name || '').toLowerCase();
+      const normOrigName = (changingAction?.name || '').toLowerCase();
       
       if (normAltName === normOrigName) return false;
       if (normAltName.includes("360") && normOrigName.includes("360")) return false;
@@ -412,7 +412,25 @@ const PlanChangeOptionPage = () => {
     setPage('plan-details');
   };
 
-  if (!changingAction) return null;
+  if (!changingAction) {
+    return (
+      <div className="flex h-full w-full flex-col items-center justify-center bg-[#F5F5F7] px-6 text-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-zinc-400 shadow-sm">
+          <ArrowLeft className="h-5 w-5" />
+        </div>
+        <h1 className="mt-4 text-sm font-black text-zinc-900">No product selected</h1>
+        <p className="mt-1 max-w-[250px] text-[10px] font-medium leading-relaxed text-zinc-500">
+          Return to the plan and choose “Change product” on the recommendation you want to replace.
+        </p>
+        <button
+          onClick={() => setPage('plan-details')}
+          className="mt-5 rounded-xl bg-brand-primary px-5 py-2.5 text-[10px] font-black text-white shadow-sm active:scale-95"
+        >
+          Back to plan
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-full flex flex-col bg-[#F5F5F7] relative overflow-hidden select-none text-left">

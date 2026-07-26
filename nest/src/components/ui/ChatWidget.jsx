@@ -44,7 +44,7 @@ const PLAN_SUBGOALS = {
 };
 
 const ChatWidget = () => {
-  const { setPage, setClickPos, setActivePlanTitle, setActivePlanId, addCreatedPlan, setPlanDetailOrigin, hasCreatedFirstPlan, setHasCreatedFirstPlan, updateCustomPlanData } = useApp();
+  const { setPage, setClickPos, setActivePlanTitle, setActivePlanId, addCreatedPlan, setPlanDetailOrigin, hasCreatedFirstPlan, setHasCreatedFirstPlan, updateCustomPlanData, planChatRequest, consumePlanChatRequest } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -60,6 +60,60 @@ const ChatWidget = () => {
   const [targetDate, setTargetDate] = useState('');
   const [paymentStrategy, setPaymentStrategy] = useState('');
   const [generatedSubgoals, setGeneratedSubgoals] = useState([]);
+  const [inferredDefaults, setInferredDefaults] = useState(null);
+  const [unsureFields, setUnsureFields] = useState([]);
+  const isUnsure = (value) => /not sure|don't know|dont know|you decide|no idea/i.test(value);
+  const inferDefaults = (planId) => {
+    const defaults = {
+      retirement: [1500000, 'Oct 2045', 2400],
+      housing: [150000, 'Mar 2028', 2500],
+      savings: [50000, 'Jan 2030', 900],
+      emergency: [30000, 'Dec 2026', 4000],
+      'wedding-fund': [35000, 'Dec 2027', 1200],
+      'children-education': [80000, 'Oct 2035', 500],
+      'career-break': [25000, 'Jun 2028', 800],
+      'parents-retirement': [120000, 'Dec 2032', 1000],
+      default: [100000, 'Jan 2030', 900],
+    };
+    const [amount, date, monthly] = defaults[planId] || defaults.default;
+    return { amount, date, monthly, strategy: 'staggered' };
+  };
+
+  const confirmInferredPlan = () => {
+    const proposal = inferredDefaults;
+    if (!proposal) return;
+    setTargetAmount(proposal.amount);
+    setTargetDate(proposal.date);
+    setPaymentStrategy(proposal.strategy);
+    updateCustomPlanData(planGoal, {
+      targetAmount: proposal.amount,
+      targetDate: proposal.date,
+      paymentStrategy: proposal.strategy,
+      inferredByOwl: true,
+    });
+    setMessages(prev => [...prev, {
+      id: Date.now(), sender: 'bot', isReturningUserConfirmation: true, planTitle,
+      text: <span>Your Owl-assisted starting point is ready. Review the full breakdown before accepting it.</span>,
+    }]);
+    setFlowState('idle');
+  };
+
+  const editInferredPlan = () => {
+    setInferredDefaults(null);
+    setUnsureFields([]);
+    setInputText('');
+    setFlowState('asking_amount');
+    setMessages(prev => [...prev, {
+      id: Date.now(),
+      sender: 'bot',
+      text: (
+        <span>
+          No problem. Let’s set it manually. <span className="text-brand-primary font-black">What total target amount would you like to use?</span>
+        </span>
+      ),
+    }]);
+    setTimeout(() => chatInputRef.current?.focus(), 0);
+  };
 
   const parseDateInput = (str) => {
     const now = new Date();
@@ -117,7 +171,9 @@ const ChatWidget = () => {
   const containerRef = useRef(null);
   const messagesEndRef = useRef(null);
   const scrollContainerRef = useRef(null);
+  const chatInputRef = useRef(null);
   const lastPosition = useRef({ x: 0, y: 0 });
+  const consumedChatRequest = useRef(0);
   const isDragging = useRef(false);
 
   const handleDragStart = () => {
@@ -273,6 +329,30 @@ const ChatWidget = () => {
     setPosition({ x: targetX, y: targetY });
     setIsOpen(true);
   };
+
+  useEffect(() => {
+    if (!planChatRequest || planChatRequest === consumedChatRequest.current) return;
+    consumedChatRequest.current = planChatRequest;
+    consumePlanChatRequest();
+    setFlowState('idle');
+    setPlanGoal(null);
+    setPlanTitle('');
+    setTargetAmount(0);
+    setTargetDate('');
+    setPaymentStrategy('');
+    setGeneratedSubgoals([]);
+    setUnsureFields([]);
+    setMessages([{
+      id: Date.now(),
+      sender: 'bot',
+      text: (
+        <span>
+          Let’s create a new plan. Tell me the goal in your own words—you can also say <span className="text-brand-primary font-black">“I’m not sure”</span> for budget or timing and I’ll suggest a starting point.
+        </span>
+      ),
+    }]);
+    requestAnimationFrame(handleOpen);
+  }, [planChatRequest]);
 
   const handleClose = () => {
     // Restore the bubble back to its last snap coordinate before it was opened
@@ -492,6 +572,20 @@ const ChatWidget = () => {
         setFlowState('asking_amount');
 
       } else if (flowState === 'asking_amount') {
+        if (isUnsure(trimmed)) {
+          setUnsureFields(current => [...new Set([...current, 'amount'])]);
+          setMessages(prev => [...prev, {
+            id: Date.now(),
+            sender: 'bot',
+            text: (
+              <span>
+                That’s okay—I’ll estimate a suitable target. Next, <span className="text-brand-primary font-black">when would you ideally like to achieve this goal?</span>
+              </span>
+            ),
+          }]);
+          setFlowState('asking_date');
+          return;
+        }
         const num = parseFloat(trimmed.replace(/[^0-9.]/g, ''));
         if (isNaN(num) || num <= 0) {
           setMessages(prev => [
@@ -517,10 +611,38 @@ const ChatWidget = () => {
         setFlowState('asking_date');
 
       } else if (flowState === 'asking_date') {
+        if (isUnsure(trimmed)) {
+          setUnsureFields(current => [...new Set([...current, 'date'])]);
+          setMessages(prev => [...prev, {
+            id: Date.now(),
+            sender: 'bot',
+            text: (
+              <span>
+                No problem—I’ll suggest a realistic date. Finally, would you prefer <span className="text-brand-primary font-black">staggered payments or one lump sum?</span>
+              </span>
+            ),
+          }]);
+          setFlowState('asking_strategy');
+          return;
+        }
         const now = new Date();
         const parsedDate = parseDateInput(trimmed);
         const formattedTargetDate = formatDate(parsedDate);
         setTargetDate(formattedTargetDate);
+
+        if (unsureFields.includes('amount')) {
+          setMessages(prev => [...prev, {
+            id: Date.now(),
+            sender: 'bot',
+            text: (
+              <span>
+                Got it. One last question: would you prefer <span className="text-brand-primary font-black">staggered payments or one lump sum?</span>
+              </span>
+            ),
+          }]);
+          setFlowState('asking_strategy');
+          return;
+        }
 
         const totalMonths = (parsedDate.getFullYear() - now.getFullYear()) * 12 + (parsedDate.getMonth() - now.getMonth());
         const validMonths = totalMonths > 0 ? totalMonths : 24;
@@ -610,9 +732,25 @@ const ChatWidget = () => {
         }, 1200);
 
       } else if (flowState === 'asking_strategy') {
-        const normalizedStrategy = /stagger/i.test(trimmed) ? 'staggered' : 'lump-sum';
+        const strategyUnsure = isUnsure(trimmed);
+        const normalizedStrategy = strategyUnsure ? 'staggered' : (/stagger/i.test(trimmed) ? 'staggered' : 'lump-sum');
         setPaymentStrategy(normalizedStrategy);
         updateCustomPlanData(planGoal, { paymentStrategy: normalizedStrategy });
+
+        if (unsureFields.length > 0 || strategyUnsure) {
+          const defaults = inferDefaults(planGoal);
+          const proposal = {
+            ...defaults,
+            amount: unsureFields.includes('amount') ? defaults.amount : targetAmount,
+            date: unsureFields.includes('date') ? defaults.date : targetDate,
+            strategy: strategyUnsure ? defaults.strategy : normalizedStrategy,
+          };
+          setUnsureFields(current => [...new Set([...current, ...(strategyUnsure ? ['strategy'] : [])])]);
+          setInferredDefaults(proposal);
+          setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', isInferredDefaults: true, proposal }]);
+          setFlowState('confirming_inference');
+          return;
+        }
 
         // Post-plan Routing decision
         if (!hasCreatedFirstPlan) {
@@ -738,6 +876,19 @@ const ChatWidget = () => {
                           transition={{ duration: 0.5, repeat: Infinity, ease: "easeInOut", delay: 0.24 }}
                           className="w-1.5 h-1.5 bg-zinc-400 rounded-full"
                         />
+                      </div>
+                    ) : msg.isInferredDefaults ? (
+                      <div className="w-full min-w-[220px] text-zinc-800">
+                        <div className="text-[9px] font-black uppercase tracking-wider text-brand-primary">Owl’s suggested starting point</div>
+                        <div className="mt-2 space-y-1.5 rounded-xl bg-zinc-50 p-2.5 text-[9.5px]">
+                          <div className="flex justify-between"><span>Target</span><strong>S${msg.proposal.amount.toLocaleString()}</strong></div>
+                          <div className="flex justify-between"><span>Goal date</span><strong>{msg.proposal.date}</strong></div>
+                          <div className="flex justify-between"><span>Monthly amount</span><strong>S${msg.proposal.monthly.toLocaleString()}</strong></div>
+                          <div className="flex justify-between"><span>Payment style</span><strong>Staggered</strong></div>
+                        </div>
+                        <p className="mt-2 text-[9px] leading-relaxed text-zinc-500">Based on this goal type, your linked balances, and a contribution that preserves flexibility.</p>
+                        <button onClick={confirmInferredPlan} className="mt-2.5 w-full rounded-lg bg-brand-primary py-2 text-[9px] font-black text-white">Use these suggestions</button>
+                        <button onClick={editInferredPlan} className="mt-1.5 w-full rounded-lg border border-zinc-200 py-2 text-[9px] font-black">Edit values</button>
                       </div>
                     ) : msg.isPlanBreakdown ? (
                       <div className="flex flex-col gap-2.5 w-full min-w-0 text-zinc-800">
@@ -905,6 +1056,7 @@ const ChatWidget = () => {
                 </div>
               ) : (
                 <input
+                  ref={chatInputRef}
                   type="text"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}

@@ -274,6 +274,7 @@ const CASH_INFLUX_OPPORTUNITY = {
   checkedDate: "24 Jul 2026",
   expiryDate: "31 Aug 2026",
   sourceAmount: 8000,
+  sourceAccount: "OCBC 360 Account",
   benefitType: "Faster plan progress",
   benefitLabel: "Give your next goal a meaningful head start",
   benefitValue: "S$8,000",
@@ -297,17 +298,88 @@ export function getAllocationImpact(plan, amount = CASH_INFLUX_OPPORTUNITY.sourc
   const target = plan.targetAmount || 1;
   const remaining = Math.max(0, target - saved);
   const applied = Math.min(amount, remaining || amount);
+  const gapRatio = remaining / target;
+  const behindSchedule = (plan.onTrack?.expected ?? 0) > saved;
+  const goalTime = Date.parse(plan.goalDate);
+  const monthsToGoal = Number.isFinite(goalTime)
+    ? Math.max(1, Math.round((goalTime - Date.now()) / 2_629_800_000))
+    : 60;
+  const deadlinePressure = Math.min(1, 24 / monthsToGoal);
   return {
     applied,
     currentProgress: Math.min(100, Math.round((saved / target) * 100)),
     newProgress: Math.min(100, Math.round(((saved + applied) / target) * 100)),
     monthsSaved: Math.max(1, Math.round(applied / Math.max(plan.monthlyContribution || 1, 1))),
-    pressure: remaining / target + ((plan.onTrack?.expected ?? 0) > saved ? 0.35 : 0),
+    gapRatio,
+    behindSchedule,
+    deadlinePressure,
+    pressure: gapRatio + (behindSchedule ? 0.35 : 0) + deadlinePressure * 0.25,
   };
+}
+
+export function getAllocationReason(plan, amount, total = CASH_INFLUX_OPPORTUNITY.sourceAmount) {
+  const impact = getAllocationImpact(plan);
+  const share = Math.round((amount / total) * 100);
+  const outcome = plan.personalContext?.desiredOutcome || plan.goalName.toLowerCase();
+  if (impact.behindSchedule) {
+    return `${share}% goes here because ${plan.goalName} is behind schedule. This larger boost helps it catch up toward ${outcome}.`;
+  }
+  if (impact.deadlinePressure > 0.5) {
+    return `${share}% goes here because ${plan.goalName} is one of your nearer goals and has ${Math.round(impact.gapRatio * 100)}% left to fund.`;
+  }
+  return `${share}% goes here because ${plan.goalName} still has ${Math.round(impact.gapRatio * 100)}% left to fund. Even with more time, this amount can start growing toward ${outcome} now.`;
+}
+
+export function getPersonalizedRecommendationReason(plan, userName) {
+  const impact = getAllocationImpact(plan);
+  const firstName = userName?.trim()?.split(/\s+/)[0];
+  const outcome = plan.personalContext?.desiredOutcome || plan.personalContext?.motivation || "the outcome you planned for";
+  const timing = impact.behindSchedule
+    ? "it is behind the saving pace needed for its deadline"
+    : impact.deadlinePressure > 0.5
+      ? "its nearer deadline leaves less time for future contributions"
+      : "it has the strongest remaining funding need among your active plans";
+  return `${firstName ? `${firstName}, ` : ""}Owl prioritised ${plan.goalName} because ${Math.round(impact.gapRatio * 100)}% of its target is still unfunded and ${timing}. Using the bonus here makes the biggest immediate contribution toward ${outcome}, while easing the load on your regular monthly savings.`;
+}
+
+export function getProductAllocationReason(plan, userName) {
+  const priority = plan.personalContext?.priority;
+  const firstName = userName?.trim()?.split(/\s+/)[0];
+  const outcome = plan.personalContext?.desiredOutcome || plan.personalContext?.motivation || "your stated goal";
+  const prefix = firstName ? `${firstName}, ` : "";
+  if (plan.id === "emergency") return `${prefix}Owl keeps this in OCBC 360 so it remains immediately available for ${outcome}. A fixed deposit or market portfolio could offer more return, but lock-up or volatility would work against an emergency buffer.`;
+  if (["housing", "wedding-fund", "career-break"].includes(plan.id)) return `${prefix}Owl combines accessible OCBC 360 savings with a fixed deposit because ${outcome} has a defined, nearer-term date. It avoids equity-heavy portfolios: a market dip when you need to pay would matter more than their higher potential return.`;
+  if (plan.id === "children-education") return `${prefix}Owl uses the Child Development Account for earlier education costs and the Balanced Portfolio for tuition further away, matching how your family will pay for ${outcome}. It avoids leaving everything in cash, where inflation can erode it, or putting everything into higher-risk equities when some money may be needed sooner.`;
+  if (plan.id === "retirement") return `${prefix}Owl pairs SRS with the Balanced Portfolio because your longer horizon can use both tax savings and compounding for ${outcome}. It avoids an all-deposit mix that may grow too slowly and an equity-only mix with more volatility than your ${priority || "balanced"} preference calls for.`;
+  if (plan.id === "parents-retirement") return `${prefix}Owl balances retirement-income support with a liquid OCBC 360 medical reserve because ${outcome} needs both dependable support and access for unexpected care. Locking the full bonus into an investment would leave too little flexibility.`;
+  return `${prefix}Owl balances OCBC 360 liquidity with measured portfolio growth for ${outcome}. It avoids using only one product because your ${priority || "balanced"} preference needs both accessible funds and protection against inflation.`;
 }
 
 export function getRecommendedPlan(plans) {
   return [...plans].sort((a, b) => getAllocationImpact(b).pressure - getAllocationImpact(a).pressure)[0] ?? null;
+}
+
+export function getWeightedAllocations(plans, total = 8000) {
+  if (!plans.length) return [];
+  const weights = plans.map((plan) => Math.max(0.01, getAllocationImpact(plan).pressure));
+  const weightTotal = weights.reduce((sum, value) => sum + value, 0);
+  let remaining = total;
+  return plans.map((plan, index) => {
+    const amount = index === plans.length - 1 ? remaining : Math.floor((total * weights[index]) / weightTotal);
+    remaining -= amount;
+    return { planId: plan.id, amount, monthsSaved: getAllocationImpact(plan, amount).monthsSaved };
+  }).filter((item) => item.amount > 0);
+}
+
+export function scaleAllocationUses(planId, amount) {
+  const base = getAllocationUses(planId);
+  const baseTotal = base.reduce((sum, item) => sum + item.amount, 0) || 1;
+  let remaining = amount;
+  return base.map((item, index) => {
+    const scaledAmount = index === base.length - 1 ? remaining : Math.round((amount * item.amount) / baseTotal);
+    remaining -= scaledAmount;
+    return { ...item, amount: scaledAmount, projectedGain: Math.round(item.projectedGain * scaledAmount / item.amount) };
+  });
 }
 
 const ALLOCATION_USES = {
@@ -401,10 +473,11 @@ function accelerateGoalDate(value, months) {
 }
 
 export function applyOpportunityChanges(plan, opportunity, decision) {
-  if (!opportunity || decision?.status !== "accepted" || (decision.destinationPlanId && decision.destinationPlanId !== plan.id)) return plan;
+  const allocation = decision?.allocations?.find((item) => item.planId === plan.id);
+  if (!opportunity || decision?.status !== "accepted" || !allocation) return plan;
   const changes = opportunity.planChanges ?? {};
   const milestoneDates = changes.milestoneDates ?? {};
-  const acceleratedGoalDate = accelerateGoalDate(plan.goalDate, decision.monthsSaved);
+  const acceleratedGoalDate = accelerateGoalDate(plan.goalDate, allocation.monthsSaved);
   return {
     ...plan,
     goalDate: changes.goalDate ?? acceleratedGoalDate,
@@ -412,7 +485,7 @@ export function applyOpportunityChanges(plan, opportunity, decision) {
     ...(changes.strategy ? { strategy: changes.strategy } : {}),
     onTrack: {
       ...plan.onTrack,
-      saved: plan.onTrack.saved + (decision.allocatedAmount ?? opportunity.sourceAmount ?? 0),
+      saved: plan.onTrack.saved + allocation.amount,
     },
     milestones: plan.milestones.map((milestone, index) => {
       if (milestoneDates[milestone.id]) return { ...milestone, date: milestoneDates[milestone.id] };

@@ -88,7 +88,11 @@ export default function SavingsBreakdownPage() {
   const plan = getMilestonePlan(activePlanId, planAdjustments);
   const opportunity = getPlanOpportunity(plan.id);
   const events = getPlanActivity({
-    plan, opportunity, decision: opportunityDecisions[plan.id], runtimeEvents: planActivity,
+    plan,
+    opportunity,
+    decision: Object.values(opportunityDecisions).find((item) =>
+      item.status === "accepted" && item.allocations?.some((allocation) => allocation.planId === plan.id)),
+    runtimeEvents: planActivity,
   });
   const [expandedId, setExpandedId] = useState(null);
 
@@ -101,7 +105,7 @@ export default function SavingsBreakdownPage() {
           </button>
           <div>
             <div className="text-[9px] font-extrabold uppercase tracking-[0.18em] text-[#8A7F78]">{plan.goalName}</div>
-            <h1 className="text-[18px] font-black">Agent Owl activity</h1>
+            <h1 className="text-[18px] font-black">Agent Owl history</h1>
           </div>
         </div>
       </header>
@@ -111,7 +115,7 @@ export default function SavingsBreakdownPage() {
             <img src={owlImg} alt="" className="h-6 w-6 rounded-full bg-white/90 object-contain" /> Plan history
           </div>
           <p className="mt-2 text-[12px] font-semibold leading-relaxed text-white/85">
-            A transparent record of what Agent Owl noticed, what changed, and what you decided.
+            What Agent Owl has already done for you, including what changed and what you decided.
           </p>
         </section>
         {events.length ? (

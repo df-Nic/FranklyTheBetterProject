@@ -13,6 +13,12 @@ const offsetDate = (value, days) => {
   return date.toISOString();
 };
 
+const offsetMinutes = (value, minutes) => {
+  const parsed = Date.parse(value);
+  if (!Number.isFinite(parsed)) return value;
+  return new Date(parsed + minutes * 60_000).toISOString();
+};
+
 export function buildSeededPlanActivity(plan, opportunity, decision) {
   const savings = getSavingsBreakdown(plan.id);
   const createdMilestone = plan.milestones.find((item) => item.id === "created");
@@ -64,16 +70,26 @@ export function buildSeededPlanActivity(plan, opportunity, decision) {
   });
 
   plan.milestones
-    .filter((item) => item.state === "completed" && item.id !== "created")
+    .filter((item) => {
+      const completedAt = dateValue(item.completedAt ?? item.date);
+      return item.state === "completed"
+        && item.id !== "created"
+        && completedAt > 0
+        && completedAt <= Date.now();
+    })
     .forEach((item) => events.push({
     id: `milestone-${item.id}`, planId: plan.id, actor: "user", type: "milestone",
     title: item.name, description: "You completed this step in your plan journey.",
-    timestamp: item.date, status: "completed",
+    timestamp: item.completedAt ?? item.date, status: "completed",
   }));
 
   if (opportunity) events.push({
     id: `opportunity-${opportunity.id}`, planId: plan.id, actor: "owl", type: "opportunity",
-    title: opportunity.title, description: opportunity.summary, timestamp: opportunity.detectedDate,
+    title: opportunity.title,
+    description: opportunity.summary,
+    timestamp: createdDate && dateValue(opportunity.detectedDate) <= createdDate
+      ? new Date(createdDate + 5 * 60_000).toISOString()
+      : opportunity.detectedDate,
     status: "identified",
   });
 
@@ -93,8 +109,10 @@ export function buildSeededPlanActivity(plan, opportunity, decision) {
     actor: "owl",
     type: "completion",
     title: "Opportunity applied to plan",
-    description: `${opportunity.title} has been applied successfully.`,
-    timestamp: decision.decidedAt,
+    description: decision.returnedAmount > 0
+      ? `S$${(decision.allocations.find((allocation) => allocation.planId === plan.id)?.amount ?? 0).toLocaleString("en-SG")} was applied to ${plan.goalName} and S$${decision.returnedAmount.toLocaleString("en-SG")} was returned to your ${decision.sourceAccount}.`
+      : `${opportunity.title} has been applied successfully.`,
+    timestamp: offsetMinutes(decision.decidedAt, 2),
     status: "completed",
   });
   return events;
@@ -105,21 +123,13 @@ export function getPlanActivity({ plan, opportunity, decision, runtimeEvents = [
   [...buildSeededPlanActivity(plan, opportunity, decision), ...runtimeEvents]
     .filter((event) => event.planId === plan.id)
     .forEach((event) => byId.set(event.id, event));
-  const now = Date.now();
   return [...byId.values()].sort((a, b) => {
     const aDate = dateValue(a.timestamp);
     const bDate = dateValue(b.timestamp);
-    const aFuture = aDate > now;
-    const bFuture = bDate > now;
+    if (aDate !== bDate) return bDate - aDate;
 
-    if (aFuture !== bFuture) return aFuture ? 1 : -1;
-    if (aDate !== bDate) return aFuture ? aDate - bDate : bDate - aDate;
-
-    // Preserve lifecycle order when records only have day-level precision:
-    // completed (latest), accepted, then identified.
+    // Deterministic fallback for legacy records that only contain a calendar date.
     const lifecycleRank = { completed: 3, accepted: 2, identified: 1 };
-    const rankDifference = (lifecycleRank[b.status] ?? 0) - (lifecycleRank[a.status] ?? 0);
-    if (rankDifference) return rankDifference;
-    return 0;
+    return (lifecycleRank[b.status] ?? 0) - (lifecycleRank[a.status] ?? 0);
   });
 }
