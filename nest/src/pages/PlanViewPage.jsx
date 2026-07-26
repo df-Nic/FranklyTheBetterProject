@@ -13,7 +13,7 @@ import BackgroundOrb from '../components/ui/BackgroundOrb';
 // Modular Imports
 import { PLANS_DATA } from '../data/planTemplates';
 import PlanAreaChart from '../components/ui/PlanAreaChart';
-import PlanCardDeck from '../components/ui/PlanCardDeck';
+import PlanTabbedDeck from '../components/ui/PlanTabbedDeck';
 import { getMilestonePlan } from '../data/milestonePlans';
 
 const PlanViewPage = () => {
@@ -81,7 +81,7 @@ const PlanViewPage = () => {
 
   const activePlan = getActivePlan();
   const displayPlan = getMilestonePlan(activePlanId, planAdjustments);
-  
+
   // Projections calculations based on specific targets and timelines
   const calculateDataPoints = (plan, categories) => {
     let initialCapital = 15000;
@@ -103,7 +103,7 @@ const PlanViewPage = () => {
     if (plan.id === 'emergency') {
       const months = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       return months.map((month, m) => {
-        const baseGrowthVal = initialCapital * Math.pow(1 + 0.015/12, m);
+        const baseGrowthVal = initialCapital * Math.pow(1 + 0.015 / 12, m);
         let depositsVal = 0;
         let investmentsVal = 0;
 
@@ -537,7 +537,7 @@ const PlanViewPage = () => {
 
         {/* Main Scroll Area */}
         <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-5 flex flex-col gap-4 z-10 pb-28">
-          
+
           {/* Top Section: Goal & Timeline */}
           <GlassCard className="p-4 border-white/70 relative overflow-hidden bg-white/40 shadow-sm flex flex-col gap-3 shrink-0">
             <span className="text-[8px] font-bold text-brand-primary uppercase tracking-widest leading-none flex items-center gap-1">
@@ -576,16 +576,16 @@ const PlanViewPage = () => {
           {/* Section Indicator */}
           <div className="flex flex-col mt-2 shrink-0">
             <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Execution Roadmap</span>
-            <span className="text-[9px] text-zinc-400 leading-normal mt-1 text-zinc-400 font-medium">
-              Swipe right to cycle, swipe left to bring bottom card up.
+            <span className="text-[9px] text-zinc-400 leading-normal mt-1 font-medium">
+              Select category tabs to view included products in your saved plan.
             </span>
           </div>
 
-          {/* Main Category Action Card Deck Stack Component */}
-          <PlanCardDeck 
-            categories={categoriesList} 
-            pendingExcluded={new Set()} 
-            toggleAction={() => {}} 
+          {/* Main Category Action Tabbed View Component */}
+          <PlanTabbedDeck
+            categories={categoriesList}
+            pendingExcluded={new Set()}
+            toggleAction={() => { }}
             isReadOnly={true}
           />
 

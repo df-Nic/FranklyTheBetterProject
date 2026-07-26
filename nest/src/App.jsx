@@ -18,6 +18,7 @@ import PayNowAmountPage from './pages/PayNowAmountPage';
 import PayNowConfirmPage from './pages/PayNowConfirmPage';
 import PayNowSuccessPage from './pages/PayNowSuccessPage';
 import RiskProfilingPage from './pages/RiskProfilingPage';
+import PlanChangeOptionPage from './pages/PlanChangeOptionPage';
 
 // Iris-animated wrapper for RiskProfilingPage — mirrors how PlanDetailsPage enters/exits
 function RiskProfilingIrisWrapper() {
@@ -56,7 +57,7 @@ function AppContent() {
   const detailsOrigin = planDetailOrigin || 'home';
 
   const isPayNowPage = page === 'paynow-contacts' || page === 'paynow-amount' || page === 'paynow-confirm' || page === 'paynow-success';
-  const isPlanPage = page === 'plan-dashboard' || page === 'plan-view' || page === 'plan-milestones' || page === 'savings-breakdown' || page === 'opportunity-detail';
+  const isPlanPage = page === 'plan-dashboard' || page === 'plan-view' || page === 'plan-milestones' || page === 'savings-breakdown' || page === 'opportunity-detail' || page === 'plan-change-option';
   const isUserLoggedIn = page === 'home' || page === 'plan-details' || isPlanPage || isPayNowPage || page === 'risk-profiling';
   const isRiskProfilingBackground = page === 'plan-details' && detailsOrigin === 'risk-profiling';
   const activeNavTab = isPayNowPage
@@ -189,8 +190,8 @@ function AppContent() {
       {/* Persistent overlay components for logged-in views */}
       {isUserLoggedIn && !isPayNowPage && page !== 'risk-profiling' && !isRiskProfilingBackground && (
         <>
-          {page !== 'plan-milestones' && page !== 'savings-breakdown' && page !== 'opportunity-detail' && <ChatWidget />}
-          <BottomNavBar activeTab={activeNavTab} onTabSelect={handleTabSelect} />
+          {page !== 'plan-milestones' && page !== 'savings-breakdown' && page !== 'opportunity-detail' && page !== 'plan-change-option' && <ChatWidget />}
+          {page !== 'plan-change-option' && <BottomNavBar activeTab={activeNavTab} onTabSelect={handleTabSelect} />}
         </>
       )}
 
@@ -240,6 +241,18 @@ function AppContent() {
             className="absolute inset-0 z-30 overflow-hidden"
           >
             <OpportunityDetailPage />
+          </motion.div>
+        )}
+        {page === 'plan-change-option' && (
+          <motion.div
+            key="plan-change-option"
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -40 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 180 }}
+            className="absolute inset-0 z-30 overflow-hidden"
+          >
+            <PlanChangeOptionPage />
           </motion.div>
         )}
       </AnimatePresence>

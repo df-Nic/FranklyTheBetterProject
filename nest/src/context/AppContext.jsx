@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 
 const AppContext = createContext();
 
@@ -10,6 +10,21 @@ export const AppProvider = ({ children }) => {
   const [activePlanTitle, setActivePlanTitle] = useState('');
   const [activePlanId, setActivePlanId] = useState(null); // Selected proposal or accepted plan
   const [createdPlans, setCreatedPlans] = useState([]); // Plans are added only after explicit acceptance
+  
+  // Shared Change Option States
+  const [changingAction, setChangingAction] = useState(null);
+  const [changingCategory, setChangingCategory] = useState(null);
+  const [chosenAlternatives, setChosenAlternatives] = useState({});
+  const [pendingExcluded, setPendingExcluded] = useState(new Set());
+  const [appliedExcluded, setAppliedExcluded] = useState(new Set());
+
+  // Reset selected alternatives and exclusion states when the active plan changes
+  useEffect(() => {
+    setPendingExcluded(new Set());
+    setAppliedExcluded(new Set());
+    setChosenAlternatives({});
+  }, [activePlanId]);
+
   const [hasCreatedFirstPlan, setHasCreatedFirstPlan] = useState(false);
   const [planDetailOrigin, setPlanDetailOrigin] = useState('home'); // 'home' | 'plan-dashboard'
   const [opportunityDecisions, setOpportunityDecisions] = useState({});
@@ -196,6 +211,16 @@ export const AppProvider = ({ children }) => {
         setPaynowSourceAccount,
         loginRedirectPage,
         setLoginRedirectPage,
+        changingAction,
+        setChangingAction,
+        changingCategory,
+        setChangingCategory,
+        chosenAlternatives,
+        setChosenAlternatives,
+        pendingExcluded,
+        setPendingExcluded,
+        appliedExcluded,
+        setAppliedExcluded,
       }}
     >
       {children}

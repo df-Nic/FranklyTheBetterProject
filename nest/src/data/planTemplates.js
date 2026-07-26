@@ -12,8 +12,8 @@ export const PLANS_DATA = {
     },
     categories: [
       {
-        id: "cpf_pension",
-        name: "CPF & Pension Planning",
+        id: "deposits",
+        name: "Deposits",
         icon: "Coins",
         actions: [
           { id: "ret_cpf_sa", name: "CPF SA Cash Top-up", desc: "Top up SG$8,000 directly to your CPF Special Account to earn 4.0% p.a. guaranteed yield and receive tax relief.", baseVal: 8000, rate: 0.04, type: "deposit" },
@@ -22,7 +22,7 @@ export const PLANS_DATA = {
       },
       {
         id: "investments",
-        name: "OCBC Strategic Growth",
+        name: "Investments",
         icon: "TrendingUp",
         actions: [
           { id: "ret_global_etf", name: "OCBC RoboInvest (Aggressive)", desc: "Automate SG$1,000/mo investments into equity portfolios yielding global market gains compounded at 7.2% p.a.", baseVal: 12000, rate: 0.072, type: "investment" },
@@ -31,7 +31,7 @@ export const PLANS_DATA = {
       },
       {
         id: "insurance",
-        name: "Great Eastern Protection",
+        name: "Insurance",
         icon: "ShieldCheck",
         actions: [
           { id: "ret_annuity", name: "GE Great Lifetime Payout", desc: "Commit SG$500/mo to a guaranteed cash income insurance plan returning 4.5% p.a. from age 65.", baseVal: 6000, rate: 0.045, type: "defense" },
@@ -45,29 +45,36 @@ export const PLANS_DATA = {
     title: "OCBC HDB Housing Plan",
     goal: "Save SG$150,000 for a downpayment and loan setup on an HDB flat in Singapore by 2028",
     timelineAll: "Mar 2028 - Jun 2029",
-    timelineExcluded: (numExcluded, grantsExcluded) => {
-      if (grantsExcluded) return "Oct 2031 - Dec 2033";
+    timelineExcluded: (numExcluded) => {
       if (numExcluded === 0) return "Mar 2028 - Jun 2029";
       if (numExcluded <= 2) return "Nov 2029 - Feb 2031";
       return "Jan 2031 - Sep 2032";
     },
     categories: [
       {
-        id: "govt_grants",
-        name: "Housing Subsidies & Loans",
-        icon: "Gift",
-        actions: [
-          { id: "sav_cpf_grant", name: "Enhanced CPF Housing Grant", desc: "Claim up to SG$80,000 in government housing subsidies based on household income guidelines.", baseVal: 80000, rate: 0.0, type: "grant", isLumpSum: true },
-          { id: "sav_hdb_loan", name: "HDB Concessionary Loan Setup", desc: "Keep SG$20,000 in your Ordinary Account to qualify for HDB's 2.6% p.a. stable interest rate loan.", baseVal: 2000, rate: 0.026, type: "grant" }
-        ]
-      },
-      {
-        id: "hy_deposits",
-        name: "HDB Downpayment Vault",
+        id: "deposits",
+        name: "Deposits",
         icon: "Coins",
         actions: [
           { id: "sav_ocbc360", name: "OCBC 360 Savings Account", desc: "Credit your salary and save SG$500/mo to hit up to 4.65% p.a. interest rate on your active deposits.", baseVal: 6000, rate: 0.0465, type: "deposit" },
           { id: "sav_fd_promo", name: "OCBC Fixed Deposit Sweep", desc: "Lock SG$20,000 idle cash in a promotional 6-month OCBC Fixed Deposit yielding 3.40% p.a. risk-free.", baseVal: 20000, rate: 0.034, type: "deposit", isLumpSum: true }
+        ]
+      },
+      {
+        id: "investments",
+        name: "Investments",
+        icon: "TrendingUp",
+        actions: [
+          { id: "sav_robo_housing", name: "OCBC RoboInvest (Balanced)", desc: "Invest SG$40,000 into a balanced global portfolio compounding at 6.50% p.a. to accelerate your downpayment runway.", baseVal: 40000, rate: 0.065, type: "investment", isLumpSum: true },
+          { id: "sav_bcip_housing", name: "OCBC BCIP Blue Chip Share Plan", desc: "DCA SG$500/mo into high-yielding local blue chips and REITs to secure a steady 5.50% average growth rate.", baseVal: 6000, rate: 0.055, type: "investment" }
+        ]
+      },
+      {
+        id: "loans",
+        name: "Home Loans",
+        icon: "Coins",
+        actions: [
+          { id: "sav_ocbc_homeloan", name: "OCBC HDB Home Loan Setup", desc: "Plan your HDB purchase with a competitive home loan package offering a low rate of 2.50% p.a.", baseVal: 50000, rate: 0.025, type: "deposit", isLumpSum: true }
         ]
       }
     ]
@@ -84,8 +91,8 @@ export const PLANS_DATA = {
     },
     categories: [
       {
-        id: "hy_deposits",
-        name: "OCBC Savings Vaults",
+        id: "deposits",
+        name: "Deposits",
         icon: "Coins",
         actions: [
           { id: "sav_ocbc360", name: "OCBC 360 Savings Account", desc: "Credit your salary and save SG$500/mo to hit up to 4.65% p.a. interest rate on your active deposits.", baseVal: 6000, rate: 0.0465, type: "deposit" },
@@ -93,8 +100,8 @@ export const PLANS_DATA = {
         ]
       },
       {
-        id: "short_term_yield",
-        name: "OCBC Liquid Instruments",
+        id: "investments",
+        name: "Investments",
         icon: "TrendingUp",
         actions: [
           { id: "sav_tbills", name: "SG Treasury Bills (T-Bills)", desc: "Buy 6-month risk-free Singapore Government Securities to capture a state-backed 3.70% p.a. yield.", baseVal: 10000, rate: 0.037, type: "yield" },
@@ -115,8 +122,8 @@ export const PLANS_DATA = {
     },
     categories: [
       {
-        id: "liquid_acc",
-        name: "OCBC Liquid Accounts",
+        id: "deposits",
+        name: "Deposits",
         icon: "Coins",
         actions: [
           { id: "em_saver", name: "OCBC Smart Saver Savings", desc: "Store your core emergency fund in a high-yield liquid account paying 4.20% p.a. on deposits.", baseVal: 5000, rate: 0.042, type: "deposit" },
@@ -124,8 +131,8 @@ export const PLANS_DATA = {
         ]
       },
       {
-        id: "budget_opt",
-        name: "Spending Adjustments",
+        id: "lifestyle_savings",
+        name: "Lifestyle & Savings Adjustments",
         icon: "Scissors",
         actions: [
           { id: "em_sub", name: "Subscription Cleanup", desc: "Connect credit cards to let AI auto-cancel 4 unused/redundant subscription accounts, saving SG$65/mo.", baseVal: 780, rate: 0.0, type: "saving" },
@@ -133,8 +140,8 @@ export const PLANS_DATA = {
         ]
       },
       {
-        id: "protection",
-        name: "GE Financial Security",
+        id: "insurance",
+        name: "Insurance",
         icon: "ShieldAlert",
         actions: [
           { id: "em_shield", name: "GE SupremeHealth Upgrade", desc: "Upgrade your Medisave-funded health plan to cover 95% of private ward hospital costs and prevent cash drain.", baseVal: 1000, rate: 0.02, type: "saving" }
@@ -155,7 +162,7 @@ export const PLANS_DATA = {
     categories: [
       {
         id: "deposits",
-        name: "Deposits Optimization",
+        name: "Deposits",
         icon: "Coins",
         actions: [
           { id: "def_saver", name: "OCBC Smart Saver Deposit", desc: "Allocate SG$10,000 idle cash to the Smart Saver account to earn a 4.20% p.a. multiplier rate.", baseVal: 10000, rate: 0.042, type: "deposit" },
@@ -164,7 +171,7 @@ export const PLANS_DATA = {
       },
       {
         id: "investments",
-        name: "OCBC Asset Allocation",
+        name: "Investments",
         icon: "TrendingUp",
         actions: [
           { id: "def_etfs", name: "OCBC RoboInvest Balanced", desc: "Invest SG$400/mo in low-cost index funds to target an average historical stock return of 7.00% p.a.", baseVal: 4800, rate: 0.07, type: "investment" },
@@ -173,7 +180,7 @@ export const PLANS_DATA = {
       },
       {
         id: "loans",
-        name: "OCBC Debt & Loans",
+        name: "Loans",
         icon: "Percent",
         actions: [
           { id: "def_refinance", name: "OCBC EasiCredit Debt Refi", desc: "Consolidate card debt at 26% p.a. interest into a low-interest personal installment loan at 3.40% p.a.", baseVal: 3000, rate: 0.226, type: "loan" },
@@ -194,8 +201,8 @@ export const PLANS_DATA = {
     },
     categories: [
       {
-        id: "deposits_optimization",
-        name: "Deposits Optimization",
+        id: "deposits",
+        name: "Deposits",
         icon: "Coins",
         actions: [
           { id: "wed_ocbc360", name: "OCBC 360 Savings Account", desc: "Credit your salary and save SG$500/mo to hit up to 4.65% p.a. interest rate on your active deposits.", baseVal: 6000, rate: 0.0465, type: "deposit" },
@@ -203,16 +210,16 @@ export const PLANS_DATA = {
         ]
       },
       {
-        id: "low_risk_yield",
-        name: "Low-risk Yields",
+        id: "investments",
+        name: "Investments",
         icon: "TrendingUp",
         actions: [
           { id: "wed_tbills", name: "SG Treasury Bills (T-Bills)", desc: "Buy 6-month risk-free Singapore Government Securities to capture a state-backed 3.70% p.a. yield.", baseVal: 5000, rate: 0.037, type: "yield" }
         ]
       },
       {
-        id: "savings_adjustments",
-        name: "Savings Adjustments",
+        id: "lifestyle_savings",
+        name: "Lifestyle & Savings Adjustments",
         icon: "Scissors",
         actions: [
           { id: "wed_dine", name: "Dining & Lifestyle Cap", desc: "Restrict food delivery app orders and high-end dining to save SG$150/mo to accelerate your wedding fund.", baseVal: 1800, rate: 0.0, type: "saving" }
@@ -232,8 +239,8 @@ export const PLANS_DATA = {
     },
     categories: [
       {
-        id: "education_savings",
-        name: "Education Savings Vault",
+        id: "deposits",
+        name: "Deposits",
         icon: "Coins",
         actions: [
           { id: "edu_saver", name: "OCBC CDA Savings Account", desc: "Contribute to Child Development Account to earn up to 2.0% p.a. and receive dollar-for-dollar matching.", baseVal: 3000, rate: 0.02, type: "deposit" },
@@ -241,8 +248,8 @@ export const PLANS_DATA = {
         ]
       },
       {
-        id: "education_investments",
-        name: "OCBC Growth Portfolios",
+        id: "investments",
+        name: "Investments",
         icon: "TrendingUp",
         actions: [
           { id: "edu_robo", name: "OCBC RoboInvest (Balanced)", desc: "Automate SG$400/mo into balanced portfolios to compound returns at an estimated 6.8% p.a.", baseVal: 4800, rate: 0.068, type: "investment" },
@@ -250,8 +257,8 @@ export const PLANS_DATA = {
         ]
       },
       {
-        id: "education_defense",
-        name: "GE Protection Plans",
+        id: "insurance",
+        name: "Insurance",
         icon: "ShieldCheck",
         actions: [
           { id: "edu_ge_endowment", name: "GE GREAT Wealth Accumulator", desc: "Place SG$200/mo into an endowment plan returning guaranteed 3.5% p.a. + non-guaranteed bonuses.", baseVal: 2400, rate: 0.035, type: "defense" }
@@ -271,8 +278,8 @@ export const PLANS_DATA = {
     },
     categories: [
       {
-        id: "career_deposits",
-        name: "High-Yield Cash Vault",
+        id: "deposits",
+        name: "Deposits",
         icon: "Coins",
         actions: [
           { id: "car_ocbc360", name: "OCBC 360 Account", desc: "Credit salary and save SG$500/mo to capture up to 4.65% p.a. high interest yield.", baseVal: 6000, rate: 0.0465, type: "deposit" },
@@ -280,8 +287,8 @@ export const PLANS_DATA = {
         ]
       },
       {
-        id: "career_sweeps",
-        name: "Automated Sweeps",
+        id: "lifestyle_savings",
+        name: "Lifestyle & Savings Adjustments",
         icon: "Scissors",
         actions: [
           { id: "car_sweep", name: "OCBC Auto-Sweep Plan", desc: "Automatically sweep end-of-month excess balances into savings vaults at 3.50% p.a. yield.", baseVal: 2000, rate: 0.035, type: "saving" },
@@ -302,16 +309,16 @@ export const PLANS_DATA = {
     },
     categories: [
       {
-        id: "parents_cpf",
-        name: "Parents' CPF Top-ups",
+        id: "deposits",
+        name: "Deposits",
         icon: "Coins",
         actions: [
           { id: "par_cpf_ra", name: "CPF Retirement Sum Topping-Up", desc: "Top up your parents' CPF Retirement Account directly to earn up to 4.0% p.a. interest plus tax relief.", baseVal: 8000, rate: 0.04, type: "deposit" }
         ]
       },
       {
-        id: "parents_defense",
-        name: "GE Senior Shielding",
+        id: "insurance",
+        name: "Insurance",
         icon: "ShieldCheck",
         actions: [
           { id: "par_ge_elderly", name: "GE GREAT SupremeHealth Senior", desc: "Allocate SG$300/mo to secure premium hospital care and shield parents against rising medical bills.", baseVal: 3600, rate: 0.02, type: "defense" },
