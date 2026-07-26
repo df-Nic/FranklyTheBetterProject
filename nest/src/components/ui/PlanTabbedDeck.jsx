@@ -133,7 +133,29 @@ const renderCategoryIcon = (iconName) => {
   }
 };
 
-const PlanTabbedDeck = ({ categories = [], pendingExcluded = new Set(), toggleAction, isReadOnly = false }) => {
+const PlanTabbedDeck = ({ categories = [], pendingExcluded = new Set(), toggleAction, isReadOnly = false, onChangeProduct, chosenAlternatives = {}, activePlan }) => {
+  const generateFitDescription = (alt, activePlan) => {
+    const age = 28;
+    const riskProfile = "Balanced Wealth";
+    const stageOfLife = "Young Professional";
+    const planTitle = activePlan?.title || "Nest Plan";
+    const timeline = activePlan?.timelineAll || "medium-term";
+
+    let text = `Excellent match for you (Age ${age}, ${stageOfLife}) with a ${riskProfile} risk profile. `;
+    
+    if (alt.type === 'deposit') {
+      text += `Aligns with your ${planTitle} timeline (${timeline}) by keeping assets protected from short-term market volatility. `;
+    } else if (alt.type === 'investment' || alt.type === 'yield') {
+      text += `Fits your long-term ${planTitle} horizon by compounding wealth through global markets. `;
+    } else if (alt.type === 'defense' || alt.type === 'insurance' || alt.type === 'protection') {
+      text += `Secures your financial runway and protects your ${planTitle} from unexpected disruption. `;
+    } else {
+      text += `Provides structural stability and complements your plan parameters. `;
+    }
+    
+    return text;
+  };
+
   const [activeTabId, setActiveTabId] = useState(() => (categories[0] ? categories[0].id : ''));
 
   if (!categories || categories.length === 0) return null;
@@ -214,7 +236,7 @@ const PlanTabbedDeck = ({ categories = [], pendingExcluded = new Set(), toggleAc
               return (
                 <div
                   key={action.id}
-                  onClick={() => !isReadOnly && toggleAction(action.id)}
+                  onClick={() => !isReadOnly && onChangeProduct && onChangeProduct(action, currentCategory)}
                   className={`p-3 rounded-2xl border text-left flex gap-3 items-start transition-all duration-200 bg-white ${isExcluded
                       ? 'border-amber-200 shadow-[0_2px_12px_rgba(245,158,11,0.04)]'
                       : `border-zinc-200/60 ${isReadOnly ? '' : 'hover:border-brand-primary/40 hover:shadow-sm active:scale-[0.99] cursor-pointer'}`
@@ -225,18 +247,24 @@ const PlanTabbedDeck = ({ categories = [], pendingExcluded = new Set(), toggleAc
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        toggleAction(action.id);
+                        if (isExcluded) {
+                          toggleAction(action.id);
+                        } else {
+                          if (onChangeProduct) onChangeProduct(action, currentCategory);
+                        }
                       }}
                       className={`w-9 h-9 rounded-full border flex items-center justify-center shrink-0 mt-0.5 transition-all duration-200 cursor-pointer active:scale-90 ${isExcluded
                           ? 'bg-amber-100 border-amber-200 text-amber-700 hover:bg-amber-200 hover:text-amber-800'
                           : 'bg-zinc-50 border-zinc-200 text-zinc-500 hover:bg-brand-primary/10 hover:border-brand-primary/30 hover:text-brand-primary'
                         }`}
-                      title={isExcluded ? 'Restore original product' : 'Swap for alternative product'}
+                      title={isExcluded ? 'Restore original product' : 'Change product'}
                     >
                       {isExcluded ? (
                         <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
                       ) : (
-                        <RefreshCw className="w-3.5 h-3.5 stroke-[2.2]" />
+                        <div className="flex items-center justify-center text-zinc-500">
+                          <RefreshCw className="w-3.5 h-3.5 stroke-[2.2]" />
+                        </div>
                       )}
                     </button>
                   ) : (
@@ -267,7 +295,7 @@ const PlanTabbedDeck = ({ categories = [], pendingExcluded = new Set(), toggleAc
                       <div className="mt-1.5 flex items-start gap-1 text-[8.5px] font-semibold text-zinc-500 bg-zinc-50/50 rounded-lg p-1 border border-zinc-100/50">
                         <Sparkles className="w-2.5 h-2.5 text-brand-primary/80 shrink-0 mt-0.5" />
                         <span>
-                          <strong>Why it fits:</strong> {ACTION_ELABORATIONS[action.id] || "Fits your overall goal parameters."}
+                          <strong>Why it fits:</strong> {generateFitDescription(action, activePlan)}
                         </span>
                       </div>
                     </div>
@@ -275,7 +303,7 @@ const PlanTabbedDeck = ({ categories = [], pendingExcluded = new Set(), toggleAc
                     {/* Swap Actions / Alternative Panel */}
                     <AnimatePresence>
                       {isExcluded && (() => {
-                        const alternative = PLAN_ALTERNATIVES[action.id];
+                        const alternative = chosenAlternatives[action.id] || PLAN_ALTERNATIVES[action.id];
                         return alternative ? (
                           <motion.div
                             key="alternative"
@@ -314,7 +342,7 @@ const PlanTabbedDeck = ({ categories = [], pendingExcluded = new Set(), toggleAc
                                 <div className="mt-1.5 flex items-start gap-1 text-[8px] font-semibold text-amber-800 bg-amber-100/40 rounded-lg p-1 border border-amber-200/40">
                                   <Sparkles className="w-2.5 h-2.5 text-amber-600 shrink-0 mt-0.5" />
                                   <span>
-                                    <strong>Why it fits:</strong> {ACTION_ELABORATIONS[alternative.id] || "Optimizes returns within plan parameters."}
+                                    <strong>Why it fits:</strong> {generateFitDescription(alternative, activePlan)}
                                   </span>
                                 </div>
                               </div>

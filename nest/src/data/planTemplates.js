@@ -45,22 +45,12 @@ export const PLANS_DATA = {
     title: "OCBC HDB Housing Plan",
     goal: "Save SG$150,000 for a downpayment and loan setup on an HDB flat in Singapore by 2028",
     timelineAll: "Mar 2028 - Jun 2029",
-    timelineExcluded: (numExcluded, grantsExcluded) => {
-      if (grantsExcluded) return "Oct 2031 - Dec 2033";
+    timelineExcluded: (numExcluded) => {
       if (numExcluded === 0) return "Mar 2028 - Jun 2029";
       if (numExcluded <= 2) return "Nov 2029 - Feb 2031";
       return "Jan 2031 - Sep 2032";
     },
     categories: [
-      {
-        id: "govt_grants",
-        name: "Government Grants & Subsidies",
-        icon: "Gift",
-        actions: [
-          { id: "sav_cpf_grant", name: "Enhanced CPF Housing Grant", desc: "Claim up to SG$80,000 in government housing subsidies based on household income guidelines.", baseVal: 80000, rate: 0.0, type: "grant", isLumpSum: true },
-          { id: "sav_hdb_loan", name: "HDB Concessionary Loan Setup", desc: "Keep SG$20,000 in your Ordinary Account to qualify for HDB's 2.6% p.a. stable interest rate loan.", baseVal: 2000, rate: 0.026, type: "grant" }
-        ]
-      },
       {
         id: "deposits",
         name: "Deposits",
@@ -68,6 +58,23 @@ export const PLANS_DATA = {
         actions: [
           { id: "sav_ocbc360", name: "OCBC 360 Savings Account", desc: "Credit your salary and save SG$500/mo to hit up to 4.65% p.a. interest rate on your active deposits.", baseVal: 6000, rate: 0.0465, type: "deposit" },
           { id: "sav_fd_promo", name: "OCBC Fixed Deposit Sweep", desc: "Lock SG$20,000 idle cash in a promotional 6-month OCBC Fixed Deposit yielding 3.40% p.a. risk-free.", baseVal: 20000, rate: 0.034, type: "deposit", isLumpSum: true }
+        ]
+      },
+      {
+        id: "investments",
+        name: "Investments",
+        icon: "TrendingUp",
+        actions: [
+          { id: "sav_robo_housing", name: "OCBC RoboInvest (Balanced)", desc: "Invest SG$40,000 into a balanced global portfolio compounding at 6.50% p.a. to accelerate your downpayment runway.", baseVal: 40000, rate: 0.065, type: "investment", isLumpSum: true },
+          { id: "sav_bcip_housing", name: "OCBC BCIP Blue Chip Share Plan", desc: "DCA SG$500/mo into high-yielding local blue chips and REITs to secure a steady 5.50% average growth rate.", baseVal: 6000, rate: 0.055, type: "investment" }
+        ]
+      },
+      {
+        id: "loans",
+        name: "Home Loans",
+        icon: "Coins",
+        actions: [
+          { id: "sav_ocbc_homeloan", name: "OCBC HDB Home Loan Setup", desc: "Plan your HDB purchase with a competitive home loan package offering a low rate of 2.50% p.a.", baseVal: 50000, rate: 0.025, type: "deposit", isLumpSum: true }
         ]
       }
     ]

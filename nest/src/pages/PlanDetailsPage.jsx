@@ -71,7 +71,28 @@ const INITIAL_PLAN_SUBGOALS = {
 };
 
 const PlanDetailsPage = () => {
-  const { clickPos, activePlanTitle, activePlanId, planDetailOrigin, setPage, addCreatedPlan, createdPlans, customPlanData, planAdjustments, adjustPlan } = useApp();
+  const {
+    clickPos,
+    activePlanTitle,
+    activePlanId,
+    planDetailOrigin,
+    setPage,
+    addCreatedPlan,
+    createdPlans,
+    customPlanData,
+    planAdjustments,
+    adjustPlan,
+    changingAction,
+    setChangingAction,
+    changingCategory,
+    setChangingCategory,
+    chosenAlternatives,
+    setChosenAlternatives,
+    pendingExcluded,
+    setPendingExcluded,
+    appliedExcluded,
+    setAppliedExcluded
+  } = useApp();
 
   // 1. Identify active plan template — prefer activePlanId (precise), fall back to fuzzy title match
   const getActivePlan = () => {
@@ -137,8 +158,6 @@ const PlanDetailsPage = () => {
 
   // State definitions
   const [categoriesList, setCategoriesList] = useState([]);
-  const [pendingExcluded, setPendingExcluded] = useState(new Set());
-  const [appliedExcluded, setAppliedExcluded] = useState(new Set());
 
   const [recalculating, setRecalculating] = useState(false);
   const [replanStepText, setReplanStepText] = useState("");
@@ -149,12 +168,15 @@ const PlanDetailsPage = () => {
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({ name: '', amount: '', date: '' });
 
+  // Dynamically synchronize categoriesList when activePlan changes
+  useEffect(() => {
+    if (activePlan) {
+      setCategoriesList(activePlan.categories);
+    }
+  }, [activePlan]);
+
   // Reset states if target plan changes
   useEffect(() => {
-    setCategoriesList(activePlan.categories);
-    setPendingExcluded(new Set());
-    setAppliedExcluded(new Set());
-    
     // Load subgoals: prioritize user custom subgoals from chat widget if present, else dynamically calculated or initial defaults
     if (userPlanMeta.subgoals && userPlanMeta.subgoals.length > 0) {
       setSubgoals(userPlanMeta.subgoals.map((sub, i) => ({
@@ -353,7 +375,7 @@ const PlanDetailsPage = () => {
         return prevCategories.map(cat => {
           const newActions = cat.actions.map(action => {
             if (pendingExcluded.has(action.id)) {
-              const alt = PLAN_ALTERNATIVES[action.id];
+              const alt = chosenAlternatives[action.id] || PLAN_ALTERNATIVES[action.id];
               if (alt) return alt;
             }
             return action;
@@ -367,6 +389,7 @@ const PlanDetailsPage = () => {
 
       setPendingExcluded(new Set());
       setAppliedExcluded(new Set());
+      setChosenAlternatives({});
       setRecalculating(false);
       setReplanProgress(0);
     }, 4000);
@@ -396,7 +419,8 @@ const PlanDetailsPage = () => {
     const allActions = [];
     categories.forEach(cat => {
       cat.actions.forEach(act => {
-        allActions.push(act);
+        const resolvedAct = chosenAlternatives[act.id] || act;
+        allActions.push(resolvedAct);
       });
     });
 
@@ -1027,7 +1051,7 @@ const PlanDetailsPage = () => {
                 </li>
                 <li className="flex gap-2 items-start">
                   <span className="w-4 h-4 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0 font-black text-[9px]">2</span>
-                  <span><strong>Swap Products:</strong> Click the swap icon (🔄) on any card to request an alternative suggestion. To undo, click the restore icon (↺).</span>
+                  <span><strong>Change Option:</strong> Click on any part of the card to choose alternative options. To undo, click the restore icon (↺).</span>
                 </li>
                 <li className="flex gap-2 items-start">
                   <span className="w-4 h-4 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0 font-black text-[9px]">3</span>
@@ -1042,21 +1066,31 @@ const PlanDetailsPage = () => {
             categories={categoriesList} 
             pendingExcluded={pendingExcluded} 
             toggleAction={toggleAction} 
+            onChangeProduct={(action, category) => {
+              setChangingAction(action);
+              setChangingCategory(category);
+              setPage('plan-change-option');
+            }}
+            isReadOnly={false}
+            chosenAlternatives={chosenAlternatives}
+            activePlan={activePlan}
           />
 
           {/* Staggered Payments Callout Notice */}
-          {userPlanMeta.paymentStrategy === 'Staggered' && (
+          {userPlanMeta.paymentStrategy?.toLowerCase() === 'staggered' && (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="p-3 bg-blue-50/60 border border-blue-200/50 rounded-2xl flex gap-2.5 items-start mt-1 shrink-0 shadow-sm"
+              className="p-4 bg-blue-50 border border-blue-100 rounded-[24px] flex gap-3.5 items-start mt-2 shrink-0 shadow-sm"
             >
-              <AlertCircle className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] font-black text-blue-800 uppercase tracking-wider">Payment Flexibility Activated</span>
-                <span className="text-[9.2px] font-bold text-blue-700 leading-relaxed">
+              <div className="w-8 h-8 rounded-full bg-blue-100/50 flex items-center justify-center text-blue-600 shrink-0 shadow-inner">
+                <AlertCircle className="w-4.5 h-4.5 stroke-[2.2]" />
+              </div>
+              <div className="flex flex-col gap-0.5 text-left">
+                <span className="text-[10px] font-black text-blue-900 uppercase tracking-wider">Payment Flexibility Activated</span>
+                <p className="text-[9.5px] font-semibold text-blue-800 leading-relaxed mt-0.5">
                   Based on your choice of <strong>Staggered Payments</strong> and your target timeline, these recommendations are structured to prioritize products with flexible exits and zero penalty fees. You retain the freedom to redirect cash without lock-in constraints.
-                </span>
+                </p>
               </div>
             </motion.div>
           )}
@@ -1076,69 +1110,42 @@ const PlanDetailsPage = () => {
           className="absolute bottom-0 left-0 right-0 bg-white/85 backdrop-blur-xl border-t border-zinc-200/40 p-4 flex flex-col z-40"
           style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))' }}
         >
-          <AnimatePresence mode="wait">
-            {!isModified ? (
-              <motion.button
-                key="proceed"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-                onClick={() => {
-                  const acceptedAdjustments = {};
-                  if (userPlanMeta.targetAmount) acceptedAdjustments.targetAmount = Number(userPlanMeta.targetAmount);
-                  if (userPlanMeta.targetDate) acceptedAdjustments.goalDate = userPlanMeta.targetDate;
-                  if (userPlanMeta.paymentStrategy === 'staggered' && subgoals.length) {
-                    acceptedAdjustments.paymentStrategy = 'staggered';
-                    acceptedAdjustments.milestones = [
-                      {
-                        id: 'created',
-                        name: 'Goal Created',
-                        date: new Date().toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' }),
-                        state: 'completed'
-                      },
-                      ...subgoals.map((subgoal, index) => ({
-                        id: `stagger-${subgoal.id}`,
-                        name: subgoal.name,
-                        date: subgoal.date,
-                        amount: Number(subgoal.amount),
-                        state: index === 0 ? 'next' : index === subgoals.length - 1 ? 'goal' : 'upcoming'
-                      }))
-                    ];
-                  }
-                  if (Object.keys(acceptedAdjustments).length) {
-                    adjustPlan(activePlan.id, acceptedAdjustments);
-                  }
-                  addCreatedPlan(activePlan.id);
-                  setPage('plan-dashboard');
-                }}
-                className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white font-extrabold rounded-2xl text-[11px] uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-md cursor-pointer flex items-center justify-center gap-2"
-              >
-                <span>Accept & Save Plan</span>
-              </motion.button>
-            ) : (
-              <motion.button
-                key="replan"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-                onClick={triggerReplan}
-                className="w-full py-3.5 bg-brand-primary hover:bg-red-600 text-white font-extrabold rounded-2xl text-[11px] uppercase tracking-wider transition-all duration-150 active:scale-[0.97] shadow-lg shadow-brand-primary/20 cursor-pointer flex items-center justify-center gap-2"
-              >
-                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                <span>Replan with AI</span>
-              </motion.button>
-            )}
-          </AnimatePresence>
+          <button
+            onClick={() => {
+              const acceptedAdjustments = {};
+              if (userPlanMeta.targetAmount) acceptedAdjustments.targetAmount = Number(userPlanMeta.targetAmount);
+              if (userPlanMeta.targetDate) acceptedAdjustments.goalDate = userPlanMeta.targetDate;
+              if (userPlanMeta.paymentStrategy === 'staggered' && subgoals.length) {
+                acceptedAdjustments.paymentStrategy = 'staggered';
+                acceptedAdjustments.milestones = [
+                  {
+                    id: 'created',
+                    name: 'Goal Created',
+                    date: new Date().toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' }),
+                    state: 'completed'
+                  },
+                  ...subgoals.map((subgoal, index) => ({
+                    id: `stagger-${subgoal.id}`,
+                    name: subgoal.name,
+                    date: subgoal.date,
+                    amount: Number(subgoal.amount),
+                    state: index === 0 ? 'next' : index === subgoals.length - 1 ? 'goal' : 'upcoming'
+                  }))
+                ];
+              }
+              if (Object.keys(acceptedAdjustments).length) {
+                adjustPlan(activePlan.id, acceptedAdjustments);
+              }
+              addCreatedPlan(activePlan.id);
+              setPage('plan-dashboard');
+            }}
+            className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white font-extrabold rounded-2xl text-[11px] uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-md cursor-pointer flex items-center justify-center gap-2"
+          >
+            <span>Accept & Save Plan</span>
+          </button>
         </div>
 
-        {/* Full screen AI Progress Recalculator Overlay */}
-        <ReplanOverlay 
-          isOpen={recalculating} 
-          stepText={replanStepText} 
-          progress={replanProgress} 
-        />
+
 
       </motion.div>
     </motion.div>
