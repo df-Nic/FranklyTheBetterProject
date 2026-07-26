@@ -93,6 +93,13 @@ const savingsPlan = {
   impact: { additionalSavings: 1860, timeSaved: "5.2 hrs", opportunitiesActedOn: 3 },
 };
 
+const housingPlan = {
+  ...savingsPlan,
+  id: "housing",
+  goalName: "OCBC HDB Housing Plan",
+  milestones: savingsPlan.milestones.map((milestone) => ({ ...milestone })),
+};
+
 const emergencyPlan = {
   id: "emergency",
   goalName: "Emergency Safety Net",
@@ -158,13 +165,13 @@ const childrenEducationPlan = {
   },
   onTrack: { expected: 12000, saved: 13500 },
   milestones: [
-    { id: "created", name: "Goal Created", date: "21 Jul 2026", state: "completed" },
-    { id: "savings-start", name: "First S$10k Saved", date: "Feb 2027", state: "completed" },
+    { id: "created", name: "Goal Created", date: "2 Jan 2026", state: "completed" },
+    { id: "savings-start", name: "First S$10k Saved", date: "15 Apr 2026", state: "completed" },
     { id: "halfway", name: "Halfway to Tuition", date: "Jun 2031", state: "next" },
     { id: "final-stretch", name: "Final Stretch Ready", date: "Jan 2034", state: "upcoming" },
     { id: "goal", name: "University Matriculation!", date: "Oct 2035", state: "goal" },
   ],
-  impact: { additionalSavings: 1800, timeSaved: "4.8 hrs", opportunitiesActedOn: 2 },
+  impact: { additionalSavings: 3800, timeSaved: "4.8 hrs", opportunitiesActedOn: 2 },
 };
 
 const careerBreakPlan = {
@@ -218,6 +225,7 @@ const parentsRetirementPlan = {
 // Registry so a page can resolve a plan by id (extend as more goals are created).
 export const MILESTONE_PLANS = {
   retirement: retirementPlan,
+  housing: housingPlan,
   savings: savingsPlan,
   emergency: emergencyPlan,
   default: defaultPlan,

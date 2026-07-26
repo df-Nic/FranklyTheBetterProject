@@ -14,9 +14,10 @@ import BackgroundOrb from '../components/ui/BackgroundOrb';
 import { PLANS_DATA } from '../data/planTemplates';
 import PlanAreaChart from '../components/ui/PlanAreaChart';
 import PlanTabbedDeck from '../components/ui/PlanTabbedDeck';
+import { getMilestonePlan } from '../data/milestonePlans';
 
 const PlanViewPage = () => {
-  const { clickPos, activePlanId, activePlanTitle, setPage } = useApp();
+  const { clickPos, activePlanId, activePlanTitle, setPage, planAdjustments } = useApp();
 
   // Identify active plan template
   const getActivePlan = () => {
@@ -79,7 +80,8 @@ const PlanViewPage = () => {
   };
 
   const activePlan = getActivePlan();
-  
+  const displayPlan = getMilestonePlan(activePlanId, planAdjustments);
+
   // Projections calculations based on specific targets and timelines
   const calculateDataPoints = (plan, categories) => {
     let initialCapital = 15000;
@@ -101,7 +103,7 @@ const PlanViewPage = () => {
     if (plan.id === 'emergency') {
       const months = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       return months.map((month, m) => {
-        const baseGrowthVal = initialCapital * Math.pow(1 + 0.015/12, m);
+        const baseGrowthVal = initialCapital * Math.pow(1 + 0.015 / 12, m);
         let depositsVal = 0;
         let investmentsVal = 0;
 
@@ -529,13 +531,13 @@ const PlanViewPage = () => {
           </button>
           <div className="flex flex-col">
             <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest leading-none">NEST ADVISORY BOARD</span>
-            <span className="text-sm font-black text-zinc-900 tracking-tight mt-0.5">{activePlan.title}</span>
+            <span className="text-sm font-black text-zinc-900 tracking-tight mt-0.5">{displayPlan.goalName}</span>
           </div>
         </header>
 
         {/* Main Scroll Area */}
         <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-5 flex flex-col gap-4 z-10 pb-28">
-          
+
           {/* Top Section: Goal & Timeline */}
           <GlassCard className="p-4 border-white/70 relative overflow-hidden bg-white/40 shadow-sm flex flex-col gap-3 shrink-0">
             <span className="text-[8px] font-bold text-brand-primary uppercase tracking-widest leading-none flex items-center gap-1">
@@ -580,10 +582,10 @@ const PlanViewPage = () => {
           </div>
 
           {/* Main Category Action Tabbed View Component */}
-          <PlanTabbedDeck 
-            categories={categoriesList} 
-            pendingExcluded={new Set()} 
-            toggleAction={() => {}} 
+          <PlanTabbedDeck
+            categories={categoriesList}
+            pendingExcluded={new Set()}
+            toggleAction={() => { }}
             isReadOnly={true}
           />
 

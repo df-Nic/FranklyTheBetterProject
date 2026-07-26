@@ -1,125 +1,132 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, Calculator, ChevronDown, Sparkles } from "lucide-react";
+import {
+  ArrowLeft, Calculator, CheckCircle2, ChevronDown, Lightbulb, Pencil, UserRound,
+} from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { formatSGD, getMilestonePlan } from "../data/milestonePlans";
-import { getSavingsBreakdown, sumSavings } from "../data/savingsBreakdowns";
+import { getPlanOpportunity } from "../data/planOpportunities";
+import { getPlanActivity } from "../data/planActivity";
+import owlImg from "../assets/images/ocbc-owl-transparent.png";
 
-function BreakdownItem({ item, expanded, onToggle }) {
+const TYPE_ICON = {
+  saving: Calculator,
+  opportunity: Lightbulb,
+  rename: Pencil,
+  created: CheckCircle2,
+  completion: CheckCircle2,
+  milestone: CheckCircle2,
+};
+
+function ActivityItem({ event, expanded, onToggle }) {
+  const hasDetails = event.type === "saving" && (event.calculation?.length || event.source);
+  const Icon = TYPE_ICON[event.type] || UserRound;
+  const isOwl = event.actor === "owl";
   return (
-    <article className="overflow-hidden rounded-[18px] border border-[#E8DED5] bg-white shadow-[0_3px_12px_rgba(70,45,32,0.05)]">
-      <button
-        type="button"
-        aria-expanded={expanded}
-        onClick={onToggle}
-        className="w-full p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#7C2230]"
-      >
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <span className="inline-flex rounded-full bg-[#E6F2E8] px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-[#2E7D4F]">
-              Savings achieved
+    <article className="relative pl-12">
+      <span className={`absolute left-0 top-0 z-10 flex h-9 w-9 items-center justify-center rounded-full border-4 border-[#F9F4EE] ${
+        isOwl ? "bg-[#7C2230] text-white" : "bg-[#E7F1E9] text-[#2E7D4F]"
+      }`}>
+        {isOwl
+          ? <img src={owlImg} alt="" className="h-6 w-6 rounded-full object-contain" />
+          : <Icon size={15} />}
+      </span>
+      <div className="overflow-hidden rounded-[18px] border border-[#E8DED5] bg-white shadow-[0_3px_12px_rgba(70,45,32,0.05)]">
+        <button
+          type="button"
+          disabled={!hasDetails}
+          aria-expanded={hasDetails ? expanded : undefined}
+          onClick={hasDetails ? onToggle : undefined}
+          className="w-full p-3.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#7C2230] disabled:cursor-default"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className={`text-[8px] font-black uppercase tracking-[0.13em] ${isOwl ? "text-[#7C2230]" : "text-[#2E7D4F]"}`}>
+              {isOwl ? "Agent Owl" : "You"} · {event.status}
             </span>
-            <h2 className="mt-2 text-[15px] font-extrabold leading-snug text-[#2B2320]">{item.title}</h2>
-            <p className="mt-1 text-[11px] leading-relaxed text-[#756A63]">{item.description}</p>
+            <span className="text-[8.5px] text-[#9A8D84]">
+              {Number.isNaN(Date.parse(event.timestamp)) ? event.timestamp : new Date(event.timestamp).toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" })}
+            </span>
           </div>
-          <div className="shrink-0 text-right">
-            <div className="text-[17px] font-black text-[#2E7D4F]">{formatSGD(item.amount)}</div>
-            <ChevronDown className={`ml-auto mt-2 h-4 w-4 text-[#8A7F78] transition-transform ${expanded ? "rotate-180" : ""}`} />
-          </div>
-        </div>
-      </button>
-
-      <AnimatePresence initial={false}>
-        {expanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.22, ease: "easeOut" }}
-            className="overflow-hidden"
-          >
-            <div className="border-t border-[#F0E8E1] bg-[#FCF8F4] px-4 pb-4 pt-3">
-              <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-[#7C2230]">
-                <Calculator size={14} /> How this saving was calculated
-              </div>
-              <dl className="mt-3 space-y-2">
-                {item.calculation.map((row) => (
-                  <div key={row.label} className="flex items-start justify-between gap-4 text-[11px]">
-                    <dt className="text-[#8A7F78]">{row.label}</dt>
-                    <dd className="text-right font-bold text-[#3F3732]">{row.value}</dd>
-                  </div>
-                ))}
-              </dl>
-              <div className="mt-3 border-t border-[#EAE0D7] pt-2 text-[9.5px] text-[#8A7F78]">Source: {item.source}</div>
+          <div className="mt-1.5 flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="text-[12.5px] font-extrabold leading-snug text-[#2B2320]">{event.title}</h2>
+              <p className="mt-1 text-[10px] leading-relaxed text-[#756A63]">{event.description}</p>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            {event.amount != null && <span className="shrink-0 text-[13px] font-black text-[#2E7D4F]">{formatSGD(event.amount)}</span>}
+          </div>
+          {hasDetails && (
+            <span className="mt-2 flex items-center gap-1 text-[9px] font-bold text-[#7C2230]">
+              How this was calculated
+              <ChevronDown size={13} className={`transition-transform ${expanded ? "rotate-180" : ""}`} />
+            </span>
+          )}
+        </button>
+        <AnimatePresence initial={false}>
+          {expanded && hasDetails && (
+            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+              <div className="border-t border-[#F0E8E1] bg-[#FCF8F4] px-4 pb-4 pt-3">
+                <dl className="space-y-2">
+                  {event.calculation?.map((row) => (
+                    <div key={row.label} className="flex justify-between gap-4 text-[10px]">
+                      <dt className="text-[#8A7F78]">{row.label}</dt>
+                      <dd className="text-right font-bold text-[#3F3732]">{row.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+                {event.source && <p className="mt-3 border-t border-[#EAE0D7] pt-2 text-[9px] text-[#8A7F78]">Source: {event.source}</p>}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </article>
   );
 }
 
 export default function SavingsBreakdownPage() {
-  const { activePlanId, setPage } = useApp();
-  const plan = getMilestonePlan(activePlanId);
-  const breakdown = getSavingsBreakdown(plan.id);
-  const [expandedId, setExpandedId] = useState(breakdown.items[0]?.id ?? null);
-  const realized = sumSavings(breakdown.items, "realized");
+  const { activePlanId, setPage, opportunityDecisions, planAdjustments, planActivity } = useApp();
+  const plan = getMilestonePlan(activePlanId, planAdjustments);
+  const opportunity = getPlanOpportunity(plan.id);
+  const events = getPlanActivity({
+    plan, opportunity, decision: opportunityDecisions[plan.id], runtimeEvents: planActivity,
+  });
+  const [expandedId, setExpandedId] = useState(null);
 
   return (
     <div className="h-full overflow-y-auto bg-[#F9F4EE] text-[#2B2320] no-scrollbar">
       <header className="sticky top-0 z-30 border-b border-[#EAE0D7] bg-[#F9F4EE]/95 px-4 pb-3 pt-5 backdrop-blur-xl">
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setPage("plan-milestones")}
-            aria-label="Back to plan journey"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#7C2230] shadow-sm transition-transform active:scale-90"
-          >
-            <ArrowLeft size={18} strokeWidth={2.4} />
+          <button onClick={() => setPage("plan-milestones")} aria-label="Back to plan journey" className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#7C2230] shadow-sm active:scale-90">
+            <ArrowLeft size={18} />
           </button>
           <div>
             <div className="text-[9px] font-extrabold uppercase tracking-[0.18em] text-[#8A7F78]">{plan.goalName}</div>
-            <h1 className="text-[18px] font-black">Savings breakdown</h1>
+            <h1 className="text-[18px] font-black">Agent Owl activity</h1>
           </div>
         </div>
       </header>
-
-      <main className="space-y-4 px-4 pb-28 pt-4">
-        <section className="relative overflow-hidden rounded-[24px] bg-[#641D29] p-5 text-white shadow-[0_12px_28px_rgba(84,24,35,0.22)]">
-          <Sparkles className="absolute -right-3 -top-3 h-24 w-24 text-white/[0.06]" />
-          <div className="relative">
-            <div className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-white/65">Savings achieved</div>
-            <div className="mt-2 text-[34px] font-black tracking-tight">{formatSGD(realized)}</div>
-            <p className="mt-1 max-w-[270px] text-[11px] leading-relaxed text-white/75">
-              Captured through actions Agent Owl helped you complete for this plan.
-            </p>
-            <div className="mt-4 flex gap-2 text-[10px] font-bold">
-              <span className="rounded-full bg-white/12 px-2.5 py-1">As of {breakdown.asOf}</span>
-              <span className="rounded-full bg-white/12 px-2.5 py-1">{breakdown.items.length} actions completed</span>
-            </div>
+      <main className="px-4 pb-28 pt-4">
+        <section className="rounded-[20px] bg-[#641D29] p-4 text-white">
+          <div className="flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/65">
+            <img src={owlImg} alt="" className="h-6 w-6 rounded-full bg-white/90 object-contain" /> Plan history
           </div>
+          <p className="mt-2 text-[12px] font-semibold leading-relaxed text-white/85">
+            A transparent record of what Agent Owl noticed, what changed, and what you decided.
+          </p>
         </section>
-
-        <section>
-          <div className="mb-2 flex items-end justify-between gap-3 px-1">
-            <div>
-              <div className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#8A7F78]">What contributes</div>
-              <p className="mt-0.5 text-[11px] text-[#756A63]">Tap an item to see its assumptions.</p>
-            </div>
-            <span className="text-[10px] font-bold text-[#8A7F78]">{breakdown.items.length} items</span>
-          </div>
-          <div className="space-y-3">
-            {breakdown.items.map((item) => (
-              <BreakdownItem
-                key={item.id}
-                item={item}
-                expanded={expandedId === item.id}
-                onToggle={() => setExpandedId((current) => current === item.id ? null : item.id)}
-              />
+        {events.length ? (
+          <section className="relative mt-5 space-y-3.5 before:absolute before:bottom-4 before:left-[17px] before:top-4 before:w-px before:bg-[#DCCDC2]">
+            {events.map((event) => (
+              <ActivityItem key={event.id} event={event} expanded={expandedId === event.id} onToggle={() => setExpandedId(expandedId === event.id ? null : event.id)} />
             ))}
-          </div>
-        </section>
-
+          </section>
+        ) : (
+          <section className="mt-5 rounded-[18px] border border-dashed border-[#DCCDC2] p-6 text-center">
+            <img src={owlImg} alt="Agent Owl" className="mx-auto h-10 w-10 object-contain opacity-60" />
+            <h2 className="mt-2 text-sm font-extrabold">No activity yet</h2>
+            <p className="mt-1 text-[10px] text-[#756A63]">New plan actions and decisions will appear here.</p>
+          </section>
+        )}
       </main>
     </div>
   );

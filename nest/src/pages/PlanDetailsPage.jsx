@@ -24,6 +24,7 @@ import { PLANS_DATA, PLAN_ALTERNATIVES } from '../data/planTemplates';
 import PlanAreaChart from '../components/ui/PlanAreaChart';
 import PlanTabbedDeck from '../components/ui/PlanTabbedDeck';
 import ReplanOverlay from '../components/ui/ReplanOverlay';
+import { getMilestonePlan } from '../data/milestonePlans';
 
 // Default subgoals registry mapping matching chat widget proposals
 const INITIAL_PLAN_SUBGOALS = {
@@ -70,7 +71,7 @@ const INITIAL_PLAN_SUBGOALS = {
 };
 
 const PlanDetailsPage = () => {
-  const { clickPos, activePlanTitle, activePlanId, planDetailOrigin, setPage, addCreatedPlan, createdPlans, customPlanData } = useApp();
+  const { clickPos, activePlanTitle, activePlanId, planDetailOrigin, setPage, addCreatedPlan, createdPlans, customPlanData, planAdjustments, adjustPlan } = useApp();
 
   // 1. Identify active plan template — prefer activePlanId (precise), fall back to fuzzy title match
   const getActivePlan = () => {
@@ -126,7 +127,8 @@ const PlanDetailsPage = () => {
   const userPlanMeta = (activePlan && customPlanData[activePlan.id]) || {};
 
   // Dynamic Goal text and timeline
-  const displayGoalTitle = activePlan.title;
+  const adjustedPlan = activePlanId ? getMilestonePlan(activePlanId, planAdjustments) : null;
+  const displayGoalTitle = adjustedPlan?.goalName || activePlan.title;
   const displayGoalAmount = userPlanMeta.targetAmount 
     ? `SG$${Number(userPlanMeta.targetAmount).toLocaleString()}`
     : null;
@@ -828,7 +830,7 @@ const PlanDetailsPage = () => {
           </button>
           <div className="flex flex-col">
             <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest leading-none">NEST ADVISORY BOARD</span>
-            <span className="text-sm font-black text-zinc-900 tracking-tight mt-0.5">{activePlan.title}</span>
+            <span className="text-sm font-black text-zinc-900 tracking-tight mt-0.5">{displayGoalTitle}</span>
           </div>
         </header>
 
@@ -1083,6 +1085,30 @@ const PlanDetailsPage = () => {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
                 onClick={() => {
+                  const acceptedAdjustments = {};
+                  if (userPlanMeta.targetAmount) acceptedAdjustments.targetAmount = Number(userPlanMeta.targetAmount);
+                  if (userPlanMeta.targetDate) acceptedAdjustments.goalDate = userPlanMeta.targetDate;
+                  if (userPlanMeta.paymentStrategy === 'staggered' && subgoals.length) {
+                    acceptedAdjustments.paymentStrategy = 'staggered';
+                    acceptedAdjustments.milestones = [
+                      {
+                        id: 'created',
+                        name: 'Goal Created',
+                        date: new Date().toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' }),
+                        state: 'completed'
+                      },
+                      ...subgoals.map((subgoal, index) => ({
+                        id: `stagger-${subgoal.id}`,
+                        name: subgoal.name,
+                        date: subgoal.date,
+                        amount: Number(subgoal.amount),
+                        state: index === 0 ? 'next' : index === subgoals.length - 1 ? 'goal' : 'upcoming'
+                      }))
+                    ];
+                  }
+                  if (Object.keys(acceptedAdjustments).length) {
+                    adjustPlan(activePlan.id, acceptedAdjustments);
+                  }
                   addCreatedPlan(activePlan.id);
                   setPage('plan-dashboard');
                 }}
