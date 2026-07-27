@@ -63,6 +63,46 @@
   scrollbar-width: none;  /* Firefox */
 }
 
+/* Custom Red/White Range Slider Thumb */
+.custom-red-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: linear-gradient(to right, #fee2e2 0%, #dc2626 100%);
+  border-radius: 9999px;
+  outline: none;
+}
+
+.custom-red-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid #dc2626;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.3);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.custom-red-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 3px 8px rgba(220, 38, 38, 0.45);
+}
+
+.custom-red-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid #dc2626;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.3);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
 /* Smooth active states without layout shifts */
 .active-press {
   transform: scale(0.96);
