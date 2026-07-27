@@ -91,6 +91,7 @@ const PayNowConfirmPage = () => {
 
   const hasPlan = createdPlans && createdPlans.length > 0;
   const isTargetAmount = parseFloat(paynowAmount || '0') >= 3000;
+  // Plan impact is reviewed after the user leaves PayNow.
   const showHealerWarning = false;
 
   const selectedPlan = getMilestonePlan(selectedPlanId, planAdjustments);
@@ -145,52 +146,7 @@ const PayNowConfirmPage = () => {
         paynowSourceAccount.balance -= parseFloat(paynowAmount);
       }
       
-      if (false) {
-        setIsHealing(true);
-        setHealingProgress(10);
-        setHealingStepText("Intercepting transaction impact...");
-
-        const activeStrategy = healerStrategies.find(s => s.id === chosenStrategy);
-        const steps = [
-          { text: `Detecting S$${amountDisplay} funding gap on ${planName}...`, progress: 30 },
-          { text: "Evaluating 4 recovery models...", progress: 50 },
-          { text: `Executing Selected Strategy: ${activeStrategy.title}...`, progress: 85 },
-          { text: "Applying final plan updates...", progress: 100 }
-        ];
-
-        steps.forEach((step, idx) => {
-          setTimeout(() => {
-            setHealingStepText(step.text);
-            setHealingProgress(step.progress);
-            if (step.progress === 100) {
-              // Persist healer action in context
-              adjustPlan(selectedPlanId, {
-                healed: true,
-                strategy: chosenStrategy,
-                monthlyContribution: dynamicNewContribution,
-                goalDate: extendedDate,
-                selectedPlanId: selectedPlanId
-              });
-              addPlanActivity(selectedPlanId, {
-                id: `adjustment-${Date.now()}`,
-                actor: 'owl',
-                type: 'adjustment',
-                title: 'Plan adjusted after payment',
-                description: `${activeStrategy.title} was applied to keep your goal recoverable.`,
-                timestamp: new Date().toISOString(),
-                status: 'completed'
-              });
-              setTimeout(() => {
-                setIsHealing(false);
-                navigate('paynow-success');
-              }, 600);
-            }
-          }, (idx + 1) * 800);
-        });
-      } else {
-        // Navigate to success page
-        navigate('paynow-success');
-      }
+      navigate('paynow-success');
     } else {
       // Smoothly animate back to start using Framer Motion's spring animate
       animate(dragX, 0, { type: 'spring', damping: 25, stiffness: 220 });

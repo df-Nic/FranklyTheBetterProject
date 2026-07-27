@@ -257,7 +257,14 @@ function AppContent() {
           </motion.div>
         )}
         {page === 'plan-healer' && (
-          <motion.div key="plan-healer" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="absolute inset-0 z-30 overflow-hidden">
+          <motion.div
+            key="plan-healer"
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -40 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 180 }}
+            className="absolute inset-0 z-30 overflow-hidden"
+          >
             <PlanHealerPage />
           </motion.div>
         )}

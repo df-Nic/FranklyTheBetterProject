@@ -98,7 +98,11 @@ const PlanCard = ({ planId, index, onClick }) => {
           {meta.tag}
         </span>
         <div className="absolute right-3 top-3 z-10 flex flex-col items-end gap-1.5">
-          {needsReview && <span className="rounded-full bg-[#B14A3F] px-2.5 py-1 text-[9px] font-black uppercase text-white">Needs review</span>}
+          {needsReview && (
+            <span className="flex items-center gap-1 rounded-full bg-[#B14A3F] px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-white shadow-sm">
+              Needs review
+            </span>
+          )}
           {isHealed && (
             <span className="flex items-center gap-1 rounded-full bg-emerald-500 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-white shadow-sm animate-pulse">
               <Sparkles className="h-2.5 w-2.5 stroke-[3]" />

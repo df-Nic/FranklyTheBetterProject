@@ -117,27 +117,34 @@ export const AppProvider = ({ children }) => {
   };
 
   const registerTransactionDeviation = (transaction) => {
-    const event = createTransactionDeviation({
+    const deviation = createTransactionDeviation({
       ...transaction,
       id: transaction.id || `deviation-${Date.now()}`,
       timestamp: transaction.timestamp || new Date().toISOString(),
       planIds: createdPlans,
       adjustments: planAdjustments,
     });
-    if (!event) return null;
-    setTransactionDeviations((current) => current.some((item) => item.id === event.id) ? current : [...current, event]);
-    event.affectedPlans.forEach((plan) => addPlanActivity(plan.planId, {
-      id: `impact-${event.id}-${plan.planId}`,
+    if (!deviation) return null;
+    setTransactionDeviations((current) =>
+      current.some((item) => item.id === deviation.id) ? current : [...current, deviation]);
+    deviation.affectedPlans.forEach((affectedPlan) => addPlanActivity(affectedPlan.planId, {
+      id: `transaction-impact-${deviation.id}-${affectedPlan.planId}`,
       actor: 'owl',
       type: 'deviation',
-      title: plan.status === 'pending' ? 'Plan deviation detected' : 'Transaction impact checked',
-      description: plan.status === 'pending'
-        ? `A S$${event.amount.toLocaleString('en-SG')} payment created a projected gap of S$${plan.gap.toLocaleString('en-SG')}.`
-        : 'Agent Owl checked this transaction and confirmed that no recovery is required.',
-      timestamp: event.timestamp,
-      status: plan.status === 'pending' ? 'needs review' : 'assessed',
+      title: affectedPlan.impactStatus === 'needs-healing'
+        ? 'Plan deviation detected'
+        : affectedPlan.impactStatus === 'reduced-buffer'
+          ? 'Plan buffer reduced'
+          : 'Transaction impact checked',
+      description: affectedPlan.impactStatus === 'needs-healing'
+        ? `${deviation.type === 'paynow' ? 'PayNow' : 'A transaction'} of S$${deviation.amount.toLocaleString('en-SG')} may leave this plan S$${Math.round(affectedPlan.gap).toLocaleString('en-SG')} behind its expected path.`
+        : affectedPlan.impactStatus === 'reduced-buffer'
+          ? `Agent Owl assessed the S$${deviation.amount.toLocaleString('en-SG')} transaction. This plan remains on track with S$${Math.round(affectedPlan.remainingBuffer).toLocaleString('en-SG')} of buffer remaining.`
+          : `Agent Owl assessed the S$${deviation.amount.toLocaleString('en-SG')} transaction and confirmed that this plan remains on track.`,
+      timestamp: deviation.timestamp,
+      status: affectedPlan.status === 'pending' ? 'needs review' : 'assessed',
     }));
-    return event.id;
+    return deviation.id;
   };
 
   const dismissDeviationNotifications = () => setTransactionDeviations((current) =>
@@ -148,31 +155,62 @@ export const AppProvider = ({ children }) => {
     setPage('plan-healer');
   };
 
-  const applyHealerStrategy = (eventId, planId, strategy) => {
+  const applyDeviationRecovery = (eventId, planId, strategyId) => {
     const event = transactionDeviations.find((item) => item.id === eventId);
-    const plan = event?.affectedPlans.find((item) => item.planId === planId && item.status === 'pending');
-    if (!event || !plan) return false;
-    const changes = strategy === 'deposit'
-      ? { monthlyContribution: Math.round((planAdjustments[planId]?.monthlyContribution || 1200) + event.amount * 0.06) }
-      : {};
-    adjustPlan(planId, { ...changes, strategy, healed: true });
+    const affectedPlan = event?.affectedPlans.find((item) => item.planId === planId && item.status === 'pending');
+    const option = affectedPlan?.recoveryOptions?.find((item) => item.id === strategyId);
+    if (!event || !affectedPlan || !option) return false;
+    adjustPlan(planId, {
+      ...option.changes,
+      strategy: strategyId,
+      healed: true,
+      selectedPlanId: planId,
+    });
     setTransactionDeviations((current) => current.map((item) => {
       if (item.id !== eventId) return item;
       const affectedPlans = item.affectedPlans.map((candidate) =>
-        candidate.planId === planId ? { ...candidate, gap: 0, status: 'applied', resolution: strategy } : candidate);
+        candidate.planId === planId && candidate.status === 'pending'
+          ? { ...candidate, gap: 0, status: 'applied', resolution: strategyId, strategyId, resolvedAt: new Date().toISOString() }
+          : candidate);
       return { ...item, affectedPlans, status: affectedPlans.some((candidate) => candidate.status === 'pending') ? 'pending' : 'resolved' };
     }));
     addPlanActivity(planId, {
-      id: `healed-${eventId}-${planId}`,
+      id: `deviation-applied-${eventId}-${planId}`,
       actor: 'owl',
       type: 'adjustment',
       title: 'Plan recovery applied',
-      description: `${strategy} recovery closed the S$${plan.gap.toLocaleString('en-SG')} projected gap.`,
+      description: `${option.title} was applied after a S$${event.amount.toLocaleString('en-SG')} ${event.type === 'paynow' ? 'PayNow payment' : 'transaction'} (${option.before} to ${option.after}).`,
       timestamp: new Date().toISOString(),
       status: 'completed',
     });
     return true;
   };
+
+  const declineDeviationRecovery = (eventId, planId) => {
+    const event = transactionDeviations.find((item) => item.id === eventId);
+    const affectedPlan = event?.affectedPlans.find((item) => item.planId === planId && item.status === 'pending');
+    if (!event || !affectedPlan) return false;
+    setTransactionDeviations((current) => current.map((item) => {
+      if (item.id !== eventId) return item;
+      const affectedPlans = item.affectedPlans.map((candidate) =>
+        candidate.planId === planId && candidate.status === 'pending'
+          ? { ...candidate, status: 'declined', resolution: 'declined', resolvedAt: new Date().toISOString() }
+          : candidate);
+      return { ...item, affectedPlans, status: affectedPlans.some((candidate) => candidate.status === 'pending') ? 'pending' : 'resolved' };
+    }));
+    addPlanActivity(planId, {
+      id: `deviation-declined-${eventId}-${planId}`,
+      actor: 'user',
+      type: 'decision',
+      title: 'Current plan kept',
+      description: `You reviewed the S$${event.amount.toLocaleString('en-SG')} transaction impact and chose not to change this plan.`,
+      timestamp: new Date().toISOString(),
+      status: 'declined',
+    });
+    return true;
+  };
+
+  const applyHealerStrategy = applyDeviationRecovery;
 
   const applyOpportunityRecovery = (eventId, allocations) => {
     const event = transactionDeviations.find((item) => item.id === eventId);
@@ -352,6 +390,8 @@ export const AppProvider = ({ children }) => {
         dismissDeviationNotifications,
         openDeviation,
         applyHealerStrategy,
+        applyDeviationRecovery,
+        declineDeviationRecovery,
         applyOpportunityRecovery,
         planChatRequest,
         requestPlanChatOpen,

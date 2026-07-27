@@ -57,7 +57,7 @@ const HomePage = () => {
     setActivePlanId
   } = useApp();
   const pendingHealers = transactionDeviations.filter((event) => event.status === 'pending');
-  const visibleHealer = pendingHealers.find((event) => !event.notificationDismissed);
+  const visibleHealer = [...pendingHealers].reverse().find((event) => !event.notificationDismissed);
   const opportunity = getPlanOpportunity();
   const opportunityHandled = Object.values(opportunityDecisions).some((decision) => decision.opportunityId === opportunity.id);
   const recommendedPlan = getRecommendedPlan(createdPlans.map((id) => getMilestonePlan(id, planAdjustments)));
@@ -124,9 +124,15 @@ const HomePage = () => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-[70] flex items-center justify-center bg-zinc-950/55 px-5">
             <motion.div initial={{ y: 22, scale: 0.95 }} animate={{ y: 0, scale: 1 }} className="relative w-full rounded-[26px] bg-white p-5 shadow-2xl">
               <button onClick={dismissDeviationNotifications} aria-label="Dismiss" className="absolute right-4 top-4 text-zinc-500"><X size={20} /></button>
-              <span className="rounded-md bg-red-50 px-2 py-1 text-[9px] font-black uppercase text-brand-primary">NEST plan update</span>
+              <span className="rounded-md bg-red-50 px-2 py-1 text-[9px] font-black uppercase text-brand-primary">
+                {pendingHealers.length > 1 ? `${pendingHealers.length} NEST plan updates` : 'NEST plan update'}
+              </span>
               <h2 className="mt-4 text-[22px] font-black">Your plans need attention</h2>
-              <p className="mt-2 text-[11px] leading-relaxed text-zinc-600">A recent S${visibleHealer.amount.toLocaleString('en-SG')} payment affected your active goals. Agent Owl has prepared recovery options.</p>
+              <p className="mt-2 text-[11px] leading-relaxed text-zinc-600">
+                {pendingHealers.length > 1
+                  ? `${pendingHealers.length} recent transactions may have affected your active goals. Agent Owl grouped them for review.`
+                  : `A recent S$${visibleHealer.amount.toLocaleString('en-SG')} payment affected your active goals. Agent Owl has prepared recovery options.`}
+              </p>
               <div className="mt-4 overflow-hidden rounded-2xl border border-zinc-200">
                 {visibleHealer.affectedPlans.slice(0, 3).map((plan, index) => (
                   <div key={plan.planId} className={`flex items-center gap-3 p-3 ${index ? 'border-t border-zinc-200' : ''}`}>
@@ -136,7 +142,9 @@ const HomePage = () => {
                   </div>
                 ))}
               </div>
-              <button onClick={() => openDeviation(visibleHealer.id)} className="mt-5 w-full rounded-xl bg-brand-primary py-3 text-[11px] font-black text-white">Review suggested fix</button>
+              <button onClick={() => openDeviation(visibleHealer.id)} className="mt-5 w-full rounded-xl bg-brand-primary py-3 text-[11px] font-black text-white">
+                {pendingHealers.length > 1 ? `Review ${pendingHealers.length} transactions` : 'Review suggested fix'}
+              </button>
               <button onClick={dismissDeviationNotifications} className="mt-2 w-full py-2 text-[10px] font-bold text-brand-primary">Not now</button>
             </motion.div>
           </motion.div>

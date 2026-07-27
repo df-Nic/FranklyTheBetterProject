@@ -46,6 +46,7 @@ const PayNowSuccessPage = () => {
   const handleFinish = () => {
     registerTransactionDeviation({
       id: `paynow-${refId}`,
+      type: 'paynow',
       amount: parseFloat(paynowAmount || '0'),
       reference: refId,
       timestamp: new Date().toISOString(),
