@@ -59,7 +59,7 @@ export function buildRecoveryOptions(plan, amount) {
 
 export function createTransactionDeviation({
   id,
-  type,
+  type = "paynow",
   amount,
   reference,
   timestamp,
@@ -67,14 +67,13 @@ export function createTransactionDeviation({
   planIds,
   adjustments,
 }) {
-  if (!Number.isFinite(amount) || amount < 3000 || !planIds.length) return null;
+  if (!Number.isFinite(amount) || amount < 3000 || !planIds?.length) return null;
 
   const affectedPlans = planIds
     .map((planId) => getMilestonePlan(planId, adjustments))
     .map((plan) => {
       const existingBuffer = Math.max(0, plan.onTrack.saved - plan.onTrack.expected);
       const gap = Math.max(0, amount - existingBuffer);
-      const urgencyScore = gap / Math.max(plan.targetAmount, 1);
       const remainingBuffer = Math.max(0, existingBuffer - amount);
       const impactStatus = gap > 0
         ? "needs-healing"
@@ -85,10 +84,11 @@ export function createTransactionDeviation({
         planId: plan.id,
         planName: plan.goalName,
         gap,
+        originalGap: gap,
         existingBuffer,
         remainingBuffer,
         impactStatus,
-        urgencyScore,
+        urgencyScore: gap / Math.max(plan.targetAmount, 1),
         status: gap > 0 ? "pending" : "not-required",
         recoveryOptions: buildRecoveryOptions(plan, amount),
       };
@@ -100,7 +100,8 @@ export function createTransactionDeviation({
         || a.planName.localeCompare(b.planName);
     });
 
-  if (!affectedPlans.some((plan) => plan.status === "pending")) return null;
+  const recommendedPlan = affectedPlans.find((plan) => plan.status === "pending");
+  if (!recommendedPlan) return null;
 
   return {
     id,
@@ -111,7 +112,7 @@ export function createTransactionDeviation({
     sourceAccount,
     status: "pending",
     notificationDismissed: false,
-    recommendedPlanId: affectedPlans.find((plan) => plan.status === "pending").planId,
+    recommendedPlanId: recommendedPlan.planId,
     affectedPlans,
   };
 }

@@ -48,30 +48,26 @@ const HomePage = () => {
     user,
     accountsData,
     investmentsData,
-    transactionDeviations,
-    dismissDeviationNotifications,
-    openDeviation,
     createdPlans,
     planAdjustments,
     opportunityDecisions,
+    transactionDeviations,
+    dismissDeviationNotifications,
+    openDeviation,
     setActivePlanId
   } = useApp();
-  const pendingDeviations = transactionDeviations.filter((event) => event.status === 'pending');
-  const visibleDeviationNotice = pendingDeviations.some((event) => !event.notificationDismissed);
-  const newestDeviation = pendingDeviations[pendingDeviations.length - 1];
+  const pendingHealers = transactionDeviations.filter((event) => event.status === 'pending');
+  const visibleHealer = [...pendingHealers].reverse().find((event) => !event.notificationDismissed);
   const opportunity = getPlanOpportunity();
-  const opportunityHandled = Object.values(opportunityDecisions).some(
-    (decision) => decision.opportunityId === opportunity.id,
-  );
-  const opportunityPlans = createdPlans.map((planId) => getMilestonePlan(planId, planAdjustments));
-  const opportunityRecommendedPlan = getRecommendedPlan(opportunityPlans);
+  const opportunityHandled = Object.values(opportunityDecisions).some((decision) => decision.opportunityId === opportunity.id);
+  const recommendedPlan = getRecommendedPlan(createdPlans.map((id) => getMilestonePlan(id, planAdjustments)));
 
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
   const [activeNavTab, setActiveNavTab] = useState('home');
-  const [opportunityDismissedForVisit, setOpportunityDismissedForVisit] = useState(false);
+  const [opportunityDismissed, setOpportunityDismissed] = useState(false);
 
   useEffect(() => {
-    if (page === 'home') setOpportunityDismissedForVisit(false);
+    if (page === 'home') setOpportunityDismissed(false);
   }, [page]);
 
   const handleNavTabSelect = (tabId) => {
@@ -123,6 +119,51 @@ const HomePage = () => {
       {/* Background Orb top-right */}
       <BackgroundOrb color="pink" size="360px" className="-top-10 -right-10" />
 
+      <AnimatePresence>
+        {visibleHealer && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-[70] flex items-center justify-center bg-zinc-950/55 px-5">
+            <motion.div initial={{ y: 22, scale: 0.95 }} animate={{ y: 0, scale: 1 }} className="relative w-full rounded-[26px] bg-white p-5 shadow-2xl">
+              <button onClick={dismissDeviationNotifications} aria-label="Dismiss" className="absolute right-4 top-4 text-zinc-500"><X size={20} /></button>
+              <span className="rounded-md bg-red-50 px-2 py-1 text-[9px] font-black uppercase text-brand-primary">
+                {pendingHealers.length > 1 ? `${pendingHealers.length} NEST plan updates` : 'NEST plan update'}
+              </span>
+              <h2 className="mt-4 text-[22px] font-black">Your plans need attention</h2>
+              <p className="mt-2 text-[11px] leading-relaxed text-zinc-600">
+                {pendingHealers.length > 1
+                  ? `${pendingHealers.length} recent transactions may have affected your active goals. Agent Owl grouped them for review.`
+                  : `A recent S$${visibleHealer.amount.toLocaleString('en-SG')} payment affected your active goals. Agent Owl has prepared recovery options.`}
+              </p>
+              <div className="mt-4 overflow-hidden rounded-2xl border border-zinc-200">
+                {visibleHealer.affectedPlans.slice(0, 3).map((plan, index) => (
+                  <div key={plan.planId} className={`flex items-center gap-3 p-3 ${index ? 'border-t border-zinc-200' : ''}`}>
+                    <Target size={16} className="text-brand-primary" />
+                    <strong className="flex-1 text-[10px]">{plan.planName}</strong>
+                    <span className={`text-[8px] font-black uppercase ${plan.status === 'pending' ? 'text-brand-primary' : 'text-emerald-600'}`}>{plan.status === 'pending' ? 'Needs healing' : 'On track'}</span>
+                  </div>
+                ))}
+              </div>
+              <button onClick={() => openDeviation(visibleHealer.id)} className="mt-5 w-full rounded-xl bg-brand-primary py-3 text-[11px] font-black text-white">
+                {pendingHealers.length > 1 ? `Review ${pendingHealers.length} transactions` : 'Review suggested fix'}
+              </button>
+              <button onClick={dismissDeviationNotifications} className="mt-2 w-full py-2 text-[10px] font-bold text-brand-primary">Not now</button>
+            </motion.div>
+          </motion.div>
+        )}
+        {!pendingHealers.length && createdPlans.length > 0 && !opportunityHandled && !opportunityDismissed && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-[70] flex items-center justify-center bg-zinc-950/55 px-5">
+            <motion.div initial={{ y: 22, scale: 0.95 }} animate={{ y: 0, scale: 1 }} className="relative w-full rounded-[26px] bg-white p-5 shadow-2xl">
+              <Sparkles className="absolute -right-4 -top-4 h-20 w-20 text-amber-50" />
+              <button onClick={() => setOpportunityDismissed(true)} aria-label="Dismiss" className="absolute right-4 top-4 text-zinc-500"><X size={20} /></button>
+              <span className="rounded-md bg-amber-50 px-2 py-1 text-[9px] font-black uppercase text-amber-700">Opportunity starts now</span>
+              <h2 className="mt-4 text-[22px] font-black">Put your S$8,000 bonus to work</h2>
+              <p className="mt-2 text-[11px] leading-relaxed text-zinc-600">Agent Owl compared all active plans and recommends starting with {recommendedPlan?.goalName}.</p>
+              <button onClick={() => { setActivePlanId(recommendedPlan?.id || createdPlans[0]); navigate('opportunity-detail'); }} className="mt-5 w-full rounded-xl bg-[#7C2230] py-3 text-[11px] font-black text-white">Compare and allocate</button>
+              <button onClick={() => setOpportunityDismissed(true)} className="mt-2 w-full py-2 text-[10px] font-bold text-[#7C2230]">Not now</button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Frosted Sticky Navigation Header */}
       <header className="pt-6 pb-2 h-auto w-full bg-white/60 backdrop-blur-xl border-b border-white/50 px-4 flex justify-between items-center z-40 shrink-0 sticky top-0">
         <div className="flex items-center gap-2">
@@ -157,192 +198,6 @@ const HomePage = () => {
           <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Welcome back</span>
           <h2 className="text-2xl font-black text-zinc-950 tracking-tight">{user.name}</h2>
         </div>
-
-        <AnimatePresence>
-          {visibleDeviationNotice && newestDeviation && (
-            <motion.section
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 z-[70] flex items-center justify-center bg-zinc-950/55 px-5 backdrop-blur-[1px]"
-            >
-              <motion.div
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="plan-update-title"
-                initial={{ opacity: 0, y: 24, scale: 0.94 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 14, scale: 0.96 }}
-                transition={{ type: 'spring', damping: 24, stiffness: 240 }}
-                className="relative w-full max-w-[340px] overflow-hidden rounded-[26px] border border-white bg-white px-5 pb-5 pt-6 text-zinc-900 shadow-[0_28px_80px_rgba(0,0,0,0.36)]"
-              >
-              <Sparkles className="pointer-events-none absolute -right-5 -top-5 h-24 w-24 text-red-50" />
-              <button
-                type="button"
-                onClick={dismissDeviationNotifications}
-                aria-label="Dismiss plan review notification"
-                className="absolute right-4 top-4 z-10 rounded-full p-1 text-zinc-500 transition-colors hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
-              >
-                <X size={21} strokeWidth={2.2} />
-              </button>
-              {false && (
-              <div className="relative pr-9">
-                <div className="text-[9px] font-black uppercase tracking-[0.16em] text-[#FFE19A]">Agent Owl · Plan Healer</div>
-                <h3 className="mt-1 text-[17px] font-black">
-                  {pendingDeviations.length === 1 ? 'A transaction affected your plans' : `${pendingDeviations.length} transactions need review`}
-                </h3>
-                <p className="mt-1.5 text-[10.5px] font-medium leading-relaxed text-white/75">
-                  Your S${newestDeviation.amount.toLocaleString('en-SG')} PayNow payment may move {newestDeviation.affectedPlans.length} {newestDeviation.affectedPlans.length === 1 ? 'plan' : 'plans'} off track. Nothing changes until you confirm.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => openDeviation(newestDeviation.id)}
-                  className="mt-3 inline-flex items-center gap-1 rounded-full bg-white px-3.5 py-2 text-[9.5px] font-black text-[#7C2230] shadow-sm active:scale-95"
-                >
-                  Review with Plan Healer
-                  <ChevronRight size={13} />
-                </button>
-              </div>
-              )}
-
-              <div className="relative pr-8">
-                <span className="inline-flex rounded-md bg-red-50 px-2 py-1 text-[9px] font-black uppercase tracking-[0.1em] text-brand-primary">
-                  NEST plan update
-                </span>
-                <h3 id="plan-update-title" className="mt-4 text-[22px] font-black leading-tight tracking-tight">
-                  {pendingDeviations.length === 1 ? 'Your plans need attention' : `${pendingDeviations.length} transactions need attention`}
-                </h3>
-                <p className="mt-3 text-[12px] font-medium leading-relaxed text-zinc-600">
-                  A recent S${newestDeviation.amount.toLocaleString('en-SG')} payment has affected your active goals. NEST has prepared a suggested recovery plan.
-                </p>
-              </div>
-
-              <div className="mt-4 overflow-hidden rounded-[16px] border border-zinc-200 bg-zinc-50/60">
-                {newestDeviation.affectedPlans.slice(0, 3).map((plan, index) => (
-                  <div key={plan.planId} className={`flex items-center gap-3 px-3.5 py-3 ${index ? 'border-t border-zinc-200' : ''}`}>
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50 text-brand-primary">
-                      <Target size={16} strokeWidth={2.2} />
-                    </span>
-                    <strong className="min-w-0 flex-1 truncate text-[11px] font-extrabold">{plan.planName}</strong>
-                    <span className={`shrink-0 text-[9px] font-black ${
-                      plan.impactStatus === 'needs-healing'
-                        ? 'text-brand-primary'
-                        : plan.impactStatus === 'reduced-buffer'
-                          ? 'text-amber-600'
-                          : 'text-emerald-600'
-                    }`}>
-                      {plan.impactStatus === 'needs-healing'
-                        ? `S$${Math.round(plan.gap).toLocaleString('en-SG')} behind`
-                        : plan.impactStatus === 'reduced-buffer'
-                          ? 'Reduced buffer'
-                          : 'Still on track'}
-                    </span>
-                  </div>
-                ))}
-                {newestDeviation.affectedPlans.length > 3 && (
-                  <div className="border-t border-zinc-200 px-3.5 py-2 text-center text-[9px] font-bold text-zinc-500">
-                    +{newestDeviation.affectedPlans.length - 3} more affected plans
-                  </div>
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => openDeviation(newestDeviation.id)}
-                className="mt-5 flex w-full items-center justify-center rounded-[13px] bg-brand-primary py-3.5 text-[12px] font-black text-white shadow-[0_8px_20px_rgba(225,37,27,0.2)] transition-transform active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
-              >
-                Review suggested fix
-              </button>
-              <button
-                type="button"
-                onClick={dismissDeviationNotifications}
-                className="mt-2.5 w-full rounded-lg py-2 text-[11px] font-extrabold text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
-              >
-                Not now
-              </button>
-              </motion.div>
-            </motion.section>
-          )}
-          {!visibleDeviationNotice
-            && createdPlans.length > 0
-            && !opportunityHandled
-            && !opportunityDismissedForVisit
-            && (
-            <motion.section
-              key="opportunity-home-notification"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 z-[70] flex items-center justify-center bg-zinc-950/55 px-5 backdrop-blur-[1px]"
-            >
-              <motion.div
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="opportunity-update-title"
-                initial={{ opacity: 0, y: 24, scale: 0.94 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 14, scale: 0.96 }}
-                transition={{ type: 'spring', damping: 24, stiffness: 240 }}
-                className="relative w-full max-w-[340px] overflow-hidden rounded-[26px] border border-white bg-white px-5 pb-5 pt-6 text-zinc-900 shadow-[0_28px_80px_rgba(0,0,0,0.36)]"
-              >
-                <Sparkles className="pointer-events-none absolute -right-5 -top-5 h-24 w-24 text-amber-50" />
-                <button
-                  type="button"
-                  onClick={() => setOpportunityDismissedForVisit(true)}
-                  aria-label="Dismiss opportunity notification"
-                  className="absolute right-4 top-4 z-10 rounded-full p-1 text-zinc-500 transition-colors hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C2230]"
-                >
-                  <X size={21} strokeWidth={2.2} />
-                </button>
-
-                <div className="relative pr-8">
-                  <span className="inline-flex rounded-md bg-[#FFF4D6] px-2 py-1 text-[9px] font-black uppercase tracking-[0.1em] text-[#9A641E]">
-                    Opportunity starts now
-                  </span>
-                  <h3 id="opportunity-update-title" className="mt-4 text-[22px] font-black leading-tight tracking-tight">
-                    Put your S${opportunity.sourceAmount.toLocaleString('en-SG')} bonus to work
-                  </h3>
-                  <p className="mt-3 text-[12px] font-medium leading-relaxed text-zinc-600">
-                    Agent Owl spotted an unusually large credit and compared how it could strengthen all your active plans.
-                  </p>
-                </div>
-
-                <div className="mt-4 rounded-[16px] border border-[#E8DED5] bg-[#FFFDFB] p-3.5">
-                  <div className="flex items-start gap-3">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FFF4D6] text-[#9A641E]">
-                      <Sparkles size={17} />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <span className="text-[8px] font-black uppercase tracking-wide text-[#9A641E]">Owl recommendation</span>
-                      <strong className="mt-0.5 block text-[12px]">{opportunityRecommendedPlan?.goalName}</strong>
-                      <p className="mt-1 text-[9px] leading-relaxed text-[#756A63]">
-                        Compared across {createdPlans.length} {createdPlans.length === 1 ? 'plan' : 'plans'} based on funding need, timing, and your goal priorities.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActivePlanId(opportunityRecommendedPlan?.id ?? createdPlans[0]);
-                    navigate('opportunity-detail');
-                  }}
-                  className="mt-5 flex w-full items-center justify-center rounded-[13px] bg-[#7C2230] py-3.5 text-[12px] font-black text-white shadow-[0_8px_20px_rgba(124,34,48,0.2)] transition-transform active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C2230] focus-visible:ring-offset-2"
-                >
-                  Compare and allocate
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setOpportunityDismissedForVisit(true)}
-                  className="mt-2.5 w-full rounded-lg py-2 text-[11px] font-extrabold text-[#7C2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C2230]"
-                >
-                  Not now
-                </button>
-              </motion.div>
-            </motion.section>
-          )}
-        </AnimatePresence>
 
         {/* Hero Slider Banner */}
         <div className="relative w-full">
@@ -564,7 +419,7 @@ const HomePage = () => {
                     <div className="flex justify-between items-start">
                       <div className="flex flex-col">
                         <span className="text-[10px] font-bold tracking-wider uppercase text-zinc-400">NEST Platinum Debit</span>
-                        <span className="text-sm font-bold mt-1">Olivia</span>
+                        <span className="text-sm font-bold mt-1">Daniel</span>
                       </div>
                       <span className="text-base font-black italic tracking-widest text-zinc-300">VISA</span>
                     </div>

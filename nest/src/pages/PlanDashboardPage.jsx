@@ -2,7 +2,6 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { ChevronRight, Plus, CalendarDays, Sparkles } from 'lucide-react';
-import { PLANS_DATA } from '../data/planTemplates';
 import { getPlanOpportunity, getRecommendedPlan } from '../data/planOpportunities';
 import { getMilestonePlan } from '../data/milestonePlans';
 import { planNeedsDeviationReview } from '../data/transactionDeviations';
@@ -71,10 +70,9 @@ const PLAN_META = {
 
 const PlanCard = ({ planId, index, onClick }) => {
   const { planAdjustments, transactionDeviations } = useApp();
-  const plan = PLANS_DATA[planId];
   const displayPlan = getMilestonePlan(planId, planAdjustments);
   const meta = PLAN_META[planId] || PLAN_META.default;
-  const goalText = plan.goal.length > 92 ? plan.goal.slice(0, 92) + '\u2026' : plan.goal;
+  const goalText = `Accepted target: S$${Number(displayPlan.targetAmount || 0).toLocaleString('en-SG')} by ${displayPlan.goalDate}`;
   
   const isHealed = planAdjustments?.[planId]?.healed;
   const needsReview = planNeedsDeviationReview(transactionDeviations, planId);
@@ -144,11 +142,12 @@ const PlanCard = ({ planId, index, onClick }) => {
 // ─── Plan Dashboard Page ─────────────────────────────────────────────────────
 
 const PlanDashboardPage = () => {
-  const { navigate, createdPlans, setActivePlanId, setClickPos, setPlanDetailOrigin, planAdjustments, opportunityDecisions, requestPlanChatOpen } = useApp();
+  const { navigate, createdPlans, setActivePlanId, setClickPos, setPlanDetailOrigin, planAdjustments, opportunityDecisions, requestPlanChatOpen, transactionDeviations } = useApp();
   const dashboardPlans = createdPlans.map((id) => getMilestonePlan(id, planAdjustments));
   const recommendedPlan = getRecommendedPlan(dashboardPlans);
   const opportunity = getPlanOpportunity();
   const opportunityHandled = Object.values(opportunityDecisions).some((item) => item.opportunityId === opportunity.id);
+  const healerPending = transactionDeviations.some((event) => event.status === 'pending');
   const startNewPlan = () => {
     requestPlanChatOpen();
     navigate('home');
@@ -189,7 +188,7 @@ const PlanDashboardPage = () => {
 
       {/* Cards area */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-4 py-5 pb-28 flex flex-col gap-4 z-10">
-        {createdPlans.length > 0 && !opportunityHandled && (
+        {createdPlans.length > 0 && !opportunityHandled && !healerPending && (
           <button
             onClick={() => {
               setActivePlanId(recommendedPlan?.id ?? createdPlans[0]);
