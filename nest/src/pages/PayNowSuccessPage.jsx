@@ -17,7 +17,8 @@ const PayNowSuccessPage = () => {
     setPaynowAmount,
     setPaynowReference,
     planAdjustments,
-    setActivePlanId
+    setActivePlanId,
+    registerTransactionDeviation
   } = useApp();
 
   const [refId, setRefId] = useState('');
@@ -43,6 +44,14 @@ const PayNowSuccessPage = () => {
   }, []);
 
   const handleFinish = () => {
+    registerTransactionDeviation({
+      id: `paynow-${refId}`,
+      type: 'paynow',
+      amount: parseFloat(paynowAmount || '0'),
+      reference: refId,
+      timestamp: new Date().toISOString(),
+      sourceAccount: paynowSourceAccount?.name || '360 Account',
+    });
     // Clear states
     setPaynowContact(null);
     setPaynowAmount('');
@@ -105,7 +114,7 @@ const PayNowSuccessPage = () => {
           const healedPlanId = Object.keys(planAdjustments || {}).find(
             (key) => planAdjustments[key]?.healed
           );
-          if (!healedPlanId) return null;
+          return null;
           
           const healedPlan = getMilestonePlan(healedPlanId, planAdjustments);
           const healedPlanName = healedPlan?.goalName || 'Active Plan';
@@ -242,7 +251,7 @@ const PayNowSuccessPage = () => {
           const healedPlanId = Object.keys(planAdjustments || {}).find(
             (key) => planAdjustments[key]?.healed
           );
-          if (!healedPlanId) return null;
+          return null;
           return (
             <button
               onClick={() => {
