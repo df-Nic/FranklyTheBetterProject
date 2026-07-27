@@ -30,6 +30,7 @@ export default function PlanMilestonesPage() {
   const {
     activePlanId,
     setPage,
+    setPlanDetailOrigin,
     user,
     opportunityDecisions,
     opportunityNotice,
@@ -179,7 +180,10 @@ export default function PlanMilestonesPage() {
         />
 
         <button
-          onClick={() => setPage("plan-view")}
+          onClick={() => {
+            setPlanDetailOrigin("plan-milestones");
+            setPage("plan-details");
+          }}
           className="flex w-full items-center justify-between rounded-[14px] px-1 py-2 text-left text-[12px] font-extrabold text-[#7C2230] active:scale-[0.99]"
         >
           <span>View plan breakdown</span>

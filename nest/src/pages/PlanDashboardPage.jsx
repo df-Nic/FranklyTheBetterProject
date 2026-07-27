@@ -2,9 +2,9 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { ChevronRight, Plus, CalendarDays, Sparkles } from 'lucide-react';
-import { PLANS_DATA } from '../data/planTemplates';
 import { getPlanOpportunity, getRecommendedPlan } from '../data/planOpportunities';
 import { getMilestonePlan } from '../data/milestonePlans';
+import { planNeedsDeviationReview } from '../data/transactionDeviations';
 
 // ─── Labeled Plan Illustrations ──────────────────────────────────────────────
 import retirementImg from '../assets/images/Retirement Plan Image.svg';
@@ -69,13 +69,13 @@ const PLAN_META = {
 // ─── Single Plan Card ────────────────────────────────────────────────────────
 
 const PlanCard = ({ planId, index, onClick }) => {
-  const { planAdjustments } = useApp();
-  const plan = PLANS_DATA[planId];
+  const { planAdjustments, transactionDeviations } = useApp();
   const displayPlan = getMilestonePlan(planId, planAdjustments);
   const meta = PLAN_META[planId] || PLAN_META.default;
-  const goalText = plan.goal.length > 92 ? plan.goal.slice(0, 92) + '\u2026' : plan.goal;
+  const goalText = `Accepted target: S$${Number(displayPlan.targetAmount || 0).toLocaleString('en-SG')} by ${displayPlan.goalDate}`;
   
   const isHealed = planAdjustments?.[planId]?.healed;
+  const needsReview = planNeedsDeviationReview(transactionDeviations, planId);
 
   return (
     <motion.div
@@ -98,6 +98,7 @@ const PlanCard = ({ planId, index, onClick }) => {
           {meta.tag}
         </span>
         <div className="absolute right-3 top-3 z-10 flex flex-col items-end gap-1.5">
+          {needsReview && <span className="rounded-full bg-[#B14A3F] px-2.5 py-1 text-[9px] font-black uppercase text-white">Needs review</span>}
           {isHealed && (
             <span className="flex items-center gap-1 rounded-full bg-emerald-500 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-white shadow-sm animate-pulse">
               <Sparkles className="h-2.5 w-2.5 stroke-[3]" />
@@ -137,11 +138,12 @@ const PlanCard = ({ planId, index, onClick }) => {
 // ─── Plan Dashboard Page ─────────────────────────────────────────────────────
 
 const PlanDashboardPage = () => {
-  const { navigate, createdPlans, setActivePlanId, setClickPos, setPlanDetailOrigin, planAdjustments, opportunityDecisions, requestPlanChatOpen } = useApp();
+  const { navigate, createdPlans, setActivePlanId, setClickPos, setPlanDetailOrigin, planAdjustments, opportunityDecisions, requestPlanChatOpen, transactionDeviations } = useApp();
   const dashboardPlans = createdPlans.map((id) => getMilestonePlan(id, planAdjustments));
   const recommendedPlan = getRecommendedPlan(dashboardPlans);
   const opportunity = getPlanOpportunity();
   const opportunityHandled = Object.values(opportunityDecisions).some((item) => item.opportunityId === opportunity.id);
+  const healerPending = transactionDeviations.some((event) => event.status === 'pending');
   const startNewPlan = () => {
     requestPlanChatOpen();
     navigate('home');
@@ -182,7 +184,7 @@ const PlanDashboardPage = () => {
 
       {/* Cards area */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-4 py-5 pb-28 flex flex-col gap-4 z-10">
-        {createdPlans.length > 0 && !opportunityHandled && (
+        {createdPlans.length > 0 && !opportunityHandled && !healerPending && (
           <button
             onClick={() => {
               setActivePlanId(recommendedPlan?.id ?? createdPlans[0]);

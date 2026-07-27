@@ -91,7 +91,7 @@ const PayNowConfirmPage = () => {
 
   const hasPlan = createdPlans && createdPlans.length > 0;
   const isTargetAmount = parseFloat(paynowAmount || '0') >= 3000;
-  const showHealerWarning = hasPlan && isTargetAmount;
+  const showHealerWarning = false;
 
   const selectedPlan = getMilestonePlan(selectedPlanId, planAdjustments);
   const planName = selectedPlan.goalName || 'Wedding Fund';
@@ -145,7 +145,7 @@ const PayNowConfirmPage = () => {
         paynowSourceAccount.balance -= parseFloat(paynowAmount);
       }
       
-      if (showHealerWarning) {
+      if (false) {
         setIsHealing(true);
         setHealingProgress(10);
         setHealingStepText("Intercepting transaction impact...");
