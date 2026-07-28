@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import BackgroundOrb from '../components/ui/BackgroundOrb';
 import GlassCard from '../components/ui/GlassCard';
+import { getPlanOpportunity, getRecommendedPlan } from '../data/planOpportunities';
+import { getMilestonePlan } from '../data/milestonePlans';
 import {
   Scan,
   Bell,
@@ -16,7 +18,10 @@ import {
   Globe,
   Coins,
   Inbox,
-  LogOut
+  LogOut,
+  Sparkles,
+  X,
+  Target
 } from 'lucide-react';
 
 const banners = [
@@ -34,6 +39,7 @@ const banners = [
 
 const HomePage = () => {
   const {
+    page,
     navigate,
     isMasked,
     toggleMask,
@@ -41,11 +47,28 @@ const HomePage = () => {
     setActiveTab,
     user,
     accountsData,
-    investmentsData
+    investmentsData,
+    createdPlans,
+    planAdjustments,
+    opportunityDecisions,
+    transactionDeviations,
+    dismissDeviationNotifications,
+    openDeviation,
+    setActivePlanId
   } = useApp();
+  const pendingHealers = transactionDeviations.filter((event) => event.status === 'pending');
+  const visibleHealer = [...pendingHealers].reverse().find((event) => !event.notificationDismissed);
+  const opportunity = getPlanOpportunity();
+  const opportunityHandled = Object.values(opportunityDecisions).some((decision) => decision.opportunityId === opportunity.id);
+  const recommendedPlan = getRecommendedPlan(createdPlans.map((id) => getMilestonePlan(id, planAdjustments)));
 
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
   const [activeNavTab, setActiveNavTab] = useState('home');
+  const [opportunityDismissed, setOpportunityDismissed] = useState(false);
+
+  useEffect(() => {
+    if (page === 'home') setOpportunityDismissed(false);
+  }, [page]);
 
   const handleNavTabSelect = (tabId) => {
     setActiveNavTab(tabId);
@@ -95,6 +118,51 @@ const HomePage = () => {
     <div className="flex-1 w-full bg-[#F5F5F7] flex flex-col relative overflow-hidden select-none">
       {/* Background Orb top-right */}
       <BackgroundOrb color="pink" size="360px" className="-top-10 -right-10" />
+
+      <AnimatePresence>
+        {visibleHealer && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-[70] flex items-center justify-center bg-zinc-950/55 px-5">
+            <motion.div initial={{ y: 22, scale: 0.95 }} animate={{ y: 0, scale: 1 }} className="relative w-full rounded-[26px] bg-white p-5 shadow-2xl">
+              <button onClick={dismissDeviationNotifications} aria-label="Dismiss" className="absolute right-4 top-4 text-zinc-500"><X size={20} /></button>
+              <span className="rounded-md bg-red-50 px-2 py-1 text-[9px] font-black uppercase text-brand-primary">
+                {pendingHealers.length > 1 ? `${pendingHealers.length} NEST plan updates` : 'NEST plan update'}
+              </span>
+              <h2 className="mt-4 text-[22px] font-black">Your plans need attention</h2>
+              <p className="mt-2 text-[11px] leading-relaxed text-zinc-600">
+                {pendingHealers.length > 1
+                  ? `${pendingHealers.length} recent transactions may have affected your active goals. Agent Owl grouped them for review.`
+                  : `A recent S$${visibleHealer.amount.toLocaleString('en-SG')} payment affected your active goals. Agent Owl has prepared recovery options.`}
+              </p>
+              <div className="mt-4 overflow-hidden rounded-2xl border border-zinc-200">
+                {visibleHealer.affectedPlans.slice(0, 3).map((plan, index) => (
+                  <div key={plan.planId} className={`flex items-center gap-3 p-3 ${index ? 'border-t border-zinc-200' : ''}`}>
+                    <Target size={16} className="text-brand-primary" />
+                    <strong className="flex-1 text-[10px]">{plan.planName}</strong>
+                    <span className={`text-[8px] font-black uppercase ${plan.status === 'pending' ? 'text-brand-primary' : 'text-emerald-600'}`}>{plan.status === 'pending' ? 'Needs healing' : 'On track'}</span>
+                  </div>
+                ))}
+              </div>
+              <button onClick={() => openDeviation(visibleHealer.id)} className="mt-5 w-full rounded-xl bg-brand-primary py-3 text-[11px] font-black text-white">
+                {pendingHealers.length > 1 ? `Review ${pendingHealers.length} transactions` : 'Review suggested fix'}
+              </button>
+              <button onClick={dismissDeviationNotifications} className="mt-2 w-full py-2 text-[10px] font-bold text-brand-primary">Not now</button>
+            </motion.div>
+          </motion.div>
+        )}
+        {!pendingHealers.length && createdPlans.length > 0 && !opportunityHandled && !opportunityDismissed && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-[70] flex items-center justify-center bg-zinc-950/55 px-5">
+            <motion.div initial={{ y: 22, scale: 0.95 }} animate={{ y: 0, scale: 1 }} className="relative w-full rounded-[26px] bg-white p-5 shadow-2xl">
+              <Sparkles className="absolute -right-4 -top-4 h-20 w-20 text-amber-50" />
+              <button onClick={() => setOpportunityDismissed(true)} aria-label="Dismiss" className="absolute right-4 top-4 text-zinc-500"><X size={20} /></button>
+              <span className="rounded-md bg-amber-50 px-2 py-1 text-[9px] font-black uppercase text-amber-700">Opportunity starts now</span>
+              <h2 className="mt-4 text-[22px] font-black">Put your S$8,000 bonus to work</h2>
+              <p className="mt-2 text-[11px] leading-relaxed text-zinc-600">Agent Owl compared all active plans and recommends starting with {recommendedPlan?.goalName}.</p>
+              <button onClick={() => { setActivePlanId(recommendedPlan?.id || createdPlans[0]); navigate('opportunity-detail'); }} className="mt-5 w-full rounded-xl bg-[#7C2230] py-3 text-[11px] font-black text-white">Compare and allocate</button>
+              <button onClick={() => setOpportunityDismissed(true)} className="mt-2 w-full py-2 text-[10px] font-bold text-[#7C2230]">Not now</button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Frosted Sticky Navigation Header */}
       <header className="pt-6 pb-2 h-auto w-full bg-white/60 backdrop-blur-xl border-b border-white/50 px-4 flex justify-between items-center z-40 shrink-0 sticky top-0">
@@ -351,7 +419,7 @@ const HomePage = () => {
                     <div className="flex justify-between items-start">
                       <div className="flex flex-col">
                         <span className="text-[10px] font-bold tracking-wider uppercase text-zinc-400">NEST Platinum Debit</span>
-                        <span className="text-sm font-bold mt-1">Olivia</span>
+                        <span className="text-sm font-bold mt-1">Daniel</span>
                       </div>
                       <span className="text-base font-black italic tracking-widest text-zinc-300">VISA</span>
                     </div>

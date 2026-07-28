@@ -2,9 +2,9 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { ChevronRight, Plus, CalendarDays, Sparkles, CreditCard, Zap } from 'lucide-react';
-import { PLANS_DATA } from '../data/planTemplates';
 import { getPlanOpportunity, getRecommendedPlan } from '../data/planOpportunities';
 import { getMilestonePlan } from '../data/milestonePlans';
+import { planNeedsDeviationReview } from '../data/transactionDeviations';
 
 // ─── Labeled Plan Illustrations ──────────────────────────────────────────────
 import retirementImg from '../assets/images/Retirement Plan Image.svg';
@@ -69,13 +69,13 @@ const PLAN_META = {
 // ─── Single Plan Card ────────────────────────────────────────────────────────
 
 const PlanCard = ({ planId, index, onClick }) => {
-  const { planAdjustments } = useApp();
-  const plan = PLANS_DATA[planId];
+  const { planAdjustments, transactionDeviations } = useApp();
   const displayPlan = getMilestonePlan(planId, planAdjustments);
   const meta = PLAN_META[planId] || PLAN_META.default;
-  const goalText = plan.goal.length > 92 ? plan.goal.slice(0, 92) + '\u2026' : plan.goal;
-  
+  const goalText = `Accepted target: S$${Number(displayPlan.targetAmount || 0).toLocaleString('en-SG')} by ${displayPlan.goalDate}`;
+
   const isHealed = planAdjustments?.[planId]?.healed;
+  const needsReview = planNeedsDeviationReview(transactionDeviations, planId);
 
   return (
     <motion.div
@@ -88,9 +88,9 @@ const PlanCard = ({ planId, index, onClick }) => {
     >
       {/* Illustration zone */}
       <div className="relative w-full h-[150px] overflow-hidden bg-zinc-50 flex items-center justify-center p-3">
-        <img 
-          src={meta.image} 
-          alt={meta.tag} 
+        <img
+          src={meta.image}
+          alt={meta.tag}
           className="w-full h-full object-contain"
         />
         {/* Category badge */}
@@ -98,6 +98,11 @@ const PlanCard = ({ planId, index, onClick }) => {
           {meta.tag}
         </span>
         <div className="absolute right-3 top-3 z-10 flex flex-col items-end gap-1.5">
+          {needsReview && (
+            <span className="flex items-center gap-1 rounded-full bg-[#B14A3F] px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-white shadow-sm">
+              Needs review
+            </span>
+          )}
           {isHealed && (
             <span className="flex items-center gap-1 rounded-full bg-emerald-500 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-white shadow-sm animate-pulse">
               <Sparkles className="h-2.5 w-2.5 stroke-[3]" />
@@ -137,11 +142,12 @@ const PlanCard = ({ planId, index, onClick }) => {
 // ─── Plan Dashboard Page ─────────────────────────────────────────────────────
 
 const PlanDashboardPage = () => {
-  const { navigate, createdPlans, setActivePlanId, setClickPos, setPlanDetailOrigin, planAdjustments, opportunityDecisions, requestPlanChatOpen } = useApp();
+  const { navigate, createdPlans, setActivePlanId, setClickPos, setPlanDetailOrigin, planAdjustments, opportunityDecisions, requestPlanChatOpen, transactionDeviations } = useApp();
   const dashboardPlans = createdPlans.map((id) => getMilestonePlan(id, planAdjustments));
   const recommendedPlan = getRecommendedPlan(dashboardPlans);
   const opportunity = getPlanOpportunity();
   const opportunityHandled = Object.values(opportunityDecisions).some((item) => item.opportunityId === opportunity.id);
+  const healerPending = transactionDeviations.some((event) => event.status === 'pending');
   const startNewPlan = () => {
     requestPlanChatOpen();
     navigate('home');
@@ -192,7 +198,7 @@ const PlanDashboardPage = () => {
           className="relative w-full shrink-0 text-left overflow-hidden rounded-[22px] bg-gradient-to-br from-[#E1251B] via-[#C62828] to-[#8E0000] p-4 text-white shadow-[0_10px_25px_rgba(225,37,27,0.25)] cursor-pointer hover:shadow-xl transition-all duration-200 group active:scale-[0.99] border border-red-400/30 z-20 pointer-events-auto"
         >
           <div className="absolute right-[-10px] top-[-10px] w-28 h-28 bg-white/20 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform" />
-          
+
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-md border border-white/25 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider text-white">
               <Sparkles className="w-3 h-3 fill-white text-white" />
@@ -225,7 +231,7 @@ const PlanDashboardPage = () => {
           </div>
         </button>
 
-        {createdPlans.length > 0 && !opportunityHandled && (
+        {createdPlans.length > 0 && !opportunityHandled && !healerPending && (
           <button
             onClick={() => {
               setActivePlanId(recommendedPlan?.id ?? createdPlans[0]);

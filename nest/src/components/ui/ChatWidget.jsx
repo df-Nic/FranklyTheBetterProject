@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Compass, Coins, TrendingUp, ShieldCheck, Gift, Scissors, ShieldAlert, ArrowRight } from 'lucide-react';
+import { X, Send, Compass, Coins, TrendingUp, ShieldCheck, Gift, Scissors, ShieldAlert, ArrowRight, RotateCcw } from 'lucide-react';
 import ocbcOwl from '../../assets/images/OCBC Owl.jpg';
 import { useApp } from '../../context/AppContext';
 import { PLANS_DATA } from '../../data/planTemplates';
+import { GOAL_ESTIMATION_QUESTIONS, estimateGoalAmount, supportsGuidedEstimate } from '../../data/goalEstimators';
 
 const PLAN_SUBGOALS = {
   'housing': [
@@ -44,7 +45,7 @@ const PLAN_SUBGOALS = {
 };
 
 const ChatWidget = () => {
-  const { setPage, setClickPos, setActivePlanTitle, setActivePlanId, addCreatedPlan, setPlanDetailOrigin, hasCreatedFirstPlan, setHasCreatedFirstPlan, updateCustomPlanData, planChatRequest, consumePlanChatRequest } = useApp();
+  const { setPage, setClickPos, setActivePlanTitle, setActivePlanId, addCreatedPlan, setPlanDetailOrigin, hasCreatedFirstPlan, setHasCreatedFirstPlan, updateCustomPlanData, discardPlanDraft, planChatRequest, consumePlanChatRequest } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -62,6 +63,10 @@ const ChatWidget = () => {
   const [generatedSubgoals, setGeneratedSubgoals] = useState([]);
   const [inferredDefaults, setInferredDefaults] = useState(null);
   const [unsureFields, setUnsureFields] = useState([]);
+  const [estimationStep, setEstimationStep] = useState(0);
+  const [estimationAnswers, setEstimationAnswers] = useState({});
+  const [pendingEstimate, setPendingEstimate] = useState(null);
+  const [isRestartConfirming, setIsRestartConfirming] = useState(false);
   const isUnsure = (value) => /not sure|don't know|dont know|you decide|no idea/i.test(value);
   const inferDefaults = (planId) => {
     const defaults = {
@@ -175,6 +180,7 @@ const ChatWidget = () => {
   const lastPosition = useRef({ x: 0, y: 0 });
   const consumedChatRequest = useRef(0);
   const isDragging = useRef(false);
+  const flowSessionRef = useRef(0);
 
   const handleDragStart = () => {
     isDragging.current = true;
@@ -191,6 +197,129 @@ const ChatWidget = () => {
       )
     }
   ]);
+
+  const restartPlanningFlow = () => {
+    flowSessionRef.current += 1;
+    discardPlanDraft(planGoal);
+    setFlowState('idle');
+    setPlanGoal(null);
+    setPlanTitle('');
+    setTargetAmount(0);
+    setTargetDate('');
+    setPaymentStrategy('');
+    setGeneratedSubgoals([]);
+    setInferredDefaults(null);
+    setUnsureFields([]);
+    setEstimationStep(0);
+    setEstimationAnswers({});
+    setPendingEstimate(null);
+    setInputText('');
+    setIsRestartConfirming(false);
+    setMessages([{
+      id: Date.now(),
+      sender: 'bot',
+      text: (
+        <span>
+          No problem. What would you like to plan for instead? <span className="text-brand-primary font-black">Choose a suggestion below or describe another savings or life goal.</span>
+        </span>
+      ),
+    }]);
+    setTimeout(() => chatInputRef.current?.focus(), 0);
+  };
+
+  const estimationQuestions = GOAL_ESTIMATION_QUESTIONS[planGoal] || [];
+  const currentEstimationQuestion = estimationQuestions[estimationStep];
+
+  const startGuidedEstimation = () => {
+    const firstQuestion = GOAL_ESTIMATION_QUESTIONS[planGoal]?.[0];
+    if (!firstQuestion) return false;
+    setEstimationStep(0);
+    setEstimationAnswers({});
+    setPendingEstimate(null);
+    setMessages(prev => [...prev, {
+      id: Date.now(),
+      sender: 'bot',
+      text: (
+        <span>
+          I won't guess. I'll ask a few questions and show you how the estimate is calculated. <span className="text-brand-primary font-black">{firstQuestion.prompt}</span>
+        </span>
+      ),
+    }]);
+    setFlowState('estimating_amount');
+    return true;
+  };
+
+  const handleEstimationAnswer = (option) => {
+    const question = currentEstimationQuestion;
+    if (!question) return;
+    const nextAnswers = { ...estimationAnswers, [question.id]: option.value };
+    setEstimationAnswers(nextAnswers);
+    setMessages(prev => [...prev, { id: Date.now(), sender: 'user', text: option.label }]);
+
+    const nextStep = estimationStep + 1;
+    const nextQuestion = estimationQuestions[nextStep];
+    if (nextQuestion) {
+      setEstimationStep(nextStep);
+      setMessages(prev => [...prev, {
+        id: Date.now() + 1,
+        sender: 'bot',
+        text: <span><span className="text-brand-primary font-black">{nextQuestion.prompt}</span></span>,
+      }]);
+      return;
+    }
+
+    const estimate = estimateGoalAmount(planGoal, nextAnswers);
+    if (!estimate) {
+      setFlowState('asking_amount');
+      return;
+    }
+    setPendingEstimate(estimate);
+    setMessages(prev => [...prev, {
+      id: Date.now() + 1,
+      sender: 'bot',
+      text: (
+        <span>
+          Based on your answers, your estimated personal target is <span className="text-brand-primary font-black">S${estimate.amount.toLocaleString('en-SG')}</span>. {estimate.summary} Review it before continuing.
+        </span>
+      ),
+    }]);
+    setFlowState('reviewing_estimate');
+  };
+
+  const acceptGuidedEstimate = () => {
+    if (!pendingEstimate) return;
+    setTargetAmount(pendingEstimate.amount);
+    updateCustomPlanData(planGoal, {
+      targetAmount: pendingEstimate.amount,
+      estimationAnswers,
+      estimationSummary: pendingEstimate.summary,
+    });
+    setMessages(prev => [...prev, {
+      id: Date.now(),
+      sender: 'user',
+      text: `Use S$${pendingEstimate.amount.toLocaleString('en-SG')}`,
+    }, {
+      id: Date.now() + 1,
+      sender: 'bot',
+      text: (
+        <span>
+          Target saved. When would you like to achieve this goal? Please <span className="text-brand-primary font-black">specify an overall target date (e.g. Dec 2027)</span>.
+        </span>
+      ),
+    }]);
+    setFlowState('asking_date');
+  };
+
+  const editGuidedEstimate = () => {
+    setPendingEstimate(null);
+    setMessages(prev => [...prev, {
+      id: Date.now(),
+      sender: 'bot',
+      text: <span>Enter the target amount you would prefer to use.</span>,
+    }]);
+    setFlowState('asking_amount');
+    setTimeout(() => chatInputRef.current?.focus(), 0);
+  };
 
   const planningSuggestions = [
     "Plan for Retirement",
@@ -334,6 +463,9 @@ const ChatWidget = () => {
     if (!planChatRequest || planChatRequest === consumedChatRequest.current) return;
     consumedChatRequest.current = planChatRequest;
     consumePlanChatRequest();
+    flowSessionRef.current += 1;
+    discardPlanDraft(planGoal);
+    setIsRestartConfirming(false);
     setFlowState('idle');
     setPlanGoal(null);
     setPlanTitle('');
@@ -399,6 +531,7 @@ const ChatWidget = () => {
 
   const handleTap = () => {
     if (isDragging.current) return;
+    if (isRestartConfirming) return;
 
     if (isOpen) {
       if (inputText.trim()) {
@@ -482,6 +615,7 @@ const ChatWidget = () => {
     setTimeout(() => { setPage('plan-details'); }, 50);
   };
   const handleRiskPromptSelect = (agree, e) => {
+    const sessionId = flowSessionRef.current;
     // If user agrees to redo risk profiling (Yes), navigate immediately with Iris curtain
     if (agree) {
       // Capture real click position for the Iris origin
@@ -507,6 +641,7 @@ const ChatWidget = () => {
     setMessages(prev => [...prev, { id: 'typing', sender: 'bot', isTyping: true }]);
 
     setTimeout(() => {
+      if (sessionId !== flowSessionRef.current) return;
       setMessages(prev => prev.filter(m => m.id !== 'typing'));
       setMessages(prev => [
         ...prev,
@@ -530,6 +665,7 @@ const ChatWidget = () => {
   const handleSend = (textToSend = inputText) => {
     const trimmed = textToSend.trim();
     if (!trimmed) return;
+    const sessionId = flowSessionRef.current;
 
     // 1. Add user message
     setMessages(prev => [
@@ -547,6 +683,7 @@ const ChatWidget = () => {
 
     // 3. Process state machine transition after 1.5 seconds
     setTimeout(() => {
+      if (sessionId !== flowSessionRef.current) return;
       // Remove typing indicator
       setMessages(prev => prev.filter(m => m.id !== 'typing'));
 
@@ -573,6 +710,17 @@ const ChatWidget = () => {
 
       } else if (flowState === 'asking_amount') {
         if (isUnsure(trimmed)) {
+          if (supportsGuidedEstimate(planGoal)) {
+            startGuidedEstimation();
+            return;
+          }
+          setMessages(prev => [...prev, {
+            id: Date.now(),
+            sender: 'bot',
+            text: "Guided estimation is currently available for Retirement, Wedding, House, and Children's Education goals. I won't guess for this goal—please enter the target amount you would like to use.",
+          }]);
+          setFlowState('asking_amount');
+          return;
           setUnsureFields(current => [...new Set([...current, 'amount'])]);
           setMessages(prev => [...prev, {
             id: Date.now(),
@@ -716,6 +864,53 @@ const ChatWidget = () => {
           messagePayload
         ]);
 
+        // Prompt strategy question after another short delay
+        setTimeout(() => {
+          if (sessionId !== flowSessionRef.current) return;
+          setMessages(prev => [
+            ...prev,
+            { id: 'typing-strategy', sender: 'bot', isTyping: true }
+          ]);
+
+          setTimeout(() => {
+            if (sessionId !== flowSessionRef.current) return;
+            setMessages(prev => [
+              ...prev.filter(m => m.id !== 'typing-strategy'),
+              {
+                id: Date.now(),
+                sender: 'bot',
+                text: (
+                  <span>
+                    To customize your payment options: <span className="text-brand-primary font-black">would you prefer your payments to be staggered or made as a 1-lump sum?</span>
+                  </span>
+                )
+              }
+            ]);
+            setFlowState('asking_strategy');
+          }, 1000);
+        }, 1200);
+
+      } else if (flowState === 'asking_strategy') {
+        const strategyUnsure = isUnsure(trimmed);
+        const normalizedStrategy = strategyUnsure ? 'staggered' : (/stagger/i.test(trimmed) ? 'staggered' : 'lump-sum');
+        setPaymentStrategy(normalizedStrategy);
+        updateCustomPlanData(planGoal, { paymentStrategy: normalizedStrategy });
+
+        if (unsureFields.length > 0 || strategyUnsure) {
+          const defaults = inferDefaults(planGoal);
+          const proposal = {
+            ...defaults,
+            amount: unsureFields.includes('amount') ? defaults.amount : targetAmount,
+            date: unsureFields.includes('date') ? defaults.date : targetDate,
+            strategy: strategyUnsure ? defaults.strategy : normalizedStrategy,
+          };
+          setUnsureFields(current => [...new Set([...current, ...(strategyUnsure ? ['strategy'] : [])])]);
+          setInferredDefaults(proposal);
+          setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', isInferredDefaults: true, proposal }]);
+          setFlowState('confirming_inference');
+          return;
+        }
+
         // Post-plan Routing decision
         setTimeout(() => {
           if (!hasCreatedFirstPlan) {
@@ -799,12 +994,26 @@ const ChatWidget = () => {
                   <span className="text-[10px] font-semibold text-zinc-400">Personal Wealth Advisory</span>
                 </div>
               </div>
-              <button
-                onClick={handleClose}
-                className="w-9 h-9 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-700 active:scale-95 transition-all cursor-pointer"
-              >
-                <X className="w-4 h-4 stroke-[2.2]" />
-              </button>
+              <div className="flex items-center gap-1.5">
+                {(planGoal || messages.some((message) => message.sender === 'user')) && (
+                  <button
+                    type="button"
+                    onClick={() => setIsRestartConfirming(true)}
+                    className="flex h-8 items-center gap-1 rounded-full px-2 text-[9px] font-black text-brand-primary transition-colors hover:bg-brand-primary/5 active:scale-95"
+                    aria-label="Change the goal being planned"
+                  >
+                    <RotateCcw className="h-3 w-3" />
+                    <span>Change goal</span>
+                  </button>
+                )}
+                <button
+                  onClick={handleClose}
+                  className="w-9 h-9 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-700 active:scale-95 transition-all cursor-pointer"
+                  aria-label="Close Nest Planner"
+                >
+                  <X className="w-4 h-4 stroke-[2.2]" />
+                </button>
+              </div>
             </div>
 
             {/* Scrollable Message Box */}
@@ -988,7 +1197,60 @@ const ChatWidget = () => {
 
             {/* Input Bar / Action Buttons */}
             <div className={`${isMascotVisible && isOpen ? 'pl-4 pr-20' : 'px-4'} pb-3 pt-3 bg-white/95 border-t border-zinc-200/50 flex items-center gap-3 shrink-0 min-h-[56px]`}>
-              {flowState === 'asking_strategy' ? (
+              {isRestartConfirming ? (
+                <div className="w-full">
+                  <p className="mb-2 text-[10px] font-bold leading-snug text-zinc-700">
+                    Discard this draft and choose a different goal?
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsRestartConfirming(false)}
+                      className="h-9 flex-1 rounded-xl border border-zinc-200 bg-white text-[10px] font-bold text-zinc-700 shadow-sm active:scale-95"
+                    >
+                      Continue plan
+                    </button>
+                    <button
+                      type="button"
+                      onClick={restartPlanningFlow}
+                      className="h-9 flex-1 rounded-xl bg-brand-primary text-[10px] font-bold text-white shadow-sm shadow-brand-primary/15 active:scale-95"
+                    >
+                      Start over
+                    </button>
+                  </div>
+                </div>
+              ) : flowState === 'estimating_amount' && currentEstimationQuestion ? (
+                <div className="grid w-full grid-cols-1 gap-1.5">
+                  {currentEstimationQuestion.options.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => handleEstimationAnswer(option)}
+                      className="flex min-h-10 w-full items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-left shadow-sm transition-all active:scale-[0.98] hover:border-brand-primary/40"
+                    >
+                      <span className="text-[10px] font-black text-zinc-800">{option.label}</span>
+                      <span className="text-right text-[8.5px] font-semibold text-zinc-400">{option.detail}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : flowState === 'reviewing_estimate' ? (
+                <div className="flex w-full gap-2">
+                  <button
+                    type="button"
+                    onClick={editGuidedEstimate}
+                    className="h-10 flex-1 rounded-xl border border-zinc-200 bg-white text-[10px] font-bold text-zinc-700 shadow-sm active:scale-95"
+                  >
+                    Edit amount
+                  </button>
+                  <button
+                    type="button"
+                    onClick={acceptGuidedEstimate}
+                    className="h-10 flex-1 rounded-xl bg-brand-primary text-[10px] font-bold text-white shadow-sm shadow-brand-primary/15 active:scale-95"
+                  >
+                    Use estimate
+                  </button>
+                </div>
+              ) : flowState === 'asking_strategy' ? (
                 <div className="flex gap-2 w-full justify-between">
                   <button
                     onClick={() => handleSend('Staggered')}
@@ -1006,13 +1268,13 @@ const ChatWidget = () => {
               ) : flowState === 'asking_risk_prompt' ? (
                 <div className="flex gap-2 w-full justify-between">
                   <button
-                  onClick={(e) => handleRiskPromptSelect(false, e)}
+                    onClick={(e) => handleRiskPromptSelect(false, e)}
                     className="flex-1 h-10 bg-white border border-zinc-200 shadow-sm text-zinc-700 font-bold rounded-xl text-xs active:scale-95 transition-all cursor-pointer hover:bg-zinc-50"
                   >
                     No, skip it
                   </button>
                   <button
-                  onClick={(e) => handleRiskPromptSelect(true, e)}
+                    onClick={(e) => handleRiskPromptSelect(true, e)}
                     className="flex-1 h-10 bg-brand-primary hover:bg-[#c11e15] text-white font-bold rounded-xl text-xs active:scale-95 transition-all cursor-pointer shadow-sm shadow-brand-primary/10"
                   >
                     Yes, update
@@ -1030,7 +1292,7 @@ const ChatWidget = () => {
                       ? "Enter total target amount..."
                       : flowState === 'asking_date'
                         ? "Enter target achievement date..."
-                        : "How can we plan for you today?"
+                        : "Type any savings/life goals you have"
                   }
                   className="flex-1 h-10 px-3.5 bg-zinc-100 border border-zinc-200/50 rounded-xl text-xs font-medium focus:outline-none focus:ring-1 focus:ring-brand-primary focus:border-brand-primary placeholder-zinc-400 transition-all duration-150"
                 />

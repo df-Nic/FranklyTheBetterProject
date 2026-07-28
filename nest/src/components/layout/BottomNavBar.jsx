@@ -4,7 +4,7 @@ import { Home, Compass, Send, Gift, Grid } from 'lucide-react';
 const BottomNavBar = ({ activeTab = 'home', onTabSelect }) => {
   const navItems = [
     { id: 'home', label: 'Home', icon: Home, enabled: true },
-    { id: 'plan', label: 'Plan', icon: Compass, enabled: true },
+    { id: 'plan', label: 'Plan & Invest', icon: Compass, enabled: true },
     { id: 'pay', label: 'Pay&transfer', icon: Send, enabled: true },
     { id: 'rewards', label: 'Rewards', icon: Gift, enabled: false },
     { id: 'more', label: 'More', icon: Grid, enabled: false },
