@@ -5,7 +5,7 @@ import BackgroundOrb from '../components/ui/BackgroundOrb';
 import GlassCard from '../components/ui/GlassCard';
 import { getPlanOpportunity, getRecommendedPlan } from '../data/planOpportunities';
 import { getMilestonePlan } from '../data/milestonePlans';
-import nestHomeMasthead from '../assets/images/nest-home-masthead-v3.png';
+import nestHomeMasthead from '../assets/images/nest-home-hero-bg.png';
 import {
   Scan,
   Bell,
@@ -114,7 +114,7 @@ const HomePage = () => {
   const actionPills = [
     { label: 'PayNow', icon: ({ className }) => <div className={`font-black text-[10px] leading-[9px] text-center tracking-tighter ${className}`}>PAY<br />NOW</div> },
     { label: 'Scan & Pay', icon: Scan },
-    { label: 'Foreign Exchange', icon: Globe },
+    { label: 'Investments', icon: TrendingUp },
     { label: 'Customise', icon: Settings }
   ];
 
@@ -205,132 +205,120 @@ const HomePage = () => {
       {/* Main Scrollable Content */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-4 py-4 flex flex-col gap-5 z-10 pb-safe-nav">
         
-        {/* Greeting Section */}
-        <div className="flex flex-col gap-0.5">
-          <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Welcome back</span>
-          <h2 className="text-2xl font-black text-zinc-950 tracking-tight">{user.name}</h2>
-        </div>
-
-        {/* Hero Slider Banner */}
-        <div className="relative w-full">
-          <GlassCard className={`relative min-h-[125px] border-white/60 ${
+        {/* Full-bleed masthead with floating quick actions */}
+        <div className="relative -mx-4 -mt-4">
+          <div className={`relative min-h-[245px] overflow-hidden ${
             banners[activeBannerIndex].bgType === 'nest'
-              ? 'p-0 bg-[#FFF7F5]'
-              : 'p-4 flex flex-col justify-between'
+              ? 'bg-[#FFF7F5]'
+              : 'bg-gradient-to-br from-white via-zinc-50 to-red-50/50'
           }`}>
             {banners[activeBannerIndex].bgType === 'nest' ? (
               <>
                 <img
                   src={banners[activeBannerIndex].image}
-                  alt="Meet NEST, your AI wealth orchestrator that keeps your savings goals on track with your permission"
-                  className="pointer-events-none absolute inset-0 h-full min-h-[125px] w-full object-contain object-center"
+                  alt=""
+                  className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
                 />
-                <button
-                  type="button"
-                  aria-label="Start your first NEST plan"
-                  onClick={requestPlanChatOpen}
-                  className="absolute left-[2.6%] top-[80.5%] z-20 h-[14%] w-[28%] cursor-pointer rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
-                />
-                <div className="absolute bottom-2.5 right-3 z-10 flex gap-1.5 rounded-full bg-white/80 px-2 py-1 shadow-sm backdrop-blur-sm">
-                  {banners.map((_, idx) => (
-                    <button
-                      key={idx}
-                      aria-label={`Show banner ${idx + 1}`}
-                      onClick={() => setActiveBannerIndex(idx)}
-                      className={`h-1.5 rounded-full transition-all duration-300 ${
-                        idx === activeBannerIndex ? 'w-3.5 bg-brand-primary' : 'w-1.5 bg-zinc-300'
-                      }`}
-                    />
-                  ))}
+                <div className="relative z-10 max-w-[54%] px-6 pt-7">
+                  <p className="text-[22px] font-black leading-none tracking-tight text-zinc-950">
+                    Hello, {user.name}!
+                  </p>
+                  <p className="mt-3 text-[12px] font-semibold leading-[1.45] text-zinc-700">
+                    Making a savings goal is easy. NEST helps you stay on track, always with your permission.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={requestPlanChatOpen}
+                    className="mt-4 inline-flex items-center gap-1 text-[11px] font-black text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+                  >
+                    Start your first plan
+                    <ChevronRight className="h-3.5 w-3.5 stroke-[2.8]" />
+                  </button>
                 </div>
               </>
             ) : (
               <>
-                {/* Background art */}
-                <div className="absolute right-2 bottom-2 w-28 h-28 opacity-15 pointer-events-none flex items-center justify-center">
+                <div className="pointer-events-none absolute -left-24 top-0 h-full w-28 rounded-r-[100%] bg-brand-primary" />
+                <div className="pointer-events-none absolute right-4 top-10 flex h-28 w-28 items-center justify-center opacity-10">
                   {banners[activeBannerIndex].bgType === 'globe' ? (
-                    <Globe className="w-20 h-20 text-brand-secondary stroke-[1.2]" />
+                    <Globe className="h-24 w-24 text-brand-secondary stroke-[1.1]" />
                   ) : (
-                    <Coins className="w-20 h-20 text-brand-primary stroke-[1.2]" />
+                    <Coins className="h-24 w-24 text-brand-primary stroke-[1.1]" />
                   )}
                 </div>
-
-                <div className="max-w-[70%] z-10">
-                  <h3 className="text-sm font-bold text-zinc-800 leading-snug">
+                <div className="relative z-10 max-w-[60%] pb-2 pl-12 pr-0 pt-7">
+                  <p className="text-[22px] font-black leading-none tracking-tight text-zinc-950">
+                    Hello, {user.name}!
+                  </p>
+                  <h3 className="mt-3 text-[12.5px] font-semibold leading-relaxed text-zinc-700">
                     {banners[activeBannerIndex].title}
                   </h3>
-                </div>
-
-                <div className="mt-4 flex items-center justify-between z-10">
                   <a
                     href="https://www.ocbc.com"
                     target="_blank"
                     rel="noreferrer"
-                    className="text-[11px] font-bold text-brand-accent flex items-center gap-0.5 hover:underline"
+                    className="mt-4 inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:underline"
                   >
                     <span>{banners[activeBannerIndex].linkText}</span>
-                    <ChevronRight className="w-3 h-3 stroke-[2.5]" />
+                    <ChevronRight className="h-3.5 w-3.5 stroke-[2.5]" />
                   </a>
-
-                  <div className="flex gap-1.5">
-                    {banners.map((_, idx) => (
-                      <button
-                        key={idx}
-                        aria-label={`Show banner ${idx + 1}`}
-                        onClick={() => setActiveBannerIndex(idx)}
-                        className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                          idx === activeBannerIndex ? 'w-3.5 bg-brand-secondary' : 'bg-zinc-300'
-                        }`}
-                      />
-                    ))}
-                  </div>
                 </div>
               </>
             )}
-          </GlassCard>
-        </div>
 
-        {/* Action Pills Bar */}
-        <div className="flex justify-between items-center bg-white/40 backdrop-blur-md rounded-2xl p-3 border border-white/50 shadow-sm">
-          {actionPills.map((pill, idx) => {
-            const Icon = pill.icon;
-            return (
-              <button
-                key={idx}
-                className="flex flex-col items-center gap-1.5 flex-1 cursor-pointer group"
-                onClick={() => {
-                  if (pill.label === 'PayNow') {
-                    navigate('paynow-contacts');
-                  }
-                }}
-              >
-                <div className="w-11 h-11 rounded-full bg-white border border-zinc-200/60 shadow-sm flex items-center justify-center text-zinc-700 transition-all duration-150 active:scale-95 group-hover:border-brand-primary/45 group-hover:text-brand-primary">
-                  {typeof Icon === 'function' ? (
-                    <Icon className="w-5 h-5" />
-                  ) : (
-                    <Icon className="w-5 h-5 stroke-[2]" />
-                  )}
-                </div>
-                <span className="text-[10px] font-semibold text-zinc-600 leading-tight text-center max-w-[65px] h-6 flex items-center justify-center">
-                  {pill.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Updates Alert Banner */}
-        <div className="bg-indigo-50/60 border border-indigo-100/50 backdrop-blur-sm rounded-xl p-3 flex gap-2.5 items-center">
-          <div className="w-7 h-7 rounded-full bg-[#E5A93C]/10 flex items-center justify-center text-[#E5A93C] shrink-0">
-            <Bell className="w-4 h-4 fill-current stroke-[2.2]" />
+            <div className="absolute bottom-[72px] right-5 z-20 flex gap-1.5 rounded-full bg-white/85 px-2 py-1 shadow-sm backdrop-blur-sm">
+              {banners.map((_, idx) => (
+                <button
+                  key={idx}
+                  aria-label={`Show banner ${idx + 1}`}
+                  onClick={() => setActiveBannerIndex(idx)}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    idx === activeBannerIndex ? 'w-3.5 bg-brand-primary' : 'w-1.5 bg-zinc-300'
+                  }`}
+                />
+              ))}
+            </div>
           </div>
-          <span className="text-[11px] font-semibold text-indigo-950 leading-snug">
-            Do not miss account updates. Review email preferences.
-          </span>
+
+          <div className="relative z-30 mx-4 -mt-16 overflow-hidden rounded-[16px] border border-zinc-200/70 bg-white shadow-[0_12px_28px_rgba(45,38,34,0.16)]">
+            <div className="flex items-start justify-between px-2 py-3.5">
+              {actionPills.map((pill, idx) => {
+                const Icon = pill.icon;
+                return (
+                  <button
+                    key={idx}
+                    className="group flex flex-1 cursor-pointer flex-col items-center gap-1.5"
+                    onClick={() => {
+                      if (pill.label === 'PayNow') {
+                        navigate('paynow-contacts');
+                      } else if (pill.label === 'Investments') {
+                        setActiveTab('investments');
+                      }
+                    }}
+                  >
+                    <div className={`flex h-10 w-10 items-center justify-center rounded-full text-zinc-800 transition-all duration-150 active:scale-95 ${
+                      pill.label === 'Customise'
+                        ? 'bg-[#EEE8E2] shadow-sm'
+                        : 'bg-zinc-50 group-hover:bg-red-50 group-hover:text-brand-primary'
+                    }`}>
+                      {typeof Icon === 'function' ? (
+                        <Icon className="h-[19px] w-[19px]" />
+                      ) : (
+                        <Icon className="h-[19px] w-[19px] stroke-[2]" />
+                      )}
+                    </div>
+                    <span className="flex h-6 max-w-[70px] items-center justify-center text-center text-[10px] font-semibold leading-tight text-zinc-600">
+                      {pill.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
         {/* Pill Navigation Bar (Dynamic Switcher) */}
-        <div className="flex items-center gap-2 mt-1 shrink-0 overflow-x-auto no-scrollbar py-0.5">
+        <div className="flex items-center gap-2 mt-0 shrink-0 overflow-x-auto no-scrollbar py-0.5">
           {/* Eye Toggle button */}
           <button
             onClick={toggleMask}
