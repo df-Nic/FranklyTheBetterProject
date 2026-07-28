@@ -200,8 +200,11 @@ const ALTERNATIVES_DATABASE = {
 const generateFitDescription = (alt, activePlan, selectedReasons, riskProfile = 'Balanced Wealth') => {
   const age = 28;
   const stageOfLife = "Young Professional";
-  const planTitle = activePlan?.title || "Nest Plan";
-  const timeline = activePlan?.timelineAll || "medium-term";
+  const planTitle = activePlan?.title || activePlan?.goalName || activePlan?.name || "Nest Plan";
+  const targetDate = activePlan?.targetDate || activePlan?.goalDate || activePlan?.canonicalTargetDate;
+  const timeline = targetDate
+    ? (targetDate.includes('-') ? targetDate : `by ${targetDate}`)
+    : (activePlan?.timelineAll || "medium-term");
 
   let text = `Excellent match for you (Age ${age}, ${stageOfLife}) with a ${riskProfile} risk profile. `;
   
@@ -287,8 +290,12 @@ const PlanChangeOptionPage = () => {
   } = useApp();
 
   const getActivePlan = () => {
-    if (activePlanId && PLANS_DATA[activePlanId]) return PLANS_DATA[activePlanId];
-    return PLANS_DATA.default;
+    const basePlan = (activePlanId && PLANS_DATA[activePlanId]) ? PLANS_DATA[activePlanId] : PLANS_DATA.default;
+    const planMeta = (activePlanId && customPlanData[activePlanId]) || (activePlanId && planDrafts[activePlanId]) || {};
+    return {
+      ...basePlan,
+      targetDate: planMeta.targetDate || planMeta.goalDate || basePlan.timelineAll,
+    };
   };
 
   const activePlan = getActivePlan();

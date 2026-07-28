@@ -137,17 +137,20 @@ const PlanTabbedDeck = ({ categories = [], pendingExcluded = new Set(), toggleAc
   const generateFitDescription = (alt, activePlan) => {
     const age = 28;
     const stageOfLife = "Young Professional";
-    const planTitle = activePlan?.title || "Nest Plan";
-    const timeline = activePlan?.timelineAll || "medium-term";
+    const planTitle = activePlan?.title || activePlan?.goalName || activePlan?.name || "Nest Plan";
+    const targetDate = activePlan?.targetDate || activePlan?.goalDate || activePlan?.canonicalTargetDate;
+    const timeline = targetDate
+      ? (targetDate.includes('-') ? targetDate : `by ${targetDate}`)
+      : (activePlan?.timelineAll || "medium-term");
 
     let text = `Excellent match for you (Age ${age}, ${stageOfLife}) with a ${riskProfile} risk profile. `;
     
     if (alt.type === 'deposit') {
       text += `Aligns with your ${planTitle} timeline (${timeline}) by keeping assets protected from short-term market volatility. `;
     } else if (alt.type === 'investment' || alt.type === 'yield') {
-      text += `Fits your long-term ${planTitle} horizon by compounding wealth through global markets. `;
+      text += `Fits your long-term ${planTitle} horizon (${timeline}) by compounding wealth through global markets. `;
     } else if (alt.type === 'defense' || alt.type === 'insurance' || alt.type === 'protection') {
-      text += `Secures your financial runway and protects your ${planTitle} from unexpected disruption. `;
+      text += `Secures your financial runway and protects your ${planTitle} (${timeline}) from unexpected disruption. `;
     } else {
       text += `Provides structural stability and complements your plan parameters. `;
     }

@@ -1165,7 +1165,7 @@ const PlanDetailsPage = () => {
             }}
             isReadOnly={isConfirmedBreakdown}
             chosenAlternatives={chosenAlternatives}
-            activePlan={activePlan}
+            activePlan={{ ...activePlan, targetDate: displayTargetDate || activePlan?.timelineAll }}
             riskProfile={riskProfile}
           />
 
