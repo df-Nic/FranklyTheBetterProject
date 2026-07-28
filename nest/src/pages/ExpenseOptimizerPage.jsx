@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import CardDeckCarousel from '../components/ui/CardDeckCarousel';
+import DepositVaultShowcase from '../components/ui/DepositVaultShowcase';
 import { getOptimizedCardsForPlan } from '../data/ocbcCards';
 import { getOptimizedDepositsForPlan } from '../data/ocbcDeposits';
 import { PLANS_DATA } from '../data/planTemplates';
@@ -205,13 +206,22 @@ export default function ExpenseOptimizerPage() {
             </div>
           </div>
 
-          {/* 3D Visual Card Carousel Deck */}
+          {/* Recommendations Showcase Component */}
           <div className="w-full py-1">
-            <CardDeckCarousel
-              cards={activeItems}
-              activeIndex={activeItemIndex}
-              onChangeIndex={(newIdx) => setActiveItemIndex(newIdx)}
-            />
+            {viewMode === 'cards' ? (
+              <CardDeckCarousel
+                cards={activeItems}
+                activeIndex={activeItemIndex}
+                onChangeIndex={(newIdx) => setActiveItemIndex(newIdx)}
+                type="cards"
+              />
+            ) : (
+              <DepositVaultShowcase
+                deposits={activeItems}
+                activeIndex={activeItemIndex}
+                onChangeIndex={(newIdx) => setActiveItemIndex(newIdx)}
+              />
+            )}
           </div>
 
           {/* Active Item Details directly inside the same box */}
