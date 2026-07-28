@@ -97,6 +97,7 @@ const ChatWidget = () => {
   const [pendingEstimate, setPendingEstimate] = useState(null);
   const [isRestartConfirming, setIsRestartConfirming] = useState(false);
   const isUnsure = (value) => /not sure|don't know|dont know|you decide|no idea/i.test(value);
+  const isChangePlanIntent = (value) => /\b(change|redo|replan|re-plan|restart|start\s*over|reset|different\s*goal|new\s*plan|another\s*(goal|plan))\b/i.test(value);
   const inferDefaults = (planId) => {
     const defaults = {
       retirement: [1500000, 'Oct 2045', 2400],
@@ -655,6 +656,7 @@ const ChatWidget = () => {
   };
   const handleRiskPromptSelect = (agree, e) => {
     const sessionId = flowSessionRef.current;
+    setFlowState('processing');
     // If user agrees to redo risk profiling (Yes), navigate immediately with Iris curtain
     if (agree) {
       // Capture real click position for the Iris origin
@@ -705,6 +707,11 @@ const ChatWidget = () => {
     const trimmed = textToSend.trim();
     if (!trimmed) return;
     const sessionId = flowSessionRef.current;
+    const currentFlowState = flowState;
+
+    if (currentFlowState === 'asking_strategy') {
+      setFlowState('processing');
+    }
 
     // 1. Add user message
     setMessages(prev => [
@@ -725,6 +732,23 @@ const ChatWidget = () => {
       if (sessionId !== flowSessionRef.current) return;
       // Remove typing indicator
       setMessages(prev => prev.filter(m => m.id !== 'typing'));
+
+      if (isChangePlanIntent(trimmed)) {
+        setMessages(prev => [
+          ...prev,
+          {
+            id: Date.now(),
+            sender: 'bot',
+            text: (
+              <span>
+                Would you like to discard this plan draft and choose a different goal?
+              </span>
+            ),
+          }
+        ]);
+        setIsRestartConfirming(true);
+        return;
+      }
 
       if (flowState === 'idle') {
         const planId = resolvePlanId(trimmed);
@@ -800,133 +824,27 @@ const ChatWidget = () => {
       } else if (flowState === 'asking_date') {
         if (isUnsure(trimmed)) {
           setUnsureFields(current => [...new Set([...current, 'date'])]);
-          setMessages(prev => [...prev, {
-            id: Date.now(),
-            sender: 'bot',
-            text: (
-              <span>
-                No problem—I’ll suggest a realistic date. Finally, would you prefer <span className="text-brand-primary font-black">staggered payments or one lump sum?</span>
-              </span>
-            ),
-          }]);
-          setFlowState('asking_strategy');
-          return;
-        }
-        const now = new Date();
-        const parsedDate = parseDateInput(trimmed);
-        const formattedTargetDate = formatDate(parsedDate);
-        setTargetDate(formattedTargetDate);
-
-        if (unsureFields.includes('amount')) {
-          setMessages(prev => [...prev, {
-            id: Date.now(),
-            sender: 'bot',
-            text: (
-              <span>
-                Got it. One last question: would you prefer <span className="text-brand-primary font-black">staggered payments or one lump sum?</span>
-              </span>
-            ),
-          }]);
-          setFlowState('asking_strategy');
-          return;
+        } else {
+          const parsedDate = parseDateInput(trimmed);
+          const formattedTargetDate = formatDate(parsedDate);
+          setTargetDate(formattedTargetDate);
         }
 
-        const totalMonths = (parsedDate.getFullYear() - now.getFullYear()) * 12 + (parsedDate.getMonth() - now.getMonth());
-        const validMonths = totalMonths > 0 ? totalMonths : 24;
-
-        const planObj = PLANS_DATA[planGoal] || PLANS_DATA.default;
-
-        // Check if there are subgoals configured for this plan type
-        const subgoals = planGoal === 'children-education'
-          ? EDUCATION_STAGE_SUBGOALS[estimationAnswers.educationStage] || PLAN_SUBGOALS[planGoal]
-          : PLAN_SUBGOALS[planGoal];
-        let messagePayload = {
+        setMessages(prev => [...prev, {
           id: Date.now(),
           sender: 'bot',
-          planTitle: planObj.title,
-          targetAmount: targetAmount,
-          targetDate: formattedTargetDate
-        };
+          text: (
+            <span>
+              Got it. One last question: would you prefer <span className="text-brand-primary font-black">staggered payments or one lump sum?</span>
+            </span>
+          ),
+        }]);
+        setFlowState('asking_strategy');
 
-        if (subgoals) {
-          const K = subgoals.length;
-          const breakdownSubgoals = subgoals.map((sub, i) => {
-            const allocated = Math.round(sub.pct * targetAmount);
-
-            // Last subgoal is set precisely on the target deadline date indicated by user
-            let milestoneDate;
-            if (i === K - 1) {
-              milestoneDate = parsedDate;
-            } else {
-              const milestoneOffsetMonths = Math.round((validMonths * (i + 1)) / K);
-              milestoneDate = new Date();
-              milestoneDate.setMonth(now.getMonth() + milestoneOffsetMonths);
-            }
-
-            return {
-              id: i + 1,
-              name: sub.name,
-              icon: sub.icon,
-              amount: allocated,
-              date: formatDate(milestoneDate)
-            };
-          });
-          messagePayload.isPlanBreakdown = true;
-          messagePayload.categories = breakdownSubgoals;
-
-          setGeneratedSubgoals(breakdownSubgoals);
-
-          // Immediately persist target amount, date, and generated subgoals into AppContext
-          updatePlanDraft(planGoal, {
-            targetAmount: targetAmount,
-            targetDate: formattedTargetDate,
-            subgoals: breakdownSubgoals
-          });
-        } else {
-          messagePayload.isSimpleSummary = true;
-          updatePlanDraft(planGoal, {
-            targetAmount: targetAmount,
-            targetDate: formattedTargetDate
-          });
-        }
-
-        // Add plan breakdown card or summary
-        setMessages(prev => [
-          ...prev,
-          messagePayload
-        ]);
-
-        // Prompt strategy question after another short delay
-        setTimeout(() => {
-          if (sessionId !== flowSessionRef.current) return;
-          setMessages(prev => [
-            ...prev,
-            { id: 'typing-strategy', sender: 'bot', isTyping: true }
-          ]);
-
-          setTimeout(() => {
-            if (sessionId !== flowSessionRef.current) return;
-            setMessages(prev => [
-              ...prev.filter(m => m.id !== 'typing-strategy'),
-              {
-                id: Date.now(),
-                sender: 'bot',
-                text: (
-                  <span>
-                    To customize your payment options: <span className="text-brand-primary font-black">would you prefer your payments to be staggered or made as a 1-lump sum?</span>
-                  </span>
-                )
-              }
-            ]);
-            setFlowState('asking_strategy');
-          }, 1000);
-        }, 1200);
-
-      } else if (flowState === 'asking_strategy') {
+      } else if (currentFlowState === 'asking_strategy' || flowState === 'asking_strategy') {
         const strategyUnsure = isUnsure(trimmed);
         const normalizedStrategy = strategyUnsure ? 'staggered' : (/stagger/i.test(trimmed) ? 'staggered' : 'lump-sum');
         setPaymentStrategy(normalizedStrategy);
-        updatePlanDraft(planGoal, { paymentStrategy: normalizedStrategy });
 
         if (unsureFields.length > 0 || strategyUnsure) {
           const defaults = inferDefaults(planGoal);
@@ -943,40 +861,119 @@ const ChatWidget = () => {
           return;
         }
 
-        // Post-plan Routing decision
-        if (!hasCreatedFirstPlan) {
-          // First time user risk profiling prompt
-          setMessages(prev => [
-            ...prev,
-            {
-              id: Date.now(),
-              sender: 'bot',
-              text: (
-                <span>
-                  We haven't heard from you in a while! <span className="text-brand-primary font-black">Would you like to update your risk portfolio?</span>
-                </span>
-              )
+        const now = new Date();
+        const effectiveDateStr = targetDate || 'Dec 2028';
+        const parsedDate = parseDateInput(effectiveDateStr);
+        const formattedTargetDate = formatDate(parsedDate);
+        const totalMonths = (parsedDate.getFullYear() - now.getFullYear()) * 12 + (parsedDate.getMonth() - now.getMonth());
+        const validMonths = totalMonths > 0 ? totalMonths : 24;
+
+        const planObj = PLANS_DATA[planGoal] || PLANS_DATA.default;
+
+        // Check if there are subgoals configured for this plan type
+        const subgoals = planGoal === 'children-education'
+          ? (EDUCATION_STAGE_SUBGOALS[estimationAnswers.educationStage] || PLAN_SUBGOALS[planGoal] || PLAN_SUBGOALS.savings)
+          : (PLAN_SUBGOALS[planGoal] || PLAN_SUBGOALS.savings);
+        let messagePayload = {
+          id: Date.now(),
+          sender: 'bot',
+          planTitle: planObj.title,
+          targetAmount: targetAmount,
+          targetDate: formattedTargetDate
+        };
+
+        if (subgoals) {
+          const K = subgoals.length;
+          const breakdownSubgoals = subgoals.map((sub, i) => {
+            const allocated = Math.round(sub.pct * targetAmount);
+            let milestoneDate;
+            if (i === K - 1) {
+              milestoneDate = parsedDate;
+            } else {
+              const milestoneOffsetMonths = Math.round((validMonths * (i + 1)) / K);
+              milestoneDate = new Date();
+              milestoneDate.setMonth(now.getMonth() + milestoneOffsetMonths);
             }
-          ]);
-          setFlowState('asking_risk_prompt');
+
+            return {
+              id: i + 1,
+              name: sub.name,
+              icon: sub.icon,
+              amount: allocated,
+              date: normalizedStrategy === 'staggered' ? formatDate(milestoneDate) : null
+            };
+          });
+          messagePayload.isPlanBreakdown = true;
+          messagePayload.categories = breakdownSubgoals;
+
+          setGeneratedSubgoals(breakdownSubgoals);
+
+          updatePlanDraft(planGoal, {
+            targetAmount: targetAmount,
+            targetDate: formattedTargetDate,
+            subgoals: breakdownSubgoals,
+            paymentStrategy: normalizedStrategy
+          });
         } else {
-          // Returning user
+          messagePayload.isSimpleSummary = true;
+          updatePlanDraft(planGoal, {
+            targetAmount: targetAmount,
+            targetDate: formattedTargetDate,
+            paymentStrategy: normalizedStrategy
+          });
+        }
+
+        // Add plan breakdown card or summary after strategy is chosen
+        setMessages(prev => [
+          ...prev,
+          messagePayload
+        ]);
+
+        // Post-plan Routing decision
+        setTimeout(() => {
+          if (sessionId !== flowSessionRef.current) return;
           setMessages(prev => [
             ...prev,
-            {
-              id: Date.now(),
-              sender: 'bot',
-              isReturningUserConfirmation: true,
-              planTitle: planTitle,
-              text: (
-                <span>
-                  Your plan has been generated successfully! <span className="text-brand-primary font-black">Tap the button below to view and customize your Plan Details.</span>
-                </span>
-              )
-            }
+            { id: 'typing-strategy', sender: 'bot', isTyping: true }
           ]);
-          setFlowState('idle');
-        }
+
+          setTimeout(() => {
+            if (sessionId !== flowSessionRef.current) return;
+            if (!hasCreatedFirstPlan) {
+              // First time user risk profiling prompt
+              setMessages(prev => [
+                ...prev.filter(m => m.id !== 'typing-strategy'),
+                {
+                  id: Date.now(),
+                  sender: 'bot',
+                  text: (
+                    <span>
+                      We haven't heard from you in a while! <span className="text-brand-primary font-black">Would you like to redo your risk profile?</span>
+                    </span>
+                  )
+                }
+              ]);
+              setFlowState('asking_risk_prompt');
+            } else {
+              // Returning user
+              setMessages(prev => [
+                ...prev.filter(m => m.id !== 'typing-strategy'),
+                {
+                  id: Date.now(),
+                  sender: 'bot',
+                  isReturningUserConfirmation: true,
+                  planTitle: planTitle,
+                  text: (
+                    <span>
+                      Your plan has been generated successfully! <span className="text-brand-primary font-black">Tap the button below to view and customize your Plan Details.</span>
+                    </span>
+                  )
+                }
+              ]);
+              setFlowState('idle');
+            }
+          }, 1000);
+        }, 1200);
       }
     }, 1500);
   };
@@ -1027,17 +1024,6 @@ const ChatWidget = () => {
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
-                {(planGoal || messages.some((message) => message.sender === 'user')) && (
-                  <button
-                    type="button"
-                    onClick={() => setIsRestartConfirming(true)}
-                    className="flex h-8 items-center gap-1 rounded-full px-2 text-[9px] font-black text-brand-primary transition-colors hover:bg-brand-primary/5 active:scale-95"
-                    aria-label="Change the goal being planned"
-                  >
-                    <RotateCcw className="h-3 w-3" />
-                    <span>Change goal</span>
-                  </button>
-                )}
                 <button
                   onClick={handleClose}
                   className="w-9 h-9 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-700 active:scale-95 transition-all cursor-pointer"
@@ -1106,7 +1092,7 @@ const ChatWidget = () => {
                             <div key={idx} className="flex flex-col border-l-2 border-brand-primary/20 pl-2 text-left">
                               <span className="font-extrabold text-[10px] text-zinc-800 leading-tight">{c.name}</span>
                               <div className="flex justify-between items-center text-[8.5px] font-bold text-zinc-400 mt-0.5">
-                                <span>Milestone: {c.date}</span>
+                                {c.date ? <span>Milestone: {c.date}</span> : <span />}
                                 <span className="text-zinc-800 font-extrabold">S${c.amount.toLocaleString()}</span>
                               </div>
                             </div>
@@ -1300,13 +1286,13 @@ const ChatWidget = () => {
               ) : flowState === 'asking_risk_prompt' ? (
                 <div className="flex gap-2 w-full justify-between">
                   <button
-                  onClick={(e) => handleRiskPromptSelect(false, e)}
+                    onClick={(e) => handleRiskPromptSelect(false, e)}
                     className="flex-1 h-10 bg-white border border-zinc-200 shadow-sm text-zinc-700 font-bold rounded-xl text-xs active:scale-95 transition-all cursor-pointer hover:bg-zinc-50"
                   >
                     No, skip it
                   </button>
                   <button
-                  onClick={(e) => handleRiskPromptSelect(true, e)}
+                    onClick={(e) => handleRiskPromptSelect(true, e)}
                     className="flex-1 h-10 bg-brand-primary hover:bg-[#c11e15] text-white font-bold rounded-xl text-xs active:scale-95 transition-all cursor-pointer shadow-sm shadow-brand-primary/10"
                   >
                     Yes, update

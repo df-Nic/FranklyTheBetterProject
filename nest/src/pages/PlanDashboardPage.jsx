@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
-import { ChevronRight, Plus, CalendarDays, Sparkles } from 'lucide-react';
+import { ChevronRight, Plus, CalendarDays, Sparkles, CreditCard, Zap } from 'lucide-react';
 import { getPlanOpportunity, getRecommendedPlan } from '../data/planOpportunities';
 import { getMilestonePlan } from '../data/milestonePlans';
 import { planNeedsDeviationReview } from '../data/transactionDeviations';
@@ -73,7 +73,7 @@ const PlanCard = ({ planId, index, onClick }) => {
   const displayPlan = getMilestonePlan(planId, planAdjustments);
   const meta = PLAN_META[planId] || PLAN_META.default;
   const goalText = `Accepted target: S$${Number(displayPlan.targetAmount || 0).toLocaleString('en-SG')} by ${displayPlan.goalDate}`;
-  
+
   const isHealed = planAdjustments?.[planId]?.healed;
   const needsReview = planNeedsDeviationReview(transactionDeviations, planId);
 
@@ -87,17 +87,17 @@ const PlanCard = ({ planId, index, onClick }) => {
       className="shrink-0 bg-white rounded-[24px] overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.08)] border border-zinc-100 cursor-pointer select-none active:shadow-sm"
     >
       {/* Illustration zone */}
-      <div className="relative w-full h-[150px] overflow-hidden bg-zinc-50 flex items-center justify-center p-3">
-        <img 
-          src={meta.image} 
-          alt={meta.tag} 
-          className="w-full h-full object-contain"
+      <div className="relative w-full h-[160px] overflow-hidden bg-zinc-50 flex items-center justify-center px-4 pb-2 pt-9">
+        <img
+          src={meta.image}
+          alt={meta.tag}
+          className="w-full h-full object-contain pointer-events-none select-none"
         />
         {/* Category badge */}
-        <span className={`absolute top-3 left-3 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full backdrop-blur-sm ${meta.tagColor}`}>
+        <span className={`absolute top-2.5 left-3 z-10 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full backdrop-blur-sm shadow-2xs ${meta.tagColor}`}>
           {meta.tag}
         </span>
-        <div className="absolute right-3 top-3 z-10 flex flex-col items-end gap-1.5">
+        <div className="absolute right-3 top-2.5 z-10 flex flex-col items-end gap-1.5">
           {needsReview && (
             <span className="flex items-center gap-1 rounded-full bg-[#B14A3F] px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-white shadow-sm">
               Needs review
@@ -188,6 +188,49 @@ const PlanDashboardPage = () => {
 
       {/* Cards area */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-4 py-5 pb-28 flex flex-col gap-4 z-10">
+        {/* OCBC Expense Optimiser Banner */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate('expense-optimizer');
+          }}
+          className="relative w-full shrink-0 text-left overflow-hidden rounded-[22px] bg-gradient-to-br from-[#E1251B] via-[#C62828] to-[#8E0000] p-4 text-white shadow-[0_10px_25px_rgba(225,37,27,0.25)] cursor-pointer hover:shadow-xl transition-all duration-200 group active:scale-[0.99] border border-red-400/30 z-20 pointer-events-auto"
+        >
+          <div className="absolute right-[-10px] top-[-10px] w-28 h-28 bg-white/20 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform" />
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-md border border-white/25 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider text-white">
+              <Sparkles className="w-3 h-3 fill-white text-white" />
+              <span>OCBC Smart Advisor</span>
+            </div>
+            <span className="text-[10px] font-bold text-red-100/90 group-hover:text-white transition-colors flex items-center gap-1">
+              <span>Explore Options</span>
+              <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
+            </span>
+          </div>
+
+          <div className="mt-2.5">
+            <div className="text-base font-black text-white leading-tight drop-shadow-xs">
+              Optimize Spending & Deposit Yields
+            </div>
+            <p className="text-[11px] text-red-100/90 leading-relaxed mt-1">
+              Tailored OCBC Cards & Deposit Accounts matched to your goals and habits.
+            </p>
+          </div>
+
+          <div className="mt-3 flex items-center justify-between pt-2.5 border-t border-white/20">
+            <span className="text-[9.5px] font-bold text-red-100/90">
+              Personalized Cards & Savings Perks
+            </span>
+
+            <span className="inline-flex items-center gap-1 bg-white text-[#C62828] px-3 py-1.5 rounded-full text-[9.5px] font-black shadow-sm group-hover:bg-red-50 transition-colors">
+              <span>Explore Now</span>
+              <ChevronRight className="w-3 h-3 stroke-[3]" />
+            </span>
+          </div>
+        </button>
+
         {createdPlans.length > 0 && !opportunityHandled && !healerPending && (
           <button
             onClick={() => {

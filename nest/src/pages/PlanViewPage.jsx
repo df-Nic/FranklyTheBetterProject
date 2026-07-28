@@ -12,6 +12,8 @@ export default function PlanViewPage() {
   const categories = custom.confirmedCategories?.length ? custom.confirmedCategories : template.categories;
   const isLumpSum = custom.confirmedPaymentStrategy === "lump-sum" || plan.paymentStrategy === "lump-sum";
 
+  const isStaggered = custom.paymentStrategy ? custom.paymentStrategy === 'staggered' : true;
+
   return (
     <div className="h-full overflow-y-auto bg-[#F9F4EE] text-[#2B2320] no-scrollbar">
       <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-[#EAE0D7] bg-[#F9F4EE]/95 px-4 pb-3 pt-5 backdrop-blur-xl">
@@ -28,7 +30,13 @@ export default function PlanViewPage() {
         <section>
           <h2 className="px-1 text-[12px] font-black uppercase tracking-wider text-[#8A7F78]">Milestones</h2>
           <div className="mt-2 overflow-hidden rounded-[18px] border border-[#E8DED5] bg-white">
-            {milestones.map((item, index) => <div key={item.id ?? index} className={`grid grid-cols-[1fr_auto_auto] items-center gap-3 p-3 ${index ? "border-t border-[#EFE7E0]" : ""}`}><span className="text-[10.5px] font-extrabold">{item.name}</span>{item.amount != null && <span className="text-[9.5px] font-bold text-[#2E7D4F]">{formatSGD(item.amount)}</span>}<span className="text-[9px] text-[#8A7F78]">{item.date}</span></div>)}
+            {milestones.map((item, index) => (
+              <div key={item.id ?? index} className={`grid ${isStaggered && item.date ? 'grid-cols-[1fr_auto_auto]' : 'grid-cols-[1fr_auto]'} items-center gap-3 p-3 ${index ? "border-t border-[#EFE7E0]" : ""}`}>
+                <span className="text-[10.5px] font-extrabold">{item.name}</span>
+                {item.amount != null && <span className="text-[9.5px] font-bold text-[#2E7D4F]">{formatSGD(item.amount)}</span>}
+                {isStaggered && item.date && <span className="text-[9px] text-[#8A7F78]">{item.date}</span>}
+              </div>
+            ))}
           </div>
         </section>
 

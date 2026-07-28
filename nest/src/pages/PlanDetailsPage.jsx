@@ -190,11 +190,12 @@ const PlanDetailsPage = () => {
   const isDraftReview = Boolean(activePlanDraft)
     && !['plan-milestones', 'plan-dashboard'].includes(planDetailOrigin);
   const isConfirmedBreakdown = Boolean(isPlanAccepted && !isDraftReview);
-  
+
   // Custom user preferences passed from chat widget setup
   const userPlanMeta = isDraftReview
     ? activePlanDraft
     : (activePlan && customPlanData[activePlan.id]) || {};
+  const isStaggered = userPlanMeta.paymentStrategy ? userPlanMeta.paymentStrategy === 'staggered' : true;
 
   // Dynamic Goal text and timeline
   const adjustedPlan = activePlanId ? getMilestonePlan(activePlanId, planAdjustments) : null;
@@ -250,13 +251,13 @@ const PlanDetailsPage = () => {
     } else {
       const baseSubgoals = INITIAL_PLAN_SUBGOALS[activePlan.id] || INITIAL_PLAN_SUBGOALS['default'];
       const targetAmountVal = userPlanMeta.targetAmount ? Number(userPlanMeta.targetAmount) : null;
-      
+
       if (targetAmountVal && baseSubgoals.length > 0) {
         const baseTotal = baseSubgoals.reduce((acc, s) => acc + (s.amount || 0), 0) || 1;
         const scaledSubs = baseSubgoals.map((s, idx) => {
           const ratio = s.amount / baseTotal;
           const scaledAmount = Math.round(ratio * targetAmountVal);
-          
+
           let scaledDate = s.date;
           if (userPlanMeta.targetDate) {
             if (idx === baseSubgoals.length - 1) {
@@ -490,7 +491,7 @@ const PlanDetailsPage = () => {
       // 6 Months plan (Jul 2026 - Dec 2026)
       const months = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       return months.map((month, m) => {
-        const baseGrowthVal = initialCapital * Math.pow(1 + 0.015/12, m);
+        const baseGrowthVal = initialCapital * Math.pow(1 + 0.015 / 12, m);
         let depositsVal = 0;
         let investmentsVal = 0;
 
@@ -938,7 +939,7 @@ const PlanDetailsPage = () => {
 
         {/* Main Scroll Area */}
         <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-5 flex flex-col gap-4 z-10 pb-[130px]">
-          
+
           {/* Top Section: Goal & Timeline */}
           <GlassCard className="p-4 border-white/70 relative overflow-hidden bg-white/40 shadow-sm flex flex-col gap-3 shrink-0">
             <span className="text-[8px] font-bold text-brand-primary uppercase tracking-widest leading-none flex items-center gap-1">
@@ -992,9 +993,9 @@ const PlanDetailsPage = () => {
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="border-b border-zinc-200/60 text-[9px] font-bold uppercase tracking-wider text-zinc-500">
-                    <th className="py-1.5 px-1.5 w-[42%]">Subgoal</th>
+                    <th className={`py-1.5 px-1.5 ${isStaggered ? 'w-[42%]' : 'w-[64%]'}`}>Subgoal</th>
                     <th className="py-1.5 px-1.5 w-[28%] text-right">Amount (SGD)</th>
-                    <th className="py-1.5 px-1.5 w-[22%] text-center">Target Date</th>
+                    {isStaggered && <th className="py-1.5 px-1.5 w-[22%] text-center">Target Date</th>}
                     {!isConfirmedBreakdown && <th className="py-1.5 px-0.5 w-[8%] text-center"></th>}
                   </tr>
                 </thead>
@@ -1029,21 +1030,23 @@ const PlanDetailsPage = () => {
                           </span>
                         )}
                       </td>
-                      <td className="py-2 px-1.5 align-middle text-center">
-                        {editingId === sub.id ? (
-                          <input
-                            type="text"
-                            value={editForm.date}
-                            onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
-                            placeholder="e.g. Dec 2028"
-                            className="w-20 bg-white border border-brand-primary/40 rounded px-1 py-1 text-[11px] text-zinc-900 font-medium text-center focus:outline-none focus:ring-1 focus:ring-brand-primary mx-auto block"
-                          />
-                        ) : (
-                          <span className="inline-block px-1.5 py-0.5 bg-zinc-100 text-zinc-600 rounded text-[10px] font-bold">
-                            {sub.date}
-                          </span>
-                        )}
-                      </td>
+                      {isStaggered && (
+                        <td className="py-2 px-1.5 align-middle text-center">
+                          {editingId === sub.id ? (
+                            <input
+                              type="text"
+                              value={editForm.date}
+                              onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
+                              placeholder="e.g. Dec 2028"
+                              className="w-20 bg-white border border-brand-primary/40 rounded px-1 py-1 text-[11px] text-zinc-900 font-medium text-center focus:outline-none focus:ring-1 focus:ring-brand-primary mx-auto block"
+                            />
+                          ) : (
+                            <span className="inline-block px-1.5 py-0.5 bg-zinc-100 text-zinc-600 rounded text-[10px] font-bold">
+                              {sub.date}
+                            </span>
+                          )}
+                        </td>
+                      )}
                       {!isConfirmedBreakdown && <td className="py-2 px-0.5 align-middle text-center">
                         {editingId === sub.id ? (
                           <button
@@ -1096,7 +1099,7 @@ const PlanDetailsPage = () => {
                 </div>
               )}
 
-              {isDateExceeded && (
+              {isStaggered && isDateExceeded && (
                 <div className="p-2 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-2">
                   <AlertTriangle className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
                   <span className="text-[10px] font-semibold text-red-700 leading-snug">
@@ -1105,11 +1108,11 @@ const PlanDetailsPage = () => {
                 </div>
               )}
 
-              {isAmountTally && !isDateExceeded && (
+              {isAmountTally && (!isStaggered || !isDateExceeded) && (
                 <div className="p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                   <span className="text-[10px] font-bold text-emerald-700">
-                    All subgoal amounts tally and dates are within target schedule!
+                    All subgoal amounts tally{!isStaggered ? '!' : ' and dates are within target schedule!'}
                   </span>
                 </div>
               )}
@@ -1151,10 +1154,10 @@ const PlanDetailsPage = () => {
           </div>
 
           {/* Main Category Action Tabbed View Component */}
-          <PlanTabbedDeck 
-            categories={categoriesList} 
-            pendingExcluded={pendingExcluded} 
-            toggleAction={toggleAction} 
+          <PlanTabbedDeck
+            categories={categoriesList}
+            pendingExcluded={pendingExcluded}
+            toggleAction={toggleAction}
             onChangeProduct={isConfirmedBreakdown ? undefined : (action, category) => {
               setChangingAction(action);
               setChangingCategory(category);
@@ -1196,7 +1199,7 @@ const PlanDetailsPage = () => {
         </div>
 
         {/* Sticky Footer CTA */}
-        <div 
+        <div
           className="absolute bottom-0 left-0 right-0 bg-white/85 backdrop-blur-xl border-t border-zinc-200/40 p-4 flex flex-col z-40"
           style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))' }}
         >

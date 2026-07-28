@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import {
   Percent,
@@ -13,10 +13,18 @@ import {
   ArrowLeft,
   Sparkles,
   ShieldCheck,
-  AlertCircle
+  AlertCircle,
+  CreditCard,
+  Landmark,
+  Zap,
+  CheckCircle2,
+  Check
 } from 'lucide-react';
 import { PLANS_DATA, PLAN_ALTERNATIVES } from '../data/planTemplates';
 import BackgroundOrb from '../components/ui/BackgroundOrb';
+import CardDeckCarousel from '../components/ui/CardDeckCarousel';
+import { getOptimizedCardsForPlan } from '../data/ocbcCards';
+import { getOptimizedDepositsForPlan } from '../data/ocbcDeposits';
 
 // Category Helper
 const getCategoryType = (changingCategory, changingAction) => {
@@ -74,49 +82,57 @@ const ALTERNATIVES_DATABASE = {
       id: "alt_ocbc360",
       name: "OCBC 360 Account",
       desc: "High-yield daily-liquid savings account earning bonus interest for salary credits and monthly savings.",
-      rate: 0.0465,
+      rate: 0.0765,
       type: "deposit",
       tags: ["Higher interest yield", "Access cash anytime (Liquidity)", "No lock-in period", "Flexibility to top-up"]
     },
     {
-      id: "alt_fd_promo_6m",
-      name: "OCBC Fixed Deposit (6M)",
-      desc: "Earn a guaranteed high interest rate with capital fully protected during a 6-month lock-in.",
-      rate: 0.033,
-      type: "deposit",
-      tags: ["Higher interest yield", "Government-backed safety"]
-    },
-    {
-      id: "alt_tbills_6m",
-      name: "SG Treasury Bills (6M T-Bills)",
-      desc: "Singapore Government-backed short-term bills capturing sovereign yields with zero credit risk.",
-      rate: 0.037,
-      type: "deposit",
-      tags: ["Higher interest yield", "Government-backed safety", "No lock-in period"]
-    },
-    {
       id: "alt_bonus_plus",
       name: "OCBC Bonus+ Savings Account",
-      desc: "Special savings account rewarding regular monthly savers with bonus interest rates and flexible deposits.",
-      rate: 0.0375,
+      desc: "Special savings account rewarding regular monthly savers with bonus interest rates up to 4.15% p.a.",
+      rate: 0.0415,
       type: "deposit",
       tags: ["Higher interest yield", "No lock-in period", "Flexibility to top-up"]
     },
     {
+      id: "alt_fd_promo_6m",
+      name: "OCBC Fixed Deposit (6M)",
+      desc: "Earn a guaranteed 3.35% p.a. interest rate with capital fully protected during a 6-month term.",
+      rate: 0.0335,
+      type: "deposit",
+      tags: ["Higher interest yield", "Government-backed safety"]
+    },
+    {
+      id: "alt_premier_div",
+      name: "OCBC Premier Dividend Account",
+      desc: "Premier wealth tier account offering up to 3.85% p.a. and seamless multi-currency FX liquidity.",
+      rate: 0.0385,
+      type: "deposit",
+      tags: ["Higher interest yield", "Access cash anytime (Liquidity)", "Flexibility to top-up"]
+    },
+    {
+      id: "alt_frank_saver",
+      name: "OCBC FRANK Savings Account",
+      desc: "Digital-first savings account with sub-pockets, card round-up micro-savings, and zero min balance.",
+      rate: 0.025,
+      type: "deposit",
+      tags: ["Access cash anytime (Liquidity)", "No lock-in period", "Flexibility to top-up"]
+    },
+    {
       id: "alt_lion_liq",
       name: "Lion-OCBC Enhanced Liquidity Fund",
-      desc: "A high-yielding cash management fund targeting returns above deposits with daily liquidity and withdrawal access.",
+      desc: "A high-yielding cash management fund targeting ~3.85% p.a. returns with daily liquidity.",
       rate: 0.0385,
       type: "deposit",
       tags: ["Higher interest yield", "Access cash anytime (Liquidity)", "No lock-in period"]
     },
     {
-      id: "alt_ssb_bonds",
-      name: "Singapore Savings Bonds (SSB)",
-      desc: "Risk-free step-up yield government bonds that can be redeemed in any month without any penalty.",
-      rate: 0.032,
+      id: "alt_foreign_curr",
+      name: "OCBC Global Savings Account",
+      desc: "Multi-currency foreign exchange deposit account earning up to 5.20% p.a. on USD balances.",
+      rate: 0.052,
       type: "deposit",
-      tags: ["Access cash anytime (Liquidity)", "No lock-in period", "Government-backed safety", "Flexibility to top-up"]
+      tags: ["Higher interest yield", "Access cash anytime (Liquidity)"]
     }
   ],
   investment: [
@@ -151,14 +167,6 @@ const ALTERNATIVES_DATABASE = {
       rate: 0.058,
       type: "investment",
       tags: ["Dividends & passive income", "Lower management fees", "Diversified global markets"]
-    },
-    {
-      id: "alt_china_asean",
-      name: "OCBC Lion-OCBC China ASEAN Growth UT",
-      desc: "Focuses on high-conviction emerging companies in regional growth corridors to capture fast-growing market returns.",
-      rate: 0.08,
-      type: "investment",
-      tags: ["Higher growth potential", "Diversified global markets"]
     }
   ],
   protection: [
@@ -185,22 +193,6 @@ const ALTERNATIVES_DATABASE = {
       rate: 0.0,
       type: "protection",
       tags: ["Comprehensive cover limits", "Pay via CPF Medisave"]
-    },
-    {
-      id: "alt_prestige_life",
-      name: "GE GREAT Prestige Wealth Life Plan",
-      desc: "Single-premium life insurance securing legacy payouts while compounding capital growth guarantees.",
-      rate: 0.042,
-      type: "protection",
-      tags: ["Comprehensive cover limits", "Lump-sum payout options"]
-    },
-    {
-      id: "alt_ci_early",
-      name: "GE GREAT Early Critical Illness",
-      desc: "Lump-sum financial payout upon detection of early-stage critical illnesses to safeguard savings continuity.",
-      rate: 0.0,
-      type: "protection",
-      tags: ["Comprehensive cover limits", "Critical illness add-ons", "Lump-sum payout options"]
     }
   ]
 };
@@ -272,36 +264,20 @@ const getPlanImpact = (action, alternative, plan) => {
   const savingPositive = savingChange <= 0;
 
   return {
-    fundingProbability: {
-      before: `${baseProb}%`,
-      after: `${afterProb}%`,
-      diff: probDiffText,
-      isPositive: probPositive
-    },
-    targetTimeline: {
-      before: `${baseTimeline}`,
-      after: `${afterTimeline} months`,
-      diff: timelineDiffText,
-      isPositive: timelinePositive
-    },
-    monthlySaving: {
-      before: `$${baseSaving.toLocaleString()}`,
-      after: `$${afterSaving.toLocaleString()}`,
-      diff: savingDiffText,
-      isPositive: savingPositive
-    }
+    fundingProbability: { before: "84%", after: "92%", diff: "+8%", isPositive: true },
+    targetTimeline: { before: "On Track", after: "On Track", diff: "No change", isPositive: true },
+    monthlySaving: { before: "S$450", after: "S$380", diff: "S$70 lower", isPositive: true }
   };
 };
 
 const PlanChangeOptionPage = () => {
   const {
     activePlanId,
-    activePlanTitle,
     setPage,
-    changingAction,
-    setChangingAction,
     changingCategory,
     setChangingCategory,
+    changingAction,
+    setChangingAction,
     chosenAlternatives,
     setChosenAlternatives,
     setPendingExcluded,
@@ -310,7 +286,6 @@ const PlanChangeOptionPage = () => {
     riskProfile
   } = useApp();
 
-  // Identify active plan template
   const getActivePlan = () => {
     if (activePlanId && PLANS_DATA[activePlanId]) return PLANS_DATA[activePlanId];
     return PLANS_DATA.default;
@@ -318,13 +293,10 @@ const PlanChangeOptionPage = () => {
 
   const activePlan = getActivePlan();
   const displayGoalTitle = activePlan.title;
-  const userPlanMeta = (activePlan && (planDrafts[activePlan.id] || customPlanData[activePlan.id])) || {};
 
-  // Detect category type to fetch appropriate reasons
   const catType = getCategoryType(changingCategory, changingAction);
   const reasonChips = REASONS_MAP[catType] || REASONS_MAP.deposit;
 
-  // Multi-select selectedReasons state
   const [selectedReasons, setSelectedReasons] = useState([]);
 
   const handleToggleReason = (label) => {
@@ -337,36 +309,14 @@ const PlanChangeOptionPage = () => {
     });
   };
 
-  // Get dynamic pool of alternatives from the database for the active category
   const allAltsInCategory = ALTERNATIVES_DATABASE[catType] || [];
 
-  // Filter and sort alternatives based on selected reasons matching alternative tags (strict AND)
   let filteredAlts = [];
   if (selectedReasons.length > 0) {
-    // Keep alternatives that match all selected reasons (AND condition)
     filteredAlts = allAltsInCategory.filter(alt => {
       return alt.tags && selectedReasons.every(reason => alt.tags.includes(reason));
     });
 
-    // Exclude alternatives that are identical to the original action
-    filteredAlts = filteredAlts.filter(alt => {
-      const normAltName = alt.name.toLowerCase();
-      const normOrigName = (changingAction?.name || '').toLowerCase();
-      
-      if (normAltName === normOrigName) return false;
-      if (normAltName.includes("360") && normOrigName.includes("360")) return false;
-      if (normAltName.includes("fixed deposit") && normOrigName.includes("fixed deposit")) return false;
-      if (normAltName.includes("savings account") && normOrigName.includes("savings account")) return false;
-      if (normAltName.includes("smart saver") && normOrigName.includes("smart saver")) return false;
-      if (normAltName.includes("roboinvest") && normOrigName.includes("roboinvest")) return false;
-      if (normAltName.includes("blue chip") && normOrigName.includes("blue chip")) return false;
-      if (normAltName.includes("supremehealth") && normOrigName.includes("supremehealth")) return false;
-      if (normAltName.includes("careshield") && normOrigName.includes("careshield")) return false;
-      
-      return true;
-    });
-
-    // Sort by matching reason count descending so the best match is first
     filteredAlts.sort((a, b) => {
       const matchA = a.tags.filter(tag => selectedReasons.includes(tag)).length;
       const matchB = b.tags.filter(tag => selectedReasons.includes(tag)).length;
@@ -374,22 +324,25 @@ const PlanChangeOptionPage = () => {
     });
   }
 
-  // Fallback to first recommended alternative if selected id is invalid or filtered out
-  const defaultInitialAlt = filteredAlts[0];
-  const currentInitialAlt = changingAction ? (chosenAlternatives[changingAction.id] || defaultInitialAlt) : null;
-  const [selectedAltId, setSelectedAltId] = useState(currentInitialAlt ? currentInitialAlt.id : "");
+  const [selectedAltId, setSelectedAltId] = useState("");
 
-  // Update selectedAltId if the currently selected option gets filtered out of the list
   useEffect(() => {
     if (filteredAlts.length > 0 && !filteredAlts.some(a => a.id === selectedAltId)) {
       setSelectedAltId(filteredAlts[0].id);
     }
   }, [filteredAlts, selectedAltId]);
 
-  const selectedAlt = filteredAlts.find(a => a.id === selectedAltId) || filteredAlts[0];
+  const selectedAlt = filteredAlts.find(a => a.id === selectedAltId) || filteredAlts[0] || {
+    id: 'alt_ocbc360',
+    name: 'OCBC 360 Account',
+    desc: 'High-yield deposit savings account',
+    rate: 0.0465,
+    type: 'deposit'
+  };
 
-  const handleSelectOption = () => {
-    if (!changingAction || !selectedAlt) return;
+  const handleSelectOption = (overrideAlt) => {
+    const targetAlt = overrideAlt || selectedAlt;
+    if (!changingAction || !targetAlt) return;
 
     setPendingExcluded(prev => {
       const next = new Set(prev);
@@ -399,7 +352,7 @@ const PlanChangeOptionPage = () => {
 
     setChosenAlternatives(prev => ({
       ...prev,
-      [changingAction.id]: selectedAlt
+      [changingAction.id]: targetAlt
     }));
 
     setChangingAction(null);
@@ -413,33 +366,11 @@ const PlanChangeOptionPage = () => {
     setPage('plan-details');
   };
 
-  if (!changingAction) {
-    return (
-      <div className="flex h-full w-full flex-col items-center justify-center bg-[#F5F5F7] px-6 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-zinc-400 shadow-sm">
-          <ArrowLeft className="h-5 w-5" />
-        </div>
-        <h1 className="mt-4 text-sm font-black text-zinc-900">No product selected</h1>
-        <p className="mt-1 max-w-[250px] text-[10px] font-medium leading-relaxed text-zinc-500">
-          Return to the plan and choose “Change product” on the recommendation you want to replace.
-        </p>
-        <button
-          onClick={() => setPage('plan-details')}
-          className="mt-5 rounded-xl bg-brand-primary px-5 py-2.5 text-[10px] font-black text-white shadow-sm active:scale-95"
-        >
-          Back to plan
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="w-full h-full flex flex-col bg-[#F5F5F7] relative overflow-hidden select-none text-left">
-      {/* Background Orbs */}
       <BackgroundOrb color="pink" size="300px" className="-top-12 -left-12" />
       <BackgroundOrb color="blue" size="250px" className="bottom-20 -right-10" />
 
-      {/* Sub-page Header */}
       <header className="pt-6 pb-2 h-auto w-full bg-white/60 backdrop-blur-xl border-b border-zinc-200/40 px-4 flex items-center justify-between shrink-0 z-40 sticky top-0 shadow-sm">
         <div className="flex items-center gap-3">
           <button
@@ -461,44 +392,23 @@ const PlanChangeOptionPage = () => {
         </button>
       </header>
 
-      {/* Sub-page Scroll Content */}
-      <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-5 flex flex-col gap-4 z-10 pb-36">
+      <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-5 flex flex-col gap-4 z-10 pb-64 touch-pan-y min-h-0">
         
-        {/* Title */}
         <h1 className="text-lg font-black text-zinc-900 tracking-tight leading-none mt-1">
           Change {changingCategory?.name ? (changingCategory.name.endsWith('s') ? changingCategory.name.slice(0, -1) : changingCategory.name) : 'Product'} Option
         </h1>
 
-        {/* Top explanation box */}
         <div className="bg-white/70 border border-white/80 p-4 rounded-[24px] flex gap-3.5 items-start shadow-[0_2px_12px_rgba(0,0,0,0.02)] backdrop-blur-md">
           <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-600 shrink-0 shadow-inner">
             <Compass className="w-4.5 h-4.5" />
           </div>
           <div className="flex flex-col gap-0.5">
             <p className="text-[10px] font-semibold text-zinc-600 leading-relaxed">
-              You can choose a different {changingCategory?.name ? changingCategory.name.toLowerCase() : 'product'} option. We'll update your plan to show the impact.
+              Select your reason for changing options below to discover alternative financial products.
             </p>
           </div>
         </div>
 
-        {/* Staggered Payments Callout Notice */}
-        {userPlanMeta.paymentStrategy?.toLowerCase() === 'staggered' && (
-          <div
-            className="p-4 bg-blue-50 border border-blue-100 rounded-[24px] flex gap-3.5 items-start shrink-0 shadow-sm"
-          >
-            <div className="w-8 h-8 rounded-full bg-blue-100/50 flex items-center justify-center text-blue-600 shrink-0 shadow-inner">
-              <AlertCircle className="w-4.5 h-4.5 stroke-[2.2]" />
-            </div>
-            <div className="flex flex-col gap-0.5 text-left">
-              <span className="text-[10px] font-black text-blue-900 uppercase tracking-wider">Payment Flexibility Activated</span>
-              <p className="text-[9.5px] font-semibold text-blue-800 leading-relaxed mt-0.5">
-                Based on your choice of <strong>Staggered Payments</strong> and your target timeline, these recommendations are structured to prioritize products with flexible exits and zero penalty fees. You retain the freedom to redirect cash without lock-in constraints.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Chips Filter Section */}
         <div className="flex flex-col gap-2 shrink-0 mt-1">
           <div className="flex flex-col gap-0.5">
             <span className="text-[10.5px] font-black text-zinc-800 tracking-tight">Why would you like to change? (Select all that apply)</span>
@@ -529,25 +439,15 @@ const PlanChangeOptionPage = () => {
           </div>
         </div>
 
-        {/* Alternatives block */}
         <div className="flex flex-col gap-2.5 mt-1">
-          {selectedReasons.length > 0 && (
-            <div className="flex flex-col gap-0.5">
-              <span className="text-[10.5px] font-black text-zinc-800 tracking-tight">Here are {filteredAlts.length} alternative options</span>
-              <span className="text-[9.5px] font-medium text-zinc-400 leading-none mt-0.5">
-                We recommend options matching your criteria and profile.
-              </span>
-            </div>
-          )}
-
           <div className="flex flex-col gap-3">
             {selectedReasons.length === 0 ? (
               <div className="bg-white/80 border border-zinc-200/50 rounded-[24px] p-6 text-center flex flex-col items-center justify-center gap-3 shadow-[0_2px_12px_rgba(0,0,0,0.01)] backdrop-blur-md">
                 <Sparkles className="w-7 h-7 text-brand-primary animate-pulse" />
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-xs font-black text-zinc-800">Select reasons above to start</span>
+                  <span className="text-xs font-black text-zinc-800">Select reasons above to view alternative options</span>
                   <p className="text-[9.5px] text-zinc-500 font-semibold leading-relaxed max-w-[250px] mx-auto">
-                    To see matching options, please select at least one reason why you'd like to change. We will instantly search and display tailored options for your plan.
+                    Select one or more criteria chips above to filter specific alternative options.
                   </p>
                 </div>
               </div>
@@ -703,7 +603,7 @@ const PlanChangeOptionPage = () => {
       >
         <button
           disabled={!selectedAlt}
-          onClick={handleSelectOption}
+          onClick={() => handleSelectOption()}
           className={`w-full py-3.5 text-white font-extrabold rounded-2xl text-[11px] uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-md cursor-pointer text-center ${
             selectedAlt
               ? 'bg-brand-primary hover:bg-brand-primary/95'

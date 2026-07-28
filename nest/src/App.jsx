@@ -19,6 +19,7 @@ import PayNowConfirmPage from './pages/PayNowConfirmPage';
 import PayNowSuccessPage from './pages/PayNowSuccessPage';
 import RiskProfilingPage from './pages/RiskProfilingPage';
 import PlanChangeOptionPage from './pages/PlanChangeOptionPage';
+import ExpenseOptimizerPage from './pages/ExpenseOptimizerPage';
 import PlanHealerPage from './pages/PlanHealerPage';
 
 // Iris-animated wrapper for RiskProfilingPage — mirrors how PlanDetailsPage enters/exits
@@ -58,7 +59,7 @@ function AppContent() {
   const detailsOrigin = planDetailOrigin || 'home';
 
   const isPayNowPage = page === 'paynow-contacts' || page === 'paynow-amount' || page === 'paynow-confirm' || page === 'paynow-success';
-  const isPlanPage = page === 'plan-dashboard' || page === 'plan-view' || page === 'plan-milestones' || page === 'savings-breakdown' || page === 'opportunity-detail' || page === 'plan-change-option' || page === 'plan-healer';
+  const isPlanPage = page === 'plan-dashboard' || page === 'plan-view' || page === 'plan-milestones' || page === 'savings-breakdown' || page === 'opportunity-detail' || page === 'plan-change-option' || page === 'expense-optimizer' || page === 'plan-healer';
   const isUserLoggedIn = page === 'home' || page === 'plan-details' || isPlanPage || isPayNowPage || page === 'risk-profiling';
   const isRiskProfilingBackground = page === 'plan-details' && detailsOrigin === 'risk-profiling';
   const activeNavTab = isPayNowPage
@@ -126,7 +127,7 @@ function AppContent() {
           </motion.div>
         )}
         {/* plan-dashboard: visible on plan-dashboard page, or as background when plan-details was accepted */}
-        {(page === 'plan-dashboard' || page === 'plan-view' || page === 'plan-milestones' || page === 'savings-breakdown' || page === 'opportunity-detail' || (page === 'plan-details' && detailsOrigin === 'plan-dashboard')) && (
+        {(page === 'plan-dashboard' || (page === 'plan-details' && detailsOrigin === 'plan-dashboard')) && (
           <motion.div
             key="plan-dashboard"
             initial={{ opacity: 0, x: 60 }}
@@ -136,6 +137,18 @@ function AppContent() {
             className="absolute inset-0 flex flex-col overflow-hidden z-10"
           >
             <PlanDashboardPage />
+          </motion.div>
+        )}
+        {page === 'expense-optimizer' && (
+          <motion.div
+            key="expense-optimizer"
+            initial={{ opacity: 0, x: 60 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -60 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 180 }}
+            className="absolute inset-0 flex flex-col overflow-hidden z-10"
+          >
+            <ExpenseOptimizerPage />
           </motion.div>
         )}
         {page === 'paynow-contacts' && (
@@ -185,13 +198,13 @@ function AppContent() {
             <PayNowSuccessPage />
           </motion.div>
         )}
-      
+
       </AnimatePresence>
 
       {/* Persistent overlay components for logged-in views */}
       {isUserLoggedIn && !isPayNowPage && page !== 'risk-profiling' && !isRiskProfilingBackground && (
         <>
-          {page !== 'plan-milestones' && page !== 'savings-breakdown' && page !== 'opportunity-detail' && page !== 'plan-change-option' && page !== 'plan-healer' && <ChatWidget />}
+          {page !== 'plan-milestones' && page !== 'savings-breakdown' && page !== 'opportunity-detail' && page !== 'plan-change-option' && page !== 'expense-optimizer' && page !== 'plan-healer' && <ChatWidget />}
           {page !== 'plan-change-option' && page !== 'plan-healer' && <BottomNavBar activeTab={activeNavTab} onTabSelect={handleTabSelect} />}
         </>
       )}
@@ -216,6 +229,7 @@ function AppContent() {
             exit={{ opacity: 0, x: -40 }}
             transition={{ type: 'spring', damping: 25, stiffness: 180 }}
             className="absolute inset-0 z-30 overflow-hidden"
+            style={{ pointerEvents: page === 'plan-milestones' ? 'auto' : 'none' }}
           >
             <PlanMilestonesPage />
           </motion.div>
@@ -228,6 +242,7 @@ function AppContent() {
             exit={{ opacity: 0, x: -40 }}
             transition={{ type: 'spring', damping: 25, stiffness: 180 }}
             className="absolute inset-0 z-30 overflow-hidden"
+            style={{ pointerEvents: page === 'savings-breakdown' ? 'auto' : 'none' }}
           >
             <SavingsBreakdownPage />
           </motion.div>
@@ -240,6 +255,7 @@ function AppContent() {
             exit={{ opacity: 0, x: -40 }}
             transition={{ type: 'spring', damping: 25, stiffness: 180 }}
             className="absolute inset-0 z-30 overflow-hidden"
+            style={{ pointerEvents: page === 'opportunity-detail' ? 'auto' : 'none' }}
           >
             <OpportunityDetailPage />
           </motion.div>
@@ -252,6 +268,7 @@ function AppContent() {
             exit={{ opacity: 0, x: -40 }}
             transition={{ type: 'spring', damping: 25, stiffness: 180 }}
             className="absolute inset-0 z-30 overflow-hidden"
+            style={{ pointerEvents: page === 'plan-change-option' ? 'auto' : 'none' }}
           >
             <PlanChangeOptionPage />
           </motion.div>

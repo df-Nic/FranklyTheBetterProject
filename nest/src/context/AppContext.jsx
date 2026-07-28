@@ -54,7 +54,7 @@ export const AppProvider = ({ children }) => {
   const [activePlanId, setActivePlanId] = useState(null); // Selected proposal or accepted plan
   // Demo seed: Daniel already has one accepted Housing plan.
   const [createdPlans, setCreatedPlans] = useState(['housing']); // Plans are added only after explicit acceptance
-  
+
   // Shared Change Option States
   const [changingAction, setChangingAction] = useState(null);
   const [changingCategory, setChangingCategory] = useState(null);
@@ -69,7 +69,7 @@ export const AppProvider = ({ children }) => {
     setChosenAlternatives({});
   }, [activePlanId]);
 
-  const [hasCreatedFirstPlan, setHasCreatedFirstPlan] = useState(true);
+  const [hasCreatedFirstPlan, setHasCreatedFirstPlan] = useState(false);
   const [riskProfile, setRiskProfile] = useState('Balanced Wealth');
   const [planDetailOrigin, setPlanDetailOrigin] = useState('home'); // 'home' | 'plan-dashboard'
   const [opportunityDecisions, setOpportunityDecisions] = useState({});
