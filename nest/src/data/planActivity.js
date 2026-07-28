@@ -26,7 +26,7 @@ export function buildSeededPlanActivity(plan, opportunity, decision) {
   const savingsAsOf = dateValue(savings.asOf);
   const savingsWindow = Math.max(savingsAsOf - createdDate, 86_400_000);
   const events = [];
-  savings.items.forEach((item, index) => {
+  if (!plan.isUserCreated) savings.items.forEach((item, index) => {
     const segmentStart = createdDate + (savingsWindow * index) / savings.items.length;
     const segmentEnd = createdDate + (savingsWindow * (index + 1)) / savings.items.length;
     const identifiedAt = createdDate

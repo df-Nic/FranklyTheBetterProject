@@ -162,7 +162,7 @@ const SwipeCardComponent = ({ scenario, stackIndex, isTop, onSwipe, swipeTopCard
 };
 
 const RiskProfilingPage = () => {
-  const { navigate, setPage, activePlanId, activePlanTitle, setClickPos, setPlanDetailOrigin } = useApp();
+  const { navigate, setPage, activePlanId, activePlanTitle, setClickPos, setPlanDetailOrigin, setRiskProfile } = useApp();
   const [cards, setCards] = useState(SCENARIOS);
   const [decisions, setDecisions] = useState({});
   const [isComplete, setIsComplete] = useState(false);
@@ -215,6 +215,7 @@ const RiskProfilingPage = () => {
   const profile = getRiskProfile();
 
   const handleProceedToPlanDetails = (e) => {
+    setRiskProfile(profile.badge);
     if (e) {
       setClickPos({ x: e.clientX, y: e.clientY });
     } else {

@@ -230,7 +230,7 @@ export const PLANS_DATA = {
   'children-education': {
     id: "children-education",
     title: "OCBC Children Education Fund",
-    goal: "Save SG$80,000 for your children's future university tuition fee by Oct 2035",
+    goal: "Build an education fund for your child's selected learning stages and support needs",
     timelineAll: "Oct 2035 - Dec 2037",
     timelineExcluded: (numExcluded) => {
       if (numExcluded === 0) return "Oct 2035 - Dec 2037";

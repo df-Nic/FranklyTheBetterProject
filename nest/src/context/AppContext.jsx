@@ -10,6 +10,41 @@ const DEMO_HOUSING_SUBGOALS = [
   { id: 3, name: 'Rest of the housing loan', amount: 60000, date: 'Mar 2028' },
 ];
 
+const getMonthsUntil = (targetDate) => {
+  const parsed = new Date(targetDate);
+  if (Number.isNaN(parsed.getTime())) return 1;
+  const now = new Date();
+  return Math.max(1, (parsed.getFullYear() - now.getFullYear()) * 12 + parsed.getMonth() - now.getMonth());
+};
+
+const getRequiredMonthlyContribution = (targetAmount, targetDate, paymentStrategy) => {
+  if (paymentStrategy !== 'staggered') return 0;
+  const rawAmount = Number(targetAmount) / getMonthsUntil(targetDate);
+  return Math.ceil(rawAmount / 10) * 10;
+};
+
+const buildConfirmedMilestones = (subgoals, targetDate) => {
+  const created = {
+    id: 'created',
+    name: 'Goal Created',
+    date: new Date().toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' }),
+    state: 'completed',
+  };
+  if (!subgoals?.length) {
+    return [created, { id: 'goal', name: 'Target reached', date: targetDate, state: 'goal' }];
+  }
+  return [
+    created,
+    ...subgoals.map((subgoal, index) => ({
+      id: `confirmed-${subgoal.id}`,
+      name: subgoal.name,
+      date: subgoal.date,
+      amount: Number(subgoal.amount),
+      state: index === 0 ? 'next' : index === subgoals.length - 1 ? 'goal' : 'upcoming',
+    })),
+  ];
+};
+
 export const AppProvider = ({ children }) => {
   const [page, setPage] = useState('landing'); // includes plan milestones, savings breakdown and opportunity detail routes
   const [isMasked, setIsMasked] = useState(true);
@@ -35,6 +70,7 @@ export const AppProvider = ({ children }) => {
   }, [activePlanId]);
 
   const [hasCreatedFirstPlan, setHasCreatedFirstPlan] = useState(true);
+  const [riskProfile, setRiskProfile] = useState('Balanced Wealth');
   const [planDetailOrigin, setPlanDetailOrigin] = useState('home'); // 'home' | 'plan-dashboard'
   const [opportunityDecisions, setOpportunityDecisions] = useState({});
   const [opportunityNotice, setOpportunityNotice] = useState(null);
@@ -337,6 +373,7 @@ export const AppProvider = ({ children }) => {
       confirmedAt: '2026-01-12T09:00:00+08:00',
     },
   });
+  const [planDrafts, setPlanDrafts] = useState({});
 
   const updateCustomPlanData = (planId, data) => {
     setCustomPlanData(prev => ({
@@ -348,10 +385,73 @@ export const AppProvider = ({ children }) => {
     }));
   };
 
+  const updatePlanDraft = (planId, data) => {
+    if (!planId) return;
+    setPlanDrafts(prev => ({
+      ...prev,
+      [planId]: {
+        ...(prev[planId] || {}),
+        ...data,
+      },
+    }));
+  };
+
   const discardPlanDraft = (planId) => {
-    if (!planId || createdPlans.includes(planId)) return false;
-    setCustomPlanData(prev => {
+    if (!planId) return false;
+    setPlanDrafts(prev => {
       if (!prev[planId]) return prev;
+      const next = { ...prev };
+      delete next[planId];
+      return next;
+    });
+    return true;
+  };
+
+  const confirmPlan = (planId, data) => {
+    if (!planId || !data?.targetAmount || !data?.targetDate) return false;
+    const targetAmount = Number(data.targetAmount);
+    const paymentStrategy = data.paymentStrategy || 'lump-sum';
+    const confirmedSubgoals = (data.subgoals || []).map((subgoal) => ({ ...subgoal, amount: Number(subgoal.amount) }));
+    const confirmedAt = new Date().toISOString();
+    const monthlyContribution = getRequiredMonthlyContribution(targetAmount, data.targetDate, paymentStrategy);
+    const confirmedCategories = (data.categories || []).map((category) => ({
+      ...category,
+      actions: category.actions.map((action) => ({ ...action })),
+    }));
+
+    setCustomPlanData(prev => ({
+      ...prev,
+      [planId]: {
+        ...(prev[planId] || {}),
+        ...data,
+        targetAmount,
+        targetDate: data.targetDate,
+        paymentStrategy,
+        subgoals: confirmedSubgoals,
+        confirmedSubgoals,
+        confirmedCategories,
+        confirmedPaymentStrategy: paymentStrategy,
+        confirmedAt,
+      },
+    }));
+    setPlanAdjustments(prev => ({
+      ...prev,
+      [planId]: {
+        targetAmount,
+        goalDate: data.targetDate,
+        monthlyContribution,
+        lumpSumContribution: paymentStrategy === 'lump-sum' ? targetAmount : 0,
+        paymentStrategy,
+        strategy: paymentStrategy === 'lump-sum'
+          ? 'One-time contribution'
+          : `Monthly contributions of S$${monthlyContribution.toLocaleString('en-SG')}`,
+        onTrack: { expected: 0, saved: 0 },
+        milestones: buildConfirmedMilestones(confirmedSubgoals, data.targetDate),
+        isUserCreated: true,
+      },
+    }));
+    setCreatedPlans(prev => prev.includes(planId) ? prev : [...prev, planId]);
+    setPlanDrafts(prev => {
       const next = { ...prev };
       delete next[planId];
       return next;
@@ -379,6 +479,8 @@ export const AppProvider = ({ children }) => {
         addCreatedPlan,
         hasCreatedFirstPlan,
         setHasCreatedFirstPlan,
+        riskProfile,
+        setRiskProfile,
         planAdjustments,
         adjustPlan,
         planActivity,
@@ -398,7 +500,10 @@ export const AppProvider = ({ children }) => {
         consumePlanChatRequest,
         customPlanData,
         updateCustomPlanData,
+        planDrafts,
+        updatePlanDraft,
         discardPlanDraft,
+        confirmPlan,
         planDetailOrigin,
         setPlanDetailOrigin,
         opportunityDecisions,

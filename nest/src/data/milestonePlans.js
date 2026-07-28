@@ -159,7 +159,7 @@ const childrenEducationPlan = {
   strategy: "High-yield savings and investments",
   personalContext: {
     motivation: "Provide the best academic start without severe financial sacrifice.",
-    desiredOutcome: "a fully funded tuition plan ready by college admission",
+    desiredOutcome: "education costs funded for the learning stages you selected",
     priority: "balance",
     flexibility: "some",
   },
@@ -167,9 +167,9 @@ const childrenEducationPlan = {
   milestones: [
     { id: "created", name: "Goal Created", date: "2 Jan 2026", state: "completed" },
     { id: "savings-start", name: "First S$10k Saved", date: "15 Apr 2026", state: "completed" },
-    { id: "halfway", name: "Halfway to Tuition", date: "Jun 2031", state: "next" },
-    { id: "final-stretch", name: "Final Stretch Ready", date: "Jan 2034", state: "upcoming" },
-    { id: "goal", name: "University Matriculation!", date: "Oct 2035", state: "goal" },
+    { id: "halfway", name: "Halfway to Education Target", date: "Jun 2031", state: "next" },
+    { id: "final-stretch", name: "Final Education Reserve Ready", date: "Jan 2034", state: "upcoming" },
+    { id: "goal", name: "Education Fund Ready", date: "Oct 2035", state: "goal" },
   ],
   impact: { additionalSavings: 3800, timeSaved: "4.8 hrs", opportunitiesActedOn: 2 },
 };
@@ -272,14 +272,36 @@ export function formatSGD(amount) {
 // Derive the on-track headline from expected vs saved.
 export function deriveOnTrack({ expected, saved }) {
   const diff = saved - expected;
-  const ahead = diff >= 0;
+  const isNew = expected === 0 && saved === 0;
+  const ahead = !isNew && diff > 0;
+  const withinBuffer = !isNew && diff < 0 && Math.abs(diff) <= expected * 0.05;
+  const status = isNew
+    ? "new"
+    : ahead
+      ? "ahead"
+      : diff === 0
+        ? "on-track"
+        : withinBuffer
+          ? "close"
+          : "behind";
+  const deltaLabel = status === "new"
+    ? "Awaiting first contribution"
+    : status === "on-track"
+      ? "Right on schedule"
+      : status === "ahead"
+        ? `${formatSGD(Math.abs(diff))} ahead of schedule`
+        : status === "close"
+          ? `${formatSGD(Math.abs(diff))} slightly behind`
+          : `${formatSGD(Math.abs(diff))} behind schedule`;
   return {
+    status,
+    isNew,
     ahead,
-    onTrack: ahead || Math.abs(diff) <= expected * 0.05, // small tolerance band
+    onTrack: ["ahead", "on-track", "close"].includes(status),
     expected,
     saved,
     deltaAmount: Math.abs(diff),
-    deltaLabel: `${formatSGD(Math.abs(diff))} ${ahead ? "ahead of" : "behind"} schedule`,
+    deltaLabel,
   };
 }
 

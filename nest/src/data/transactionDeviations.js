@@ -1,21 +1,30 @@
 import { getMilestonePlan } from "./milestonePlans";
 
-const EXTENDED_DATES = {
-  "wedding-fund": "15 Feb 2028",
-  savings: "May 2028",
-  housing: "May 2028",
-  retirement: "Dec 2045",
-  emergency: "Feb 2027",
-  "children-education": "Feb 2036",
-  "career-break": "Aug 2028",
-  "parents-retirement": "Apr 2033",
-  default: "Mar 2030",
+const getMonthsUntil = (dateValue) => {
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return 12;
+  const now = new Date();
+  return Math.max(1, (date.getFullYear() - now.getFullYear()) * 12 + date.getMonth() - now.getMonth());
+};
+
+const extendGoalDate = (dateValue, months = 2) => {
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return dateValue;
+  const includesDay = /^\d{1,2}\s/.test(String(dateValue));
+  date.setMonth(date.getMonth() + months);
+  return date.toLocaleDateString("en-SG", {
+    ...(includesDay ? { day: "numeric" } : {}),
+    month: "short",
+    year: "numeric",
+  });
 };
 
 export function buildRecoveryOptions(plan, amount) {
-  const baseContribution = plan.monthlyContribution || 1200;
+  const baseContribution = plan.monthlyContribution > 0
+    ? plan.monthlyContribution
+    : Math.ceil((plan.targetAmount / getMonthsUntil(plan.goalDate)) / 10) * 10;
   const increasedContribution = Math.round(baseContribution + amount * 0.06);
-  const extendedDate = EXTENDED_DATES[plan.id] || EXTENDED_DATES.default;
+  const extendedDate = extendGoalDate(plan.goalDate);
 
   return [
     {
