@@ -98,13 +98,15 @@ export const AppProvider = ({ children }) => {
     accessId: '',
   });
 
-  const accountsData = [
+  const [accountsData, setAccountsData] = useState([
     {
       id: 'acc-1',
       name: '360 Account',
       number: '001-23456-789',
       balance: 138439.11,
       currency: 'SGD',
+      type: 'Savings Account',
+      rate: '4.65% p.a.',
     },
     {
       id: 'acc-2',
@@ -113,8 +115,28 @@ export const AppProvider = ({ children }) => {
       balance: 15420.50,
       currency: 'SGD',
       isJoint: true,
+      type: 'Joint Savings',
+      rate: '2.15% p.a.',
     }
-  ];
+  ]);
+
+  const [selectedAccountId, setSelectedAccountId] = useState('acc-1');
+  const [opportunitySourceAmount, setOpportunitySourceAmount] = useState(8000);
+  const [showOpportunityPopup, setShowOpportunityPopup] = useState(false);
+
+  const performMockDeposit = (amount, accountId = selectedAccountId || 'acc-1') => {
+    const numAmount = Number(amount);
+    if (isNaN(numAmount) || numAmount <= 0) return false;
+    setAccountsData((prev) =>
+      prev.map((acc) =>
+        acc.id === accountId ? { ...acc, balance: acc.balance + numAmount } : acc
+      )
+    );
+    setOpportunitySourceAmount(numAmount);
+    setShowOpportunityPopup(true);
+    setPage('home');
+    return true;
+  };
 
   // PayNow specific states
   const [paynowContact, setPaynowContact] = useState(null);
@@ -513,6 +535,14 @@ export const AppProvider = ({ children }) => {
         user,
         setUser,
         accountsData,
+        setAccountsData,
+        selectedAccountId,
+        setSelectedAccountId,
+        opportunitySourceAmount,
+        setOpportunitySourceAmount,
+        showOpportunityPopup,
+        setShowOpportunityPopup,
+        performMockDeposit,
         investmentsData,
         paynowContact,
         setPaynowContact,

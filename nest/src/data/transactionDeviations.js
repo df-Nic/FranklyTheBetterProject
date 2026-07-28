@@ -1,15 +1,41 @@
 import { getMilestonePlan } from "./milestonePlans";
 
+const parseFlexibleDate = (dateValue) => {
+  if (!dateValue) return new Date();
+  const str = String(dateValue).trim();
+  const parts = str.split(/\s*-\s*/);
+  const targetStr = parts[parts.length - 1] || parts[0];
+  let parsed = new Date(targetStr);
+  if (!Number.isNaN(parsed.getTime())) return parsed;
+
+  parsed = new Date(`1 ${targetStr}`);
+  if (!Number.isNaN(parsed.getTime())) return parsed;
+
+  const match = targetStr.match(/([a-zA-Z]{3,})\s+(\d{4})/);
+  if (match) {
+    const months = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
+    const mIdx = months[match[1].toLowerCase().slice(0, 3)];
+    if (mIdx !== undefined) {
+      return new Date(parseInt(match[2], 10), mIdx, 1);
+    }
+  }
+
+  const yrMatch = targetStr.match(/\b(20\d\d)\b/);
+  if (yrMatch) {
+    return new Date(parseInt(yrMatch[1], 10), 11, 1);
+  }
+
+  return new Date();
+};
+
 const getMonthsUntil = (dateValue) => {
-  const date = new Date(dateValue);
-  if (Number.isNaN(date.getTime())) return 12;
+  const date = parseFlexibleDate(dateValue);
   const now = new Date();
   return Math.max(1, (date.getFullYear() - now.getFullYear()) * 12 + date.getMonth() - now.getMonth());
 };
 
 const extendGoalDate = (dateValue, months = 2) => {
-  const date = new Date(dateValue);
-  if (Number.isNaN(date.getTime())) return dateValue;
+  const date = parseFlexibleDate(dateValue);
   const includesDay = /^\d{1,2}\s/.test(String(dateValue));
   date.setMonth(date.getMonth() + months);
   return date.toLocaleDateString("en-SG", {
