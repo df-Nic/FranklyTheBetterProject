@@ -34,7 +34,7 @@ export const AppProvider = ({ children }) => {
     setChosenAlternatives({});
   }, [activePlanId]);
 
-  const [hasCreatedFirstPlan, setHasCreatedFirstPlan] = useState(true);
+  const [hasCreatedFirstPlan, setHasCreatedFirstPlan] = useState(false);
   const [planDetailOrigin, setPlanDetailOrigin] = useState('home'); // 'home' | 'plan-dashboard'
   const [opportunityDecisions, setOpportunityDecisions] = useState({});
   const [opportunityNotice, setOpportunityNotice] = useState(null);

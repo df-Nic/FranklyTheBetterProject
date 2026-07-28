@@ -87,17 +87,17 @@ const PlanCard = ({ planId, index, onClick }) => {
       className="shrink-0 bg-white rounded-[24px] overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.08)] border border-zinc-100 cursor-pointer select-none active:shadow-sm"
     >
       {/* Illustration zone */}
-      <div className="relative w-full h-[150px] overflow-hidden bg-zinc-50 flex items-center justify-center p-3">
+      <div className="relative w-full h-[160px] overflow-hidden bg-zinc-50 flex items-center justify-center px-4 pb-2 pt-9">
         <img
           src={meta.image}
           alt={meta.tag}
-          className="w-full h-full object-contain"
+          className="w-full h-full object-contain pointer-events-none select-none"
         />
         {/* Category badge */}
-        <span className={`absolute top-3 left-3 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full backdrop-blur-sm ${meta.tagColor}`}>
+        <span className={`absolute top-2.5 left-3 z-10 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full backdrop-blur-sm shadow-2xs ${meta.tagColor}`}>
           {meta.tag}
         </span>
-        <div className="absolute right-3 top-3 z-10 flex flex-col items-end gap-1.5">
+        <div className="absolute right-3 top-2.5 z-10 flex flex-col items-end gap-1.5">
           {needsReview && (
             <span className="flex items-center gap-1 rounded-full bg-[#B14A3F] px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-white shadow-sm">
               Needs review

@@ -153,8 +153,10 @@ const PlanDetailsPage = () => {
   // Dynamic Goal text and timeline
   const adjustedPlan = activePlanId ? getMilestonePlan(activePlanId, planAdjustments) : null;
   const displayGoalTitle = adjustedPlan?.goalName || activePlan.title;
-  const canonicalTargetAmount = adjustedPlan?.targetAmount || userPlanMeta.targetAmount;
-  const canonicalTargetDate = adjustedPlan?.goalDate || userPlanMeta.targetDate;
+  const canonicalTargetAmount = (userPlanMeta.targetAmount !== undefined && userPlanMeta.targetAmount !== null && userPlanMeta.targetAmount > 0)
+    ? userPlanMeta.targetAmount
+    : (adjustedPlan?.targetAmount || activePlan?.targetAmount);
+  const canonicalTargetDate = userPlanMeta.targetDate || adjustedPlan?.goalDate;
   const displayGoalAmount = canonicalTargetAmount
     ? `S$${Number(canonicalTargetAmount).toLocaleString('en-SG')}`
     : null;

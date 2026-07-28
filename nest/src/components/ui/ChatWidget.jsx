@@ -864,55 +864,9 @@ const ChatWidget = () => {
           messagePayload
         ]);
 
-        // Prompt strategy question after another short delay
-        setTimeout(() => {
-          if (sessionId !== flowSessionRef.current) return;
-          setMessages(prev => [
-            ...prev,
-            { id: 'typing-strategy', sender: 'bot', isTyping: true }
-          ]);
-
-          setTimeout(() => {
-            if (sessionId !== flowSessionRef.current) return;
-            setMessages(prev => [
-              ...prev.filter(m => m.id !== 'typing-strategy'),
-              {
-                id: Date.now(),
-                sender: 'bot',
-                text: (
-                  <span>
-                    To customize your payment options: <span className="text-brand-primary font-black">would you prefer your payments to be staggered or made as a 1-lump sum?</span>
-                  </span>
-                )
-              }
-            ]);
-            setFlowState('asking_strategy');
-          }, 1000);
-        }, 1200);
-
-      } else if (flowState === 'asking_strategy') {
-        const strategyUnsure = isUnsure(trimmed);
-        const normalizedStrategy = strategyUnsure ? 'staggered' : (/stagger/i.test(trimmed) ? 'staggered' : 'lump-sum');
-        setPaymentStrategy(normalizedStrategy);
-        updateCustomPlanData(planGoal, { paymentStrategy: normalizedStrategy });
-
-        if (unsureFields.length > 0 || strategyUnsure) {
-          const defaults = inferDefaults(planGoal);
-          const proposal = {
-            ...defaults,
-            amount: unsureFields.includes('amount') ? defaults.amount : targetAmount,
-            date: unsureFields.includes('date') ? defaults.date : targetDate,
-            strategy: strategyUnsure ? defaults.strategy : normalizedStrategy,
-          };
-          setUnsureFields(current => [...new Set([...current, ...(strategyUnsure ? ['strategy'] : [])])]);
-          setInferredDefaults(proposal);
-          setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', isInferredDefaults: true, proposal }]);
-          setFlowState('confirming_inference');
-          return;
-        }
-
         // Post-plan Routing decision
         setTimeout(() => {
+          if (sessionId !== flowSessionRef.current) return;
           if (!hasCreatedFirstPlan) {
             setMessages(prev => [
               ...prev,
