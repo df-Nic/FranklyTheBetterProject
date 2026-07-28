@@ -21,6 +21,7 @@ import RiskProfilingPage from './pages/RiskProfilingPage';
 import PlanChangeOptionPage from './pages/PlanChangeOptionPage';
 import ExpenseOptimizerPage from './pages/ExpenseOptimizerPage';
 import PlanHealerPage from './pages/PlanHealerPage';
+import AccountDetailPage from './pages/AccountDetailPage';
 
 // Iris-animated wrapper for RiskProfilingPage — mirrors how PlanDetailsPage enters/exits
 function RiskProfilingIrisWrapper() {
@@ -204,8 +205,8 @@ function AppContent() {
       {/* Persistent overlay components for logged-in views */}
       {isUserLoggedIn && !isPayNowPage && page !== 'risk-profiling' && !isRiskProfilingBackground && (
         <>
-          {page !== 'plan-milestones' && page !== 'savings-breakdown' && page !== 'opportunity-detail' && page !== 'plan-change-option' && page !== 'expense-optimizer' && page !== 'plan-healer' && <ChatWidget />}
-          {page !== 'plan-change-option' && page !== 'plan-healer' && <BottomNavBar activeTab={activeNavTab} onTabSelect={handleTabSelect} />}
+          {page !== 'plan-milestones' && page !== 'savings-breakdown' && page !== 'opportunity-detail' && page !== 'plan-change-option' && page !== 'expense-optimizer' && page !== 'plan-healer' && page !== 'account-detail' && <ChatWidget />}
+          {page !== 'plan-change-option' && page !== 'plan-healer' && page !== 'account-detail' && <BottomNavBar activeTab={activeNavTab} onTabSelect={handleTabSelect} />}
         </>
       )}
 
@@ -283,6 +284,18 @@ function AppContent() {
             className="absolute inset-0 z-30 overflow-hidden"
           >
             <PlanHealerPage />
+          </motion.div>
+        )}
+        {page === 'account-detail' && (
+          <motion.div
+            key="account-detail"
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -40 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 180 }}
+            className="absolute inset-0 z-30 overflow-hidden"
+          >
+            <AccountDetailPage />
           </motion.div>
         )}
       </AnimatePresence>

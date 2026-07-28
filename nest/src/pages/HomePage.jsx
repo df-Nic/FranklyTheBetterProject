@@ -54,7 +54,11 @@ const HomePage = () => {
     transactionDeviations,
     dismissDeviationNotifications,
     openDeviation,
-    setActivePlanId
+    setActivePlanId,
+    opportunitySourceAmount,
+    showOpportunityPopup,
+    setShowOpportunityPopup,
+    setSelectedAccountId
   } = useApp();
   const pendingHealers = transactionDeviations.filter((event) => event.status === 'pending');
   const visibleHealer = [...pendingHealers].reverse().find((event) => !event.notificationDismissed);
@@ -149,16 +153,16 @@ const HomePage = () => {
             </motion.div>
           </motion.div>
         )}
-        {!pendingHealers.length && createdPlans.length > 0 && !opportunityHandled && !opportunityDismissed && (
+        {showOpportunityPopup && !pendingHealers.length && createdPlans.length > 0 && !opportunityHandled && !opportunityDismissed && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-[70] flex items-center justify-center bg-zinc-950/55 px-5">
             <motion.div initial={{ y: 22, scale: 0.95 }} animate={{ y: 0, scale: 1 }} className="relative w-full rounded-[26px] bg-white p-5 shadow-2xl">
               <Sparkles className="absolute -right-4 -top-4 h-20 w-20 text-amber-50" />
-              <button onClick={() => setOpportunityDismissed(true)} aria-label="Dismiss" className="absolute right-4 top-4 text-zinc-500"><X size={20} /></button>
+              <button onClick={() => { setOpportunityDismissed(true); setShowOpportunityPopup(false); }} aria-label="Dismiss" className="absolute right-4 top-4 text-zinc-500"><X size={20} /></button>
               <span className="rounded-md bg-amber-50 px-2 py-1 text-[9px] font-black uppercase text-amber-700">Opportunity starts now</span>
-              <h2 className="mt-4 text-[22px] font-black">Put your S$8,000 bonus to work</h2>
+              <h2 className="mt-4 text-[22px] font-black">Put your S${opportunitySourceAmount.toLocaleString('en-SG')} deposit to work</h2>
               <p className="mt-2 text-[11px] leading-relaxed text-zinc-600">Agent Owl compared all active plans and recommends starting with {recommendedPlan?.goalName}.</p>
-              <button onClick={() => { setActivePlanId(recommendedPlan?.id || createdPlans[0]); navigate('opportunity-detail'); }} className="mt-5 w-full rounded-xl bg-[#7C2230] py-3 text-[11px] font-black text-white">Compare and allocate</button>
-              <button onClick={() => setOpportunityDismissed(true)} className="mt-2 w-full py-2 text-[10px] font-bold text-[#7C2230]">Not now</button>
+              <button onClick={() => { setActivePlanId(recommendedPlan?.id || createdPlans[0]); setShowOpportunityPopup(false); navigate('opportunity-detail'); }} className="mt-5 w-full rounded-xl bg-[#7C2230] py-3 text-[11px] font-black text-white">Compare and allocate</button>
+              <button onClick={() => { setOpportunityDismissed(true); setShowOpportunityPopup(false); }} className="mt-2 w-full py-2 text-[10px] font-bold text-[#7C2230]">Not now</button>
             </motion.div>
           </motion.div>
         )}
@@ -332,7 +336,15 @@ const HomePage = () => {
               {activeTab === 'accounts' && (
                 <>
                   {accountsData.map((acc) => (
-                    <GlassCard key={acc.id} className="p-4 border-white/60 flex flex-col justify-between min-h-[110px]" hoverable={true}>
+                    <GlassCard
+                      key={acc.id}
+                      className="p-4 border-white/60 flex flex-col justify-between min-h-[110px] cursor-pointer"
+                      hoverable={true}
+                      onClick={() => {
+                        setSelectedAccountId(acc.id);
+                        navigate('account-detail');
+                      }}
+                    >
                       <div className="flex justify-between items-start">
                         <div className="flex flex-col">
                           <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wide leading-none">

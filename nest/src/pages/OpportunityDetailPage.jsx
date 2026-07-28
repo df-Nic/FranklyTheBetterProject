@@ -17,8 +17,9 @@ export default function OpportunityDetailPage() {
   const {
     activePlanId, setActivePlanId, setPage, user, createdPlans,
     planAdjustments, opportunityDecisions, decideOpportunity,
+    opportunitySourceAmount
   } = useApp();
-  const opportunity = getPlanOpportunity();
+  const opportunity = getPlanOpportunity(opportunitySourceAmount);
   const plans = useMemo(
     () => (createdPlans.length ? createdPlans : [activePlanId]).map((id) => getMilestonePlan(id, planAdjustments)),
     [activePlanId, createdPlans, planAdjustments],
@@ -80,14 +81,14 @@ export default function OpportunityDetailPage() {
       <main className="space-y-4 px-4 pb-28 pt-4">
         <section className="relative overflow-hidden rounded-[24px] bg-[#641D29] p-5 text-white">
           <Sparkles className="absolute -right-4 -top-4 h-24 w-24 text-white/10" />
-          <div className="text-[9px] font-black uppercase tracking-wider text-white/60">Bonus received</div>
-          <div className="mt-1 text-[36px] font-black text-[#FFE19A]">S$8,000</div>
+          <div className="text-[9px] font-black uppercase tracking-wider text-white/60">Bonus / Deposit received</div>
+          <div className="mt-1 text-[36px] font-black text-[#FFE19A]">S${opportunity.sourceAmount.toLocaleString('en-SG')}</div>
           <div className="mt-3 rounded-[12px] bg-white/10 px-3 py-2.5">
             <div className="text-[8px] font-black uppercase tracking-wider text-white/55">Detected by Agent Owl</div>
-            <p className="mt-1 text-[10px] font-bold">Salary bonus credited to your OCBC 360 Account</p>
-            <p className="mt-0.5 text-[8.5px] text-white/65">24 Jul 2026 · Cleared and available</p>
+            <p className="mt-1 text-[10px] font-bold">Funds credited to your OCBC Account</p>
+            <p className="mt-0.5 text-[8.5px] text-white/65">Cleared and available</p>
           </div>
-          <p className="mt-3 text-[11px] text-white/75">Owl noticed this was above your usual monthly income and compared where it could help most. Nothing moves until you confirm.</p>
+          <p className="mt-3 text-[11px] text-white/75">Owl noticed this deposit and compared where it could help most. Nothing moves until you confirm.</p>
         </section>
 
         {recommended && mode === "best" && (

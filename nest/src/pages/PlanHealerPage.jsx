@@ -18,6 +18,7 @@ export default function PlanHealerPage() {
     opportunityDecisions,
     user,
     planAdjustments,
+    opportunitySourceAmount,
   } = useApp();
 
   const pendingEvents = transactionDeviations.filter((item) => item.status === "pending");
@@ -25,7 +26,7 @@ export default function PlanHealerPage() {
   const event = selectedEvent?.status === "pending"
     ? selectedEvent
     : pendingEvents[0] || selectedEvent || transactionDeviations[transactionDeviations.length - 1];
-  const opportunity = getPlanOpportunity();
+  const opportunity = getPlanOpportunity(opportunitySourceAmount);
   const opportunityHandled = Object.values(opportunityDecisions).some(
     (decision) => decision.opportunityId === opportunity.id,
   );
@@ -171,7 +172,7 @@ export default function PlanHealerPage() {
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FFE9A8] text-[#9A641E]"><Sparkles size={17} /></span>
                 <span className="flex-1">
                   <span className="text-[8px] font-black uppercase text-[#9A641E]">Opportunity available</span>
-                  <strong className="block text-[12px]">Use your S$8,000 bonus to heal plans</strong>
+                  <strong className="block text-[12px]">Use your S${(opportunity.sourceAmount || 8000).toLocaleString("en-SG")} deposit to heal plans</strong>
                 </span>
                 <ChevronDown size={16} className={bonusOpen ? "rotate-180" : ""} />
               </button>

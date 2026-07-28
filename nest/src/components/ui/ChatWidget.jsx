@@ -150,6 +150,21 @@ const ChatWidget = () => {
     setTimeout(() => chatInputRef.current?.focus(), 0);
   };
 
+  const parseAmountInput = (str) => {
+    if (!str) return 0;
+    const normalized = str.trim().toLowerCase();
+    const kMatch = normalized.match(/([0-9]+(?:\.[0-9]+)?)\s*k\b/);
+    if (kMatch) {
+      return parseFloat(kMatch[1]) * 1000;
+    }
+    const mMatch = normalized.match(/([0-9]+(?:\.[0-9]+)?)\s*m\b/);
+    if (mMatch) {
+      return parseFloat(mMatch[1]) * 1000000;
+    }
+    const num = parseFloat(normalized.replace(/[^0-9.]/g, ''));
+    return isNaN(num) ? 0 : num;
+  };
+
   const parseDateInput = (str) => {
     const now = new Date();
     let year = now.getFullYear();
@@ -797,7 +812,7 @@ const ChatWidget = () => {
           setFlowState('asking_date');
           return;
         }
-        const num = parseFloat(trimmed.replace(/[^0-9.]/g, ''));
+        const num = parseAmountInput(trimmed);
         if (isNaN(num) || num <= 0) {
           setMessages(prev => [
             ...prev,

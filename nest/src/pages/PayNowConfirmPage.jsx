@@ -103,17 +103,32 @@ const PayNowConfirmPage = () => {
   const dynamicNewContribution = Math.round(baseContribution + numPaynowAmount * 0.06);
   const formattedNewContribution = dynamicNewContribution.toLocaleString('en-SG');
 
-  const EXTENDED_DATES = {
-    'wedding-fund': '15 Feb 2028',
-    'savings': 'May 2028',
-    'retirement': 'Dec 2045',
-    'emergency': 'Feb 2027',
-    'children-education': 'Feb 2036',
-    'career-break': 'Aug 2028',
-    'parents-retirement': 'Apr 2033',
-    'default': 'Mar 2030'
+  const computeExtendedDate = (dateValue, months = 2) => {
+    if (!dateValue) return '2 months delayed';
+    const str = String(dateValue).trim();
+    let parsed = new Date(str);
+    if (Number.isNaN(parsed.getTime())) {
+      parsed = new Date(`1 ${str}`);
+    }
+    if (Number.isNaN(parsed.getTime())) {
+      const match = str.match(/([a-zA-Z]{3,})\s+(\d{4})/);
+      if (match) {
+        const mNames = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
+        const idx = mNames[match[1].toLowerCase().slice(0, 3)];
+        if (idx !== undefined) parsed = new Date(parseInt(match[2], 10), idx, 1);
+      }
+    }
+    if (Number.isNaN(parsed.getTime())) return '2 months delayed';
+    const includesDay = /^\d{1,2}\s/.test(str);
+    parsed.setMonth(parsed.getMonth() + months);
+    return parsed.toLocaleDateString('en-SG', {
+      ...(includesDay ? { day: 'numeric' } : {}),
+      month: 'short',
+      year: 'numeric',
+    });
   };
-  const extendedDate = EXTENDED_DATES[selectedPlanId] || '2 months delayed';
+
+  const extendedDate = computeExtendedDate(selectedPlan.goalDate);
 
   const healerStrategies = [
     {

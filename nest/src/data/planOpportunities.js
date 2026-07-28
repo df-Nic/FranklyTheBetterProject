@@ -289,7 +289,19 @@ const CASH_INFLUX_OPPORTUNITY = {
   planChanges: { strategy: "One-time bonus allocation" },
 };
 
-export function getPlanOpportunity() {
+export function getPlanOpportunity(customAmount) {
+  if (customAmount && typeof customAmount === "number" && customAmount > 0) {
+    const formatted = `S$${customAmount.toLocaleString("en-SG")}`;
+    return {
+      ...CASH_INFLUX_OPPORTUNITY,
+      sourceAmount: customAmount,
+      title: `Put your ${formatted} deposit to work`,
+      summary: `Agent Owl detected a deposit of ${formatted} and compared how it could strengthen each active plan.`,
+      trigger: `A deposit of ${formatted} was credited to your OCBC Account.`,
+      benefitValue: formatted,
+      assumptions: [`The full ${formatted} remains available.`, "No emergency cash requirement takes priority."],
+    };
+  }
   return CASH_INFLUX_OPPORTUNITY;
 }
 

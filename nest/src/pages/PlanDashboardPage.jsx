@@ -142,10 +142,10 @@ const PlanCard = ({ planId, index, onClick }) => {
 // ─── Plan Dashboard Page ─────────────────────────────────────────────────────
 
 const PlanDashboardPage = () => {
-  const { navigate, createdPlans, setActivePlanId, setClickPos, setPlanDetailOrigin, planAdjustments, opportunityDecisions, requestPlanChatOpen, transactionDeviations } = useApp();
+  const { navigate, createdPlans, setActivePlanId, setClickPos, setPlanDetailOrigin, planAdjustments, opportunityDecisions, requestPlanChatOpen, transactionDeviations, opportunitySourceAmount } = useApp();
   const dashboardPlans = createdPlans.map((id) => getMilestonePlan(id, planAdjustments));
   const recommendedPlan = getRecommendedPlan(dashboardPlans);
-  const opportunity = getPlanOpportunity();
+  const opportunity = getPlanOpportunity(opportunitySourceAmount);
   const opportunityHandled = Object.values(opportunityDecisions).some((item) => item.opportunityId === opportunity.id);
   const healerPending = transactionDeviations.some((event) => event.status === 'pending');
   const startNewPlan = () => {
@@ -241,7 +241,7 @@ const PlanDashboardPage = () => {
           >
             <Sparkles className="absolute -right-3 -top-3 h-20 w-20 text-white/10" />
             <div className="relative text-[9px] font-black uppercase tracking-[0.15em] text-white/65">Opportunity starts now</div>
-            <div className="relative mt-1 text-[18px] font-black">Put your S$8,000 bonus to work</div>
+            <div className="relative mt-1 text-[18px] font-black">Put your S${(opportunitySourceAmount || 8000).toLocaleString('en-SG')} deposit to work</div>
             <p className="relative mt-1 text-[10.5px] leading-relaxed text-white/75">
               Owl compared {createdPlans.length} {createdPlans.length === 1 ? 'plan' : 'plans'} and recommends {recommendedPlan?.goalName}.
             </p>
