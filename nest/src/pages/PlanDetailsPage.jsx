@@ -26,6 +26,48 @@ import PlanTabbedDeck from '../components/ui/PlanTabbedDeck';
 import ReplanOverlay from '../components/ui/ReplanOverlay';
 import { getMilestonePlan } from '../data/milestonePlans';
 
+const buildCanonicalProjection = ({
+  targetAmount,
+  targetDate,
+  paymentStrategy,
+  monthlyContribution,
+  startingBalance = 0,
+  categories = [],
+}) => {
+  const now = new Date();
+  const parsedTarget = new Date(targetDate);
+  const endDate = Number.isNaN(parsedTarget.getTime())
+    ? new Date(now.getFullYear() + 5, 11, 1)
+    : parsedTarget;
+  const totalMonths = Math.max(1, (endDate.getFullYear() - now.getFullYear()) * 12 + endDate.getMonth() - now.getMonth());
+  const contribution = paymentStrategy === 'lump-sum'
+    ? 0
+    : Number(monthlyContribution) || Math.ceil((Number(targetAmount) / totalMonths) / 10) * 10;
+  const investmentActions = categories.flatMap(category => category.actions || [])
+    .filter(action => ['investment', 'yield'].includes(action.type));
+  const annualRate = investmentActions.length
+    ? investmentActions.reduce((sum, action) => sum + Number(action.rate || 0), 0) / investmentActions.length
+    : 0.025;
+  const pointCount = Math.min(7, Math.max(3, Math.ceil(totalMonths / 12) + 1));
+
+  return Array.from({ length: pointCount }, (_, index) => {
+    const elapsedMonths = Math.round(totalMonths * index / (pointCount - 1));
+    const pointDate = new Date(now.getFullYear(), now.getMonth() + elapsedMonths, 1);
+    const contributed = paymentStrategy === 'lump-sum'
+      ? (index === 0 ? 0 : Number(targetAmount))
+      : contribution * elapsedMonths;
+    const base = Number(startingBalance) + contributed;
+    const years = elapsedMonths / 12;
+    const projected = base * Math.pow(1 + annualRate, years);
+    return {
+      year: pointDate.toLocaleDateString('en-SG', { month: 'short', year: '2-digit' }),
+      y1: Math.round(Number(startingBalance)),
+      y2: Math.round(Math.min(Number(targetAmount), base)),
+      y3: Math.round(Math.min(Number(targetAmount), projected)),
+    };
+  });
+};
+
 // Default subgoals registry mapping matching chat widget proposals
 const INITIAL_PLAN_SUBGOALS = {
   'housing': [
@@ -77,12 +119,12 @@ const PlanDetailsPage = () => {
     activePlanId,
     planDetailOrigin,
     setPage,
-    addCreatedPlan,
     createdPlans,
     customPlanData,
-    updateCustomPlanData,
+    planDrafts,
+    confirmPlan,
+    riskProfile,
     planAdjustments,
-    adjustPlan,
     changingAction,
     setChangingAction,
     changingCategory,
@@ -144,19 +186,26 @@ const PlanDetailsPage = () => {
 
   const activePlan = getActivePlan();
   const isPlanAccepted = activePlan && createdPlans.includes(activePlan.id);
-  const isConfirmedBreakdown = Boolean(isPlanAccepted);
+  const activePlanDraft = (activePlan && planDrafts[activePlan.id]) || null;
+  const isDraftReview = Boolean(activePlanDraft)
+    && !['plan-milestones', 'plan-dashboard'].includes(planDetailOrigin);
+  const isConfirmedBreakdown = Boolean(isPlanAccepted && !isDraftReview);
 
   // Custom user preferences passed from chat widget setup
-  const userPlanMeta = (activePlan && customPlanData[activePlan.id]) || {};
+  const userPlanMeta = isDraftReview
+    ? activePlanDraft
+    : (activePlan && customPlanData[activePlan.id]) || {};
   const isStaggered = userPlanMeta.paymentStrategy ? userPlanMeta.paymentStrategy === 'staggered' : true;
 
   // Dynamic Goal text and timeline
   const adjustedPlan = activePlanId ? getMilestonePlan(activePlanId, planAdjustments) : null;
   const displayGoalTitle = adjustedPlan?.goalName || activePlan.title;
-  const canonicalTargetAmount = (userPlanMeta.targetAmount !== undefined && userPlanMeta.targetAmount !== null && userPlanMeta.targetAmount > 0)
+  const canonicalTargetAmount = isDraftReview
     ? userPlanMeta.targetAmount
-    : (adjustedPlan?.targetAmount || activePlan?.targetAmount);
-  const canonicalTargetDate = userPlanMeta.targetDate || adjustedPlan?.goalDate;
+    : adjustedPlan?.targetAmount || userPlanMeta.targetAmount;
+  const canonicalTargetDate = isDraftReview
+    ? userPlanMeta.targetDate
+    : adjustedPlan?.goalDate || userPlanMeta.targetDate;
   const displayGoalAmount = canonicalTargetAmount
     ? `S$${Number(canonicalTargetAmount).toLocaleString('en-SG')}`
     : null;
@@ -832,7 +881,21 @@ const PlanDetailsPage = () => {
     });
   };
 
-  const chartPoints = calculateDataPoints(activePlan, categoriesList, appliedExcluded);
+  const projectionMonthlyContribution = isDraftReview
+    ? null
+    : adjustedPlan?.monthlyContribution;
+  const chartPoints = buildCanonicalProjection({
+    targetAmount: canonicalTargetAmount || adjustedPlan?.targetAmount || 0,
+    targetDate: canonicalTargetDate || adjustedPlan?.goalDate,
+    paymentStrategy: userPlanMeta.paymentStrategy || adjustedPlan?.paymentStrategy || 'staggered',
+    monthlyContribution: projectionMonthlyContribution,
+    startingBalance: isDraftReview ? 0 : adjustedPlan?.onTrack?.saved || 0,
+    categories: categoriesList
+      .map(category => ({
+        ...category,
+        actions: category.actions.filter(action => !appliedExcluded.has(action.id)),
+      })),
+  });
   const maxVal = Math.max(50000, Math.max(...chartPoints.map(p => p.y3)) * 1.15);
 
   const activeTimeline = activePlan.id === 'savings'
@@ -1103,6 +1166,7 @@ const PlanDetailsPage = () => {
             isReadOnly={isConfirmedBreakdown}
             chosenAlternatives={chosenAlternatives}
             activePlan={activePlan}
+            riskProfile={riskProfile}
           />
 
           {/* Staggered Payments Callout Notice */}
@@ -1145,41 +1209,15 @@ const PlanDetailsPage = () => {
                 setPage('plan-milestones');
                 return;
               }
-              const acceptedAdjustments = {};
-              if (userPlanMeta.targetAmount) acceptedAdjustments.targetAmount = Number(userPlanMeta.targetAmount);
-              if (userPlanMeta.targetDate) acceptedAdjustments.goalDate = userPlanMeta.targetDate;
-              if (userPlanMeta.paymentStrategy === 'staggered' && subgoals.length) {
-                acceptedAdjustments.paymentStrategy = 'staggered';
-                acceptedAdjustments.milestones = [
-                  {
-                    id: 'created',
-                    name: 'Goal Created',
-                    date: new Date().toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' }),
-                    state: 'completed'
-                  },
-                  ...subgoals.map((subgoal, index) => ({
-                    id: `stagger-${subgoal.id}`,
-                    name: subgoal.name,
-                    date: subgoal.date,
-                    amount: Number(subgoal.amount),
-                    state: index === 0 ? 'next' : index === subgoals.length - 1 ? 'goal' : 'upcoming'
-                  }))
-                ];
-              }
-              if (Object.keys(acceptedAdjustments).length) {
-                adjustPlan(activePlan.id, acceptedAdjustments);
-              }
-              updateCustomPlanData(activePlan.id, {
-                confirmedCategories: categoriesList.map((category) => ({
-                  ...category,
-                  actions: category.actions.map((action) => ({ ...action })),
-                })),
-                confirmedSubgoals: subgoals.map((subgoal) => ({ ...subgoal })),
-                confirmedPaymentStrategy: userPlanMeta.paymentStrategy || 'lump-sum',
-                confirmedAt: new Date().toISOString(),
+              const confirmed = confirmPlan(activePlan.id, {
+                ...userPlanMeta,
+                targetAmount: canonicalTargetAmount,
+                targetDate: canonicalTargetDate,
+                paymentStrategy: userPlanMeta.paymentStrategy || 'lump-sum',
+                subgoals,
+                categories: categoriesList,
               });
-              addCreatedPlan(activePlan.id);
-              setPage('plan-dashboard');
+              if (confirmed) setPage('plan-dashboard');
             }}
             className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white font-extrabold rounded-2xl text-[11px] uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-md cursor-pointer flex items-center justify-center gap-2"
           >

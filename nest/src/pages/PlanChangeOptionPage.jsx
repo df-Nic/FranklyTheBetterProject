@@ -197,9 +197,8 @@ const ALTERNATIVES_DATABASE = {
   ]
 };
 
-const generateFitDescription = (alt, activePlan, selectedReasons) => {
+const generateFitDescription = (alt, activePlan, selectedReasons, riskProfile = 'Balanced Wealth') => {
   const age = 28;
-  const riskProfile = "Balanced Wealth";
   const stageOfLife = "Young Professional";
   const planTitle = activePlan?.title || "Nest Plan";
   const timeline = activePlan?.timelineAll || "medium-term";
@@ -297,7 +296,9 @@ const PlanChangeOptionPage = () => {
     chosenAlternatives,
     setChosenAlternatives,
     setPendingExcluded,
-    customPlanData
+    customPlanData,
+    planDrafts,
+    riskProfile
   } = useApp();
 
   // Identify active plan template
@@ -308,7 +309,7 @@ const PlanChangeOptionPage = () => {
 
   const activePlan = getActivePlan();
   const displayGoalTitle = activePlan.title;
-  const userPlanMeta = (activePlan && customPlanData[activePlan.id]) || {};
+  const userPlanMeta = (activePlan && (planDrafts[activePlan.id] || customPlanData[activePlan.id])) || {};
 
   // Detect category type to fetch appropriate reasons
   const catType = getCategoryType(changingCategory, changingAction);
@@ -703,7 +704,7 @@ const PlanChangeOptionPage = () => {
                 const isChosen = selectedAlt?.id === alt.id;
                 const isAiRecommended = idx === 0;
                 const impact = getPlanImpact(changingAction, alt, activePlan);
-                const fitDescription = generateFitDescription(alt, activePlan, selectedReasons);
+                const fitDescription = generateFitDescription(alt, activePlan, selectedReasons, riskProfile);
                 
                 return (
                   <div

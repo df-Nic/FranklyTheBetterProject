@@ -9,6 +9,8 @@ export default function PlanViewPage() {
   const template = PLANS_DATA[activePlanId] ?? PLANS_DATA.default;
   const custom = customPlanData[activePlanId] ?? {};
   const milestones = custom.subgoals?.length ? custom.subgoals : plan.milestones.filter((item) => item.id !== "created");
+  const categories = custom.confirmedCategories?.length ? custom.confirmedCategories : template.categories;
+  const isLumpSum = custom.confirmedPaymentStrategy === "lump-sum" || plan.paymentStrategy === "lump-sum";
 
   const isStaggered = custom.paymentStrategy ? custom.paymentStrategy === 'staggered' : true;
 
@@ -22,7 +24,7 @@ export default function PlanViewPage() {
         <section className="grid grid-cols-2 gap-2">
           <div className="rounded-[16px] border border-[#E8DED5] bg-white p-3"><Target size={15} className="text-[#7C2230]" /><div className="mt-2 text-[9px] text-[#8A7F78]">Target</div><div className="text-[14px] font-black">{formatSGD(plan.targetAmount)}</div></div>
           <div className="rounded-[16px] border border-[#E8DED5] bg-white p-3"><CalendarDays size={15} className="text-[#7C2230]" /><div className="mt-2 text-[9px] text-[#8A7F78]">Goal date</div><div className="text-[14px] font-black">{plan.goalDate}</div></div>
-          <div className="col-span-2 rounded-[16px] border border-[#E8DED5] bg-white p-3"><Coins size={15} className="text-[#2E7D4F]" /><div className="mt-2 flex justify-between text-[10px]"><span className="text-[#8A7F78]">Monthly contribution</span><strong>{formatSGD(plan.monthlyContribution)}</strong></div><div className="mt-1 flex justify-between text-[10px]"><span className="text-[#8A7F78]">Strategy</span><strong className="max-w-[210px] text-right">{plan.strategy}</strong></div></div>
+          <div className="col-span-2 rounded-[16px] border border-[#E8DED5] bg-white p-3"><Coins size={15} className="text-[#2E7D4F]" /><div className="mt-2 flex justify-between text-[10px]"><span className="text-[#8A7F78]">{isLumpSum ? "One-time contribution" : "Monthly contribution"}</span><strong>{formatSGD(isLumpSum ? plan.lumpSumContribution || plan.targetAmount : plan.monthlyContribution)}</strong></div><div className="mt-1 flex justify-between text-[10px]"><span className="text-[#8A7F78]">Strategy</span><strong className="max-w-[210px] text-right">{plan.strategy}</strong></div></div>
         </section>
 
         <section>
@@ -41,7 +43,7 @@ export default function PlanViewPage() {
         <section>
           <h2 className="px-1 text-[12px] font-black uppercase tracking-wider text-[#8A7F78]">Products and actions</h2>
           <div className="mt-2 space-y-3">
-            {template.categories.map((category) => <article key={category.id} className="overflow-hidden rounded-[18px] border border-[#E8DED5] bg-white"><div className="bg-[#F8F3EE] px-3 py-2 text-[10px] font-black">{category.name}</div>{category.actions.map((action, index) => <div key={action.id} className={`p-3 ${index ? "border-t border-[#EFE7E0]" : ""}`}><div className="flex justify-between gap-3"><strong className="text-[10.5px]">{action.name}</strong><span className="shrink-0 text-[9.5px] font-black text-[#2E7D4F]">{formatSGD(action.baseVal)}</span></div><p className="mt-1 text-[9.5px] leading-relaxed text-[#756A63]">{action.desc}</p></div>)}</article>)}
+            {categories.map((category) => <article key={category.id} className="overflow-hidden rounded-[18px] border border-[#E8DED5] bg-white"><div className="bg-[#F8F3EE] px-3 py-2 text-[10px] font-black">{category.name}</div>{category.actions.map((action, index) => <div key={action.id} className={`p-3 ${index ? "border-t border-[#EFE7E0]" : ""}`}><div className="flex justify-between gap-3"><strong className="text-[10.5px]">{action.name}</strong><span className="shrink-0 text-[9.5px] font-black text-[#2E7D4F]">{formatSGD(action.baseVal)}</span></div><p className="mt-1 text-[9.5px] leading-relaxed text-[#756A63]">{action.desc}</p></div>)}</article>)}
           </div>
         </section>
         <p className="px-1 text-[9px] leading-relaxed text-[#8A7F78]">This is your accepted plan breakdown. Rates, eligibility, and product suitability are reviewed before execution.</p>

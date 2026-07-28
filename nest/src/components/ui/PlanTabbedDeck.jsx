@@ -133,10 +133,9 @@ const renderCategoryIcon = (iconName) => {
   }
 };
 
-const PlanTabbedDeck = ({ categories = [], pendingExcluded = new Set(), toggleAction, isReadOnly = false, onChangeProduct, chosenAlternatives = {}, activePlan }) => {
+const PlanTabbedDeck = ({ categories = [], pendingExcluded = new Set(), toggleAction, isReadOnly = false, onChangeProduct, chosenAlternatives = {}, activePlan, riskProfile = 'Balanced Wealth' }) => {
   const generateFitDescription = (alt, activePlan) => {
     const age = 28;
-    const riskProfile = "Balanced Wealth";
     const stageOfLife = "Young Professional";
     const planTitle = activePlan?.title || "Nest Plan";
     const timeline = activePlan?.timelineAll || "medium-term";
