@@ -79,7 +79,7 @@ export default function AccountDetailPage() {
 
       {/* Main Content Container */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-4 py-4 flex flex-col gap-4 z-10 pb-safe-nav">
-        
+
         {/* Account Info Certificate Card */}
         <GlassCard className="p-5 border-white/70 bg-white/80 shadow-lg flex flex-col gap-4 relative overflow-hidden">
           <div className="flex justify-between items-start">
@@ -175,11 +175,10 @@ export default function AccountDetailPage() {
                     key={preset}
                     type="button"
                     onClick={() => handlePresetClick(preset)}
-                    className={`py-2 px-1 rounded-xl text-xs font-black border transition-all duration-150 cursor-pointer ${
-                      depositAmount === preset.toString()
+                    className={`py-2 px-1 rounded-xl text-xs font-black border transition-all duration-150 cursor-pointer ${depositAmount === preset.toString()
                         ? 'bg-brand-primary text-white border-brand-primary shadow-xs'
                         : 'bg-zinc-100/80 text-zinc-700 border-zinc-200 hover:bg-zinc-200/80'
-                    }`}
+                      }`}
                   >
                     +S${(preset / 1000).toFixed(0)}k
                   </button>
@@ -192,11 +191,10 @@ export default function AccountDetailPage() {
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={isSuccess}
-              className={`w-full py-3.5 rounded-xl font-black text-xs text-white shadow-md flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer ${
-                isSuccess
+              className={`w-full py-3.5 rounded-xl font-black text-xs text-white shadow-md flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer ${isSuccess
                   ? 'bg-emerald-600'
                   : 'bg-brand-primary hover:bg-brand-primary/95 active:bg-brand-primary'
-              }`}
+                }`}
             >
               {isSuccess ? (
                 <>
@@ -206,22 +204,12 @@ export default function AccountDetailPage() {
               ) : (
                 <>
                   <Sparkles className="w-4 h-4 text-amber-300" />
-                  <span>Simulate Deposit</span>
+                  <span>Deposit</span>
                 </>
               )}
             </motion.button>
           </form>
         </GlassCard>
-
-        {/* Feature Context Banner */}
-        <div className="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-3.5 flex items-start gap-3">
-          <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-brand-primary shrink-0 mt-0.5">
-            <TrendingUp className="w-4 h-4" />
-          </div>
-          <p className="text-[11px] font-medium text-indigo-950 leading-relaxed">
-            Depositing funds into your account will trigger <strong className="font-black text-brand-primary">Agent Owl's Opportunity Analyzer</strong> on your home dashboard to help you allocate surplus cash to active goal plans.
-          </p>
-        </div>
       </div>
     </div>
   );
