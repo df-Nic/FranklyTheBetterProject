@@ -5,6 +5,7 @@ import BackgroundOrb from '../components/ui/BackgroundOrb';
 import GlassCard from '../components/ui/GlassCard';
 import { getPlanOpportunity, getRecommendedPlan } from '../data/planOpportunities';
 import { getMilestonePlan } from '../data/milestonePlans';
+import nestHomeMasthead from '../assets/images/nest-home-masthead-v3.png';
 import {
   Scan,
   Bell,
@@ -25,6 +26,12 @@ import {
 } from 'lucide-react';
 
 const banners = [
+  {
+    title: 'Meet NEST',
+    linkText: 'Start Your First Plan',
+    bgType: 'nest',
+    image: nestHomeMasthead
+  },
   {
     title: 'Trade across 15 global exchanges with access to SG, US & China markets',
     linkText: 'Important Information',
@@ -58,7 +65,8 @@ const HomePage = () => {
     opportunitySourceAmount,
     showOpportunityPopup,
     setShowOpportunityPopup,
-    setSelectedAccountId
+    setSelectedAccountId,
+    requestPlanChatOpen
   } = useApp();
   const pendingHealers = transactionDeviations.filter((event) => event.status === 'pending');
   const visibleHealer = [...pendingHealers].reverse().find((event) => !event.notificationDismissed);
@@ -205,46 +213,80 @@ const HomePage = () => {
 
         {/* Hero Slider Banner */}
         <div className="relative w-full">
-          <GlassCard className="p-4 relative min-h-[125px] flex flex-col justify-between border-white/60">
-            {/* Background art */}
-            <div className="absolute right-2 bottom-2 w-28 h-28 opacity-15 pointer-events-none flex items-center justify-center">
-              {banners[activeBannerIndex].bgType === 'globe' ? (
-                <Globe className="w-20 h-20 text-brand-secondary stroke-[1.2]" />
-              ) : (
-                <Coins className="w-20 h-20 text-brand-primary stroke-[1.2]" />
-              )}
-            </div>
+          <GlassCard className={`relative min-h-[125px] border-white/60 ${
+            banners[activeBannerIndex].bgType === 'nest'
+              ? 'p-0 bg-[#FFF7F5]'
+              : 'p-4 flex flex-col justify-between'
+          }`}>
+            {banners[activeBannerIndex].bgType === 'nest' ? (
+              <>
+                <img
+                  src={banners[activeBannerIndex].image}
+                  alt="Meet NEST, your AI wealth orchestrator that keeps your savings goals on track with your permission"
+                  className="pointer-events-none absolute inset-0 h-full min-h-[125px] w-full object-contain object-center"
+                />
+                <button
+                  type="button"
+                  aria-label="Start your first NEST plan"
+                  onClick={requestPlanChatOpen}
+                  className="absolute left-[2.6%] top-[80.5%] z-20 h-[14%] w-[28%] cursor-pointer rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+                />
+                <div className="absolute bottom-2.5 right-3 z-10 flex gap-1.5 rounded-full bg-white/80 px-2 py-1 shadow-sm backdrop-blur-sm">
+                  {banners.map((_, idx) => (
+                    <button
+                      key={idx}
+                      aria-label={`Show banner ${idx + 1}`}
+                      onClick={() => setActiveBannerIndex(idx)}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        idx === activeBannerIndex ? 'w-3.5 bg-brand-primary' : 'w-1.5 bg-zinc-300'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Background art */}
+                <div className="absolute right-2 bottom-2 w-28 h-28 opacity-15 pointer-events-none flex items-center justify-center">
+                  {banners[activeBannerIndex].bgType === 'globe' ? (
+                    <Globe className="w-20 h-20 text-brand-secondary stroke-[1.2]" />
+                  ) : (
+                    <Coins className="w-20 h-20 text-brand-primary stroke-[1.2]" />
+                  )}
+                </div>
 
-            <div className="max-w-[70%] z-10">
-              <h3 className="text-sm font-bold text-zinc-800 leading-snug">
-                {banners[activeBannerIndex].title}
-              </h3>
-            </div>
+                <div className="max-w-[70%] z-10">
+                  <h3 className="text-sm font-bold text-zinc-800 leading-snug">
+                    {banners[activeBannerIndex].title}
+                  </h3>
+                </div>
 
-            <div className="mt-4 flex items-center justify-between z-10">
-              <a
-                href="https://www.ocbc.com"
-                target="_blank"
-                rel="noreferrer"
-                className="text-[11px] font-bold text-brand-accent flex items-center gap-0.5 hover:underline"
-              >
-                <span>{banners[activeBannerIndex].linkText}</span>
-                <ChevronRight className="w-3 h-3 stroke-[2.5]" />
-              </a>
+                <div className="mt-4 flex items-center justify-between z-10">
+                  <a
+                    href="https://www.ocbc.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[11px] font-bold text-brand-accent flex items-center gap-0.5 hover:underline"
+                  >
+                    <span>{banners[activeBannerIndex].linkText}</span>
+                    <ChevronRight className="w-3 h-3 stroke-[2.5]" />
+                  </a>
 
-              {/* Slider Dots */}
-              <div className="flex gap-1.5">
-                {banners.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setActiveBannerIndex(idx)}
-                    className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                      idx === activeBannerIndex ? 'w-3.5 bg-brand-secondary' : 'bg-zinc-300'
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
+                  <div className="flex gap-1.5">
+                    {banners.map((_, idx) => (
+                      <button
+                        key={idx}
+                        aria-label={`Show banner ${idx + 1}`}
+                        onClick={() => setActiveBannerIndex(idx)}
+                        className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                          idx === activeBannerIndex ? 'w-3.5 bg-brand-secondary' : 'bg-zinc-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
           </GlassCard>
         </div>
 
