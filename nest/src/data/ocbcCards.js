@@ -276,8 +276,8 @@ export const OCBC_CARDS = [
     bgGradient: 'from-[#111111] via-[#1C1C1C] to-[#0A0A0A]',
     cardColor: '#D4AF37', // Metallic Gold / Titanium Charcoal
     textColor: 'text-white',
-    badgeBg: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
-    chipColor: '#D4AF37',
+    badgeBg: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
+    chipColor: '#E2B13C',
     network: 'VISA Infinite',
     headlineRate: '2.2 mpd FX / VIP Concierge',
     subText: 'Full Metal Card / Unlimited Lounge Access',

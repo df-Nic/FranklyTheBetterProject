@@ -189,36 +189,36 @@ const PlanDashboardPage = () => {
             e.stopPropagation();
             navigate('expense-optimizer');
           }}
-          className="relative w-full shrink-0 text-left overflow-hidden rounded-[22px] bg-gradient-to-br from-[#1C1810] via-[#382B12] to-[#634B19] p-4 text-white shadow-[0_10px_25px_rgba(99,75,25,0.25)] cursor-pointer hover:shadow-xl transition-all duration-200 group active:scale-[0.99] border border-amber-500/30 z-20 pointer-events-auto"
+          className="relative w-full shrink-0 text-left overflow-hidden rounded-[22px] bg-gradient-to-br from-[#E1251B] via-[#C62828] to-[#8E0000] p-4 text-white shadow-[0_10px_25px_rgba(225,37,27,0.25)] cursor-pointer hover:shadow-xl transition-all duration-200 group active:scale-[0.99] border border-red-400/30 z-20 pointer-events-auto"
         >
-          <div className="absolute right-[-10px] top-[-10px] w-28 h-28 bg-amber-400/20 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform" />
+          <div className="absolute right-[-10px] top-[-10px] w-28 h-28 bg-white/20 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform" />
           
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 bg-amber-400/20 backdrop-blur-md border border-amber-400/30 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider text-amber-300">
-              <Sparkles className="w-3 h-3 fill-amber-300" />
+            <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-md border border-white/25 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider text-white">
+              <Sparkles className="w-3 h-3 fill-white text-white" />
               <span>OCBC Expense Optimiser</span>
             </div>
-            <span className="text-[10px] font-bold text-amber-200/70 group-hover:text-amber-100 transition-colors flex items-center gap-1">
+            <span className="text-[10px] font-bold text-red-100/90 group-hover:text-white transition-colors flex items-center gap-1">
               <span>Explore Cards</span>
               <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
             </span>
           </div>
 
           <div className="mt-2.5">
-            <div className="text-base font-black text-white leading-tight">
+            <div className="text-base font-black text-white leading-tight drop-shadow-xs">
               Optimize Your Spending & Accelerate Plan Goals
             </div>
-            <p className="text-[11px] text-amber-100/80 leading-relaxed mt-1">
+            <p className="text-[11px] text-red-100/90 leading-relaxed mt-1">
               Discover tailored OCBC Credit Cards matched to your unique spending habits, active sub-goals, and target completion dates.
             </p>
           </div>
 
-          <div className="mt-3 flex items-center justify-between pt-2.5 border-t border-amber-500/20">
-            <span className="text-[9.5px] font-bold text-amber-200/80">
+          <div className="mt-3 flex items-center justify-between pt-2.5 border-t border-white/20">
+            <span className="text-[9.5px] font-bold text-red-100/90">
               Personalized Reward & Cash Rebate Perks
             </span>
 
-            <span className="inline-flex items-center gap-1 bg-amber-400 text-zinc-950 px-3 py-1.5 rounded-full text-[9.5px] font-black shadow-xs group-hover:bg-amber-300 transition-colors">
+            <span className="inline-flex items-center gap-1 bg-white text-[#C62828] px-3 py-1.5 rounded-full text-[9.5px] font-black shadow-sm group-hover:bg-red-50 transition-colors">
               <span>Optimise Now</span>
               <ChevronRight className="w-3 h-3 stroke-[3]" />
             </span>

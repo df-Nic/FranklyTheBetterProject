@@ -91,13 +91,13 @@ export default function ExpenseOptimizerPage() {
       <div className="flex-1 overflow-y-auto overflow-x-hidden touch-pan-y no-scrollbar px-4 py-4 pb-28 flex flex-col gap-4 min-h-0">
         
         {/* Highlight Banner */}
-        <div className="w-full shrink-0 bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden flex flex-col gap-1 border border-zinc-700/50">
-          <div className="absolute right-[-10px] top-[-10px] w-24 h-24 bg-amber-500/20 rounded-full blur-xl pointer-events-none" />
-          <div className="flex items-center gap-1.5 text-amber-300 font-black text-[10px] tracking-wider uppercase">
-            <Sparkles className="w-3.5 h-3.5 fill-amber-300" />
+        <div className="w-full shrink-0 bg-gradient-to-r from-[#E1251B] via-[#C62828] to-[#8E0000] rounded-2xl p-4 text-white shadow-lg relative overflow-hidden flex flex-col gap-1.5 border border-red-400/30">
+          <div className="absolute right-[-10px] top-[-10px] w-28 h-28 bg-white/20 rounded-full blur-2xl pointer-events-none" />
+          <div className="flex items-center gap-1.5 w-fit bg-white/15 backdrop-blur-md border border-white/25 px-2.5 py-1 rounded-full text-[9.5px] font-black text-white tracking-wider uppercase">
+            <Sparkles className="w-3.5 h-3.5 fill-white text-white" />
             <span>Personalized Spending Match</span>
           </div>
-          <h2 className="text-sm font-extrabold text-white leading-snug">
+          <h2 className="text-sm font-extrabold text-white leading-snug drop-shadow-xs">
             {activeCard.headlineReason}
           </h2>
         </div>
