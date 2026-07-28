@@ -68,6 +68,7 @@ const ChatWidget = () => {
   const [pendingEstimate, setPendingEstimate] = useState(null);
   const [isRestartConfirming, setIsRestartConfirming] = useState(false);
   const isUnsure = (value) => /not sure|don't know|dont know|you decide|no idea/i.test(value);
+  const isChangePlanIntent = (value) => /\b(change\s*(plan|goal|my\s*plan)|replan|re-plan|start\s*over|restart|reset\s*plan|different\s*goal|new\s*plan|pick\s*another\s*plan)\b/i.test(value);
   const inferDefaults = (planId) => {
     const defaults = {
       retirement: [1500000, 'Oct 2045', 2400],
@@ -686,6 +687,23 @@ const ChatWidget = () => {
       if (sessionId !== flowSessionRef.current) return;
       // Remove typing indicator
       setMessages(prev => prev.filter(m => m.id !== 'typing'));
+
+      if (isChangePlanIntent(trimmed)) {
+        setMessages(prev => [
+          ...prev,
+          {
+            id: Date.now(),
+            sender: 'bot',
+            text: (
+              <span>
+                Would you like to discard this plan draft and choose a different goal?
+              </span>
+            ),
+          }
+        ]);
+        setIsRestartConfirming(true);
+        return;
+      }
 
       if (flowState === 'idle') {
         const planId = resolvePlanId(trimmed);

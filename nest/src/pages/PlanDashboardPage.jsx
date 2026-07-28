@@ -202,30 +202,30 @@ const PlanDashboardPage = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-md border border-white/25 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider text-white">
               <Sparkles className="w-3 h-3 fill-white text-white" />
-              <span>OCBC Expense Optimiser</span>
+              <span>OCBC Smart Advisor</span>
             </div>
             <span className="text-[10px] font-bold text-red-100/90 group-hover:text-white transition-colors flex items-center gap-1">
-              <span>Explore Cards</span>
+              <span>Explore Options</span>
               <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
             </span>
           </div>
 
           <div className="mt-2.5">
             <div className="text-base font-black text-white leading-tight drop-shadow-xs">
-              Optimize Your Spending & Accelerate Plan Goals
+              Optimize Spending & Deposit Yields
             </div>
             <p className="text-[11px] text-red-100/90 leading-relaxed mt-1">
-              Discover tailored OCBC Credit Cards matched to your unique spending habits, active sub-goals, and target completion dates.
+              Tailored OCBC Cards & Deposit Accounts matched to your goals and habits.
             </p>
           </div>
 
           <div className="mt-3 flex items-center justify-between pt-2.5 border-t border-white/20">
             <span className="text-[9.5px] font-bold text-red-100/90">
-              Personalized Reward & Cash Rebate Perks
+              Personalized Cards & Savings Perks
             </span>
 
             <span className="inline-flex items-center gap-1 bg-white text-[#C62828] px-3 py-1.5 rounded-full text-[9.5px] font-black shadow-sm group-hover:bg-red-50 transition-colors">
-              <span>Optimise Now</span>
+              <span>Explore Now</span>
               <ChevronRight className="w-3 h-3 stroke-[3]" />
             </span>
           </div>

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import {
   Percent,
@@ -13,10 +13,18 @@ import {
   ArrowLeft,
   Sparkles,
   ShieldCheck,
-  AlertCircle
+  AlertCircle,
+  CreditCard,
+  Landmark,
+  Zap,
+  CheckCircle2,
+  Check
 } from 'lucide-react';
 import { PLANS_DATA, PLAN_ALTERNATIVES } from '../data/planTemplates';
 import BackgroundOrb from '../components/ui/BackgroundOrb';
+import CardDeckCarousel from '../components/ui/CardDeckCarousel';
+import { getOptimizedCardsForPlan } from '../data/ocbcCards';
+import { getOptimizedDepositsForPlan } from '../data/ocbcDeposits';
 
 // Category Helper
 const getCategoryType = (changingCategory, changingAction) => {
@@ -74,49 +82,57 @@ const ALTERNATIVES_DATABASE = {
       id: "alt_ocbc360",
       name: "OCBC 360 Account",
       desc: "High-yield daily-liquid savings account earning bonus interest for salary credits and monthly savings.",
-      rate: 0.0465,
+      rate: 0.0765,
       type: "deposit",
       tags: ["Higher interest yield", "Access cash anytime (Liquidity)", "No lock-in period", "Flexibility to top-up"]
     },
     {
-      id: "alt_fd_promo_6m",
-      name: "OCBC Fixed Deposit (6M)",
-      desc: "Earn a guaranteed high interest rate with capital fully protected during a 6-month lock-in.",
-      rate: 0.033,
-      type: "deposit",
-      tags: ["Higher interest yield", "Government-backed safety"]
-    },
-    {
-      id: "alt_tbills_6m",
-      name: "SG Treasury Bills (6M T-Bills)",
-      desc: "Singapore Government-backed short-term bills capturing sovereign yields with zero credit risk.",
-      rate: 0.037,
-      type: "deposit",
-      tags: ["Higher interest yield", "Government-backed safety", "No lock-in period"]
-    },
-    {
       id: "alt_bonus_plus",
       name: "OCBC Bonus+ Savings Account",
-      desc: "Special savings account rewarding regular monthly savers with bonus interest rates and flexible deposits.",
-      rate: 0.0375,
+      desc: "Special savings account rewarding regular monthly savers with bonus interest rates up to 4.15% p.a.",
+      rate: 0.0415,
       type: "deposit",
       tags: ["Higher interest yield", "No lock-in period", "Flexibility to top-up"]
     },
     {
+      id: "alt_fd_promo_6m",
+      name: "OCBC Fixed Deposit (6M)",
+      desc: "Earn a guaranteed 3.35% p.a. interest rate with capital fully protected during a 6-month term.",
+      rate: 0.0335,
+      type: "deposit",
+      tags: ["Higher interest yield", "Government-backed safety"]
+    },
+    {
+      id: "alt_premier_div",
+      name: "OCBC Premier Dividend Account",
+      desc: "Premier wealth tier account offering up to 3.85% p.a. and seamless multi-currency FX liquidity.",
+      rate: 0.0385,
+      type: "deposit",
+      tags: ["Higher interest yield", "Access cash anytime (Liquidity)", "Flexibility to top-up"]
+    },
+    {
+      id: "alt_frank_saver",
+      name: "OCBC FRANK Savings Account",
+      desc: "Digital-first savings account with sub-pockets, card round-up micro-savings, and zero min balance.",
+      rate: 0.025,
+      type: "deposit",
+      tags: ["Access cash anytime (Liquidity)", "No lock-in period", "Flexibility to top-up"]
+    },
+    {
       id: "alt_lion_liq",
       name: "Lion-OCBC Enhanced Liquidity Fund",
-      desc: "A high-yielding cash management fund targeting returns above deposits with daily liquidity and withdrawal access.",
+      desc: "A high-yielding cash management fund targeting ~3.85% p.a. returns with daily liquidity.",
       rate: 0.0385,
       type: "deposit",
       tags: ["Higher interest yield", "Access cash anytime (Liquidity)", "No lock-in period"]
     },
     {
-      id: "alt_ssb_bonds",
-      name: "Singapore Savings Bonds (SSB)",
-      desc: "Risk-free step-up yield government bonds that can be redeemed in any month without any penalty.",
-      rate: 0.032,
+      id: "alt_foreign_curr",
+      name: "OCBC Global Savings Account",
+      desc: "Multi-currency foreign exchange deposit account earning up to 5.20% p.a. on USD balances.",
+      rate: 0.052,
       type: "deposit",
-      tags: ["Access cash anytime (Liquidity)", "No lock-in period", "Government-backed safety", "Flexibility to top-up"]
+      tags: ["Higher interest yield", "Access cash anytime (Liquidity)"]
     }
   ],
   investment: [
@@ -151,14 +167,6 @@ const ALTERNATIVES_DATABASE = {
       rate: 0.058,
       type: "investment",
       tags: ["Dividends & passive income", "Lower management fees", "Diversified global markets"]
-    },
-    {
-      id: "alt_china_asean",
-      name: "OCBC Lion-OCBC China ASEAN Growth UT",
-      desc: "Focuses on high-conviction emerging companies in regional growth corridors to capture fast-growing market returns.",
-      rate: 0.08,
-      type: "investment",
-      tags: ["Higher growth potential", "Diversified global markets"]
     }
   ],
   protection: [
@@ -185,22 +193,6 @@ const ALTERNATIVES_DATABASE = {
       rate: 0.0,
       type: "protection",
       tags: ["Comprehensive cover limits", "Pay via CPF Medisave"]
-    },
-    {
-      id: "alt_prestige_life",
-      name: "GE GREAT Prestige Wealth Life Plan",
-      desc: "Single-premium life insurance securing legacy payouts while compounding capital growth guarantees.",
-      rate: 0.042,
-      type: "protection",
-      tags: ["Comprehensive cover limits", "Lump-sum payout options"]
-    },
-    {
-      id: "alt_ci_early",
-      name: "GE GREAT Early Critical Illness",
-      desc: "Lump-sum financial payout upon detection of early-stage critical illnesses to safeguard savings continuity.",
-      rate: 0.0,
-      type: "protection",
-      tags: ["Comprehensive cover limits", "Critical illness add-ons", "Lump-sum payout options"]
     }
   ]
 };
@@ -297,7 +289,6 @@ const getPlanImpact = (action, alternative, plan) => {
 const PlanChangeOptionPage = () => {
   const {
     activePlanId,
-    activePlanTitle,
     setPage,
     changingAction,
     setChangingAction,
@@ -323,6 +314,53 @@ const PlanChangeOptionPage = () => {
   const catType = getCategoryType(changingCategory, changingAction);
   const reasonChips = REASONS_MAP[catType] || REASONS_MAP.deposit;
 
+  // Container height locking to prevent shrink/collapse during curtain transition
+  const containerRef = useRef(null);
+  const [lockedHeight, setLockedHeight] = useState(null);
+
+  // Deck carousel view mode: 'deposits' or 'cards'
+  const [deckMode, setDeckMode] = useState('deposits');
+  const [curtainPhase, setCurtainPhase] = useState('idle'); // 'idle' | 'covering' | 'revealing'
+  const [deckActiveIndex, setDeckActiveIndex] = useState(0);
+
+  // Recommended products optimized for active plan
+  const recommendedDeposits = useMemo(() => {
+    return getOptimizedDepositsForPlan(activePlan.id, activePlan);
+  }, [activePlan]);
+
+  const recommendedCards = useMemo(() => {
+    return getOptimizedCardsForPlan(activePlan.id, activePlan);
+  }, [activePlan]);
+
+  const deckItems = deckMode === 'deposits' ? recommendedDeposits : recommendedCards;
+  const activeDeckItem = deckItems[deckActiveIndex] || deckItems[0];
+
+  const handleSwitchDeckMode = (newMode) => {
+    if (newMode === deckMode || curtainPhase !== 'idle') return;
+
+    if (containerRef.current) {
+      setLockedHeight(containerRef.current.offsetHeight);
+    }
+    setCurtainPhase('covering');
+
+    setTimeout(() => {
+      setDeckMode(newMode);
+      setDeckActiveIndex(0);
+      setCurtainPhase('revealing');
+
+      requestAnimationFrame(() => {
+        if (containerRef.current) {
+          setLockedHeight(containerRef.current.scrollHeight);
+        }
+      });
+    }, 240);
+
+    setTimeout(() => {
+      setCurtainPhase('idle');
+      setLockedHeight(null);
+    }, 480);
+  };
+
   // Multi-select selectedReasons state
   const [selectedReasons, setSelectedReasons] = useState([]);
 
@@ -339,33 +377,21 @@ const PlanChangeOptionPage = () => {
   // Get dynamic pool of alternatives from the database for the active category
   const allAltsInCategory = ALTERNATIVES_DATABASE[catType] || [];
 
-  // Filter and sort alternatives based on selected reasons matching alternative tags (strict AND)
+  // Filter and sort alternatives based on selected reasons matching alternative tags
   let filteredAlts = [];
   if (selectedReasons.length > 0) {
-    // Keep alternatives that match all selected reasons (AND condition)
     filteredAlts = allAltsInCategory.filter(alt => {
       return alt.tags && selectedReasons.every(reason => alt.tags.includes(reason));
     });
 
-    // Exclude alternatives that are identical to the original action
     filteredAlts = filteredAlts.filter(alt => {
       const normAltName = alt.name.toLowerCase();
       const normOrigName = (changingAction?.name || '').toLowerCase();
       
       if (normAltName === normOrigName) return false;
-      if (normAltName.includes("360") && normOrigName.includes("360")) return false;
-      if (normAltName.includes("fixed deposit") && normOrigName.includes("fixed deposit")) return false;
-      if (normAltName.includes("savings account") && normOrigName.includes("savings account")) return false;
-      if (normAltName.includes("smart saver") && normOrigName.includes("smart saver")) return false;
-      if (normAltName.includes("roboinvest") && normOrigName.includes("roboinvest")) return false;
-      if (normAltName.includes("blue chip") && normOrigName.includes("blue chip")) return false;
-      if (normAltName.includes("supremehealth") && normOrigName.includes("supremehealth")) return false;
-      if (normAltName.includes("careshield") && normOrigName.includes("careshield")) return false;
-      
       return true;
     });
 
-    // Sort by matching reason count descending so the best match is first
     filteredAlts.sort((a, b) => {
       const matchA = a.tags.filter(tag => selectedReasons.includes(tag)).length;
       const matchB = b.tags.filter(tag => selectedReasons.includes(tag)).length;
@@ -373,22 +399,28 @@ const PlanChangeOptionPage = () => {
     });
   }
 
-  // Fallback to first recommended alternative if selected id is invalid or filtered out
+  // Fallback initial alt
   const defaultInitialAlt = filteredAlts[0];
   const currentInitialAlt = changingAction ? (chosenAlternatives[changingAction.id] || defaultInitialAlt) : null;
   const [selectedAltId, setSelectedAltId] = useState(currentInitialAlt ? currentInitialAlt.id : "");
 
-  // Update selectedAltId if the currently selected option gets filtered out of the list
   useEffect(() => {
     if (filteredAlts.length > 0 && !filteredAlts.some(a => a.id === selectedAltId)) {
       setSelectedAltId(filteredAlts[0].id);
     }
   }, [filteredAlts, selectedAltId]);
 
-  const selectedAlt = filteredAlts.find(a => a.id === selectedAltId) || filteredAlts[0];
+  const selectedAlt = filteredAlts.find(a => a.id === selectedAltId) || filteredAlts[0] || {
+    id: activeDeckItem?.id || 'alt_ocbc360',
+    name: activeDeckItem?.name || 'OCBC 360 Account',
+    desc: activeDeckItem?.tagline || 'High-yield deposit savings account',
+    rate: 0.0465,
+    type: deckMode === 'deposits' ? 'deposit' : 'card'
+  };
 
-  const handleSelectOption = () => {
-    if (!changingAction || !selectedAlt) return;
+  const handleSelectOption = (overrideAlt) => {
+    const targetAlt = overrideAlt || selectedAlt;
+    if (!changingAction || !targetAlt) return;
 
     setPendingExcluded(prev => {
       const next = new Set(prev);
@@ -398,7 +430,7 @@ const PlanChangeOptionPage = () => {
 
     setChosenAlternatives(prev => ({
       ...prev,
-      [changingAction.id]: selectedAlt
+      [changingAction.id]: targetAlt
     }));
 
     setChangingAction(null);
@@ -460,8 +492,8 @@ const PlanChangeOptionPage = () => {
         </button>
       </header>
 
-      {/* Sub-page Scroll Content */}
-      <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-5 flex flex-col gap-4 z-10 pb-36">
+      {/* Sub-page Scroll Content - Unconstrained scrolling with clear bottom clearance */}
+      <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-5 flex flex-col gap-4 z-10 pb-64 touch-pan-y min-h-0">
         
         {/* Title */}
         <h1 className="text-lg font-black text-zinc-900 tracking-tight leading-none mt-1">
@@ -475,27 +507,133 @@ const PlanChangeOptionPage = () => {
           </div>
           <div className="flex flex-col gap-0.5">
             <p className="text-[10px] font-semibold text-zinc-600 leading-relaxed">
-              You can choose a different {changingCategory?.name ? changingCategory.name.toLowerCase() : 'product'} option. We'll update your plan to show the impact.
+              Explore recommended deposit accounts & credit cards to optimize your financial plan.
             </p>
           </div>
         </div>
 
-        {/* Staggered Payments Callout Notice */}
-        {userPlanMeta.paymentStrategy?.toLowerCase() === 'staggered' && (
-          <div
-            className="p-4 bg-blue-50 border border-blue-100 rounded-[24px] flex gap-3.5 items-start shrink-0 shadow-sm"
-          >
-            <div className="w-8 h-8 rounded-full bg-blue-100/50 flex items-center justify-center text-blue-600 shrink-0 shadow-inner">
-              <AlertCircle className="w-4.5 h-4.5 stroke-[2.2]" />
+        {/* Visual 3D Card Recommendations Deck - Dynamic Auto Height & Conditional Overflow */}
+        <div
+          ref={containerRef}
+          style={lockedHeight ? { minHeight: `${lockedHeight}px` } : {}}
+          className={`w-full bg-white rounded-3xl p-4 shadow-sm border border-zinc-200/60 flex flex-col gap-3 relative transition-[min-height] duration-300 ease-out ${curtainPhase !== 'idle' ? 'overflow-hidden' : 'overflow-visible'}`}
+        >
+          
+          {/* Horizontal Container Curtain Scope Transition Overlay */}
+          <AnimatePresence>
+            {curtainPhase !== 'idle' && (
+              <motion.div
+                key="full-plan-card-box-horizontal-curtain"
+                initial={{ clipPath: 'inset(0% 100% 0% 0%)' }}
+                animate={{
+                  clipPath: curtainPhase === 'covering'
+                    ? 'inset(0% 0% 0% 0%)'
+                    : 'inset(0% 0% 0% 100%)'
+                }}
+                transition={{ duration: 0.24, ease: [0.4, 0, 0.2, 1] }}
+                className="absolute inset-0 z-50 bg-gradient-to-r from-[#E1251B] via-[#C62828] to-[#8E0000] rounded-3xl shadow-2xl pointer-events-none"
+              />
+            )}
+          </AnimatePresence>
+
+          <div className="flex items-center justify-between px-1 pt-1">
+            <div className="flex flex-col">
+              <span className="text-[10.5px] font-black text-zinc-400 uppercase tracking-wider">
+                {deckMode === 'deposits' ? 'Recommended Deposit Accounts' : 'Recommended Credit Cards'}
+              </span>
             </div>
-            <div className="flex flex-col gap-0.5 text-left">
-              <span className="text-[10px] font-black text-blue-900 uppercase tracking-wider">Payment Flexibility Activated</span>
-              <p className="text-[9.5px] font-semibold text-blue-800 leading-relaxed mt-0.5">
-                Based on your choice of <strong>Staggered Payments</strong> and your target timeline, these recommendations are structured to prioritize products with flexible exits and zero penalty fees. You retain the freedom to redirect cash without lock-in constraints.
-              </p>
+
+            {/* Curtain Scope Mode Switcher Button */}
+            <div className="bg-zinc-100 p-0.5 rounded-full flex items-center border border-zinc-200/80 shadow-inner z-10">
+              <button
+                onClick={() => handleSwitchDeckMode('deposits')}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-extrabold transition-all duration-300 cursor-pointer ${
+                  deckMode === 'deposits'
+                    ? 'bg-red-600 text-white shadow-sm'
+                    : 'text-zinc-500 hover:text-zinc-800'
+                }`}
+              >
+                <Landmark className="w-3 h-3" />
+                <span>Deposits</span>
+              </button>
+              <button
+                onClick={() => handleSwitchDeckMode('cards')}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-extrabold transition-all duration-300 cursor-pointer ${
+                  deckMode === 'cards'
+                    ? 'bg-red-600 text-white shadow-sm'
+                    : 'text-zinc-500 hover:text-zinc-800'
+                }`}
+              >
+                <CreditCard className="w-3 h-3" />
+                <span>Cards</span>
+              </button>
             </div>
           </div>
-        )}
+
+          {/* 3D Visual Deck Carousel */}
+          <div className="w-full py-1">
+            <CardDeckCarousel
+              cards={deckItems}
+              activeIndex={deckActiveIndex}
+              onChangeIndex={(newIdx) => setDeckActiveIndex(newIdx)}
+            />
+          </div>
+
+          {/* Active Item Recommendation Reason Breakdown */}
+          {activeDeckItem && (
+            <div className="flex flex-col gap-3 pt-3 border-t border-zinc-100 bg-zinc-50/50 p-3.5 rounded-2xl border border-zinc-200/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full border border-emerald-200">
+                    {activeDeckItem.matchScore || 96}% Plan Match
+                  </span>
+                  <span className="text-[9px] font-bold text-zinc-400">
+                    {activeDeckItem.extraContributions}
+                  </span>
+                </div>
+                <span className="text-xs font-black text-red-600">
+                  {activeDeckItem.headlineRate}
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-1 min-w-0">
+                <h3 className="text-xs font-black text-zinc-900 leading-snug">{activeDeckItem.name}</h3>
+                <p className="text-[9.5px] font-medium text-zinc-600 leading-relaxed">
+                  {activeDeckItem.headlineReason}
+                </p>
+              </div>
+
+              {/* Specific Reasons why this is recommended */}
+              <div className="flex flex-col gap-1.5 mt-1">
+                <span className="text-[8.5px] font-black uppercase tracking-wider text-zinc-400">Why this is recommended:</span>
+                {activeDeckItem.specificReasons && activeDeckItem.specificReasons.map((reason, rIdx) => (
+                  <div key={rIdx} className="flex items-start gap-2 text-[9.5px] font-semibold text-zinc-700">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                    <span>{reason}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Quick Select Button for Card Deck Item */}
+              <button
+                onClick={() => {
+                  const altObj = {
+                    id: activeDeckItem.id,
+                    name: activeDeckItem.name,
+                    desc: activeDeckItem.tagline || activeDeckItem.headlineReason,
+                    rate: activeDeckItem.rewardsType === 'interest' ? 0.0465 : 0.03,
+                    type: deckMode === 'deposits' ? 'deposit' : 'card'
+                  };
+                  handleSelectOption(altObj);
+                }}
+                className="mt-2 w-full py-2.5 rounded-xl bg-red-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-sm hover:bg-red-700 active:scale-95 transition cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>Select {activeDeckItem.name}</span>
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Chips Filter Section */}
         <div className="flex flex-col gap-2 shrink-0 mt-1">
@@ -544,9 +682,9 @@ const PlanChangeOptionPage = () => {
               <div className="bg-white/80 border border-zinc-200/50 rounded-[24px] p-6 text-center flex flex-col items-center justify-center gap-3 shadow-[0_2px_12px_rgba(0,0,0,0.01)] backdrop-blur-md">
                 <Sparkles className="w-7 h-7 text-brand-primary animate-pulse" />
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-xs font-black text-zinc-800">Select reasons above to start</span>
+                  <span className="text-xs font-black text-zinc-800">Select reasons above or pick from recommendations above</span>
                   <p className="text-[9.5px] text-zinc-500 font-semibold leading-relaxed max-w-[250px] mx-auto">
-                    To see matching options, please select at least one reason why you'd like to change. We will instantly search and display tailored options for your plan.
+                    Choose one of the recommended cards/accounts above or select criteria chips to filter specific options.
                   </p>
                 </div>
               </div>
@@ -702,7 +840,7 @@ const PlanChangeOptionPage = () => {
       >
         <button
           disabled={!selectedAlt}
-          onClick={handleSelectOption}
+          onClick={() => handleSelectOption()}
           className={`w-full py-3.5 text-white font-extrabold rounded-2xl text-[11px] uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-md cursor-pointer text-center ${
             selectedAlt
               ? 'bg-brand-primary hover:bg-brand-primary/95'

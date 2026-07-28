@@ -14,7 +14,7 @@ export default function CardDeckCarousel({ cards, activeIndex, onChangeIndex }) 
   return (
     <div className="relative w-full flex flex-col items-center select-none py-2 overflow-hidden">
       {/* 3D Stack Carousel Container */}
-      <div className="relative w-full max-w-[340px] h-[220px] flex items-center justify-center">
+      <div className="relative w-full max-w-[340px] h-[195px] flex items-center justify-center">
         {cards.map((card, index) => {
           // Compute index relative to active card
           let offset = index - activeIndex;
@@ -140,7 +140,7 @@ export default function CardDeckCarousel({ cards, activeIndex, onChangeIndex }) 
       </div>
 
       {/* Carousel Controls & Page Dots */}
-      <div className="flex items-center gap-4 mt-3 z-20">
+      <div className="flex items-center gap-4 mt-1.5 z-20">
         <button
           onClick={handlePrev}
           className="p-2 rounded-full bg-white text-zinc-700 shadow-md border border-zinc-200/80 active:scale-95 transition cursor-pointer hover:bg-zinc-50"
@@ -155,9 +155,8 @@ export default function CardDeckCarousel({ cards, activeIndex, onChangeIndex }) 
             <button
               key={i}
               onClick={() => onChangeIndex(i)}
-              className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                i === activeIndex ? 'w-6 bg-[#D32F2F]' : 'w-2 bg-zinc-300 hover:bg-zinc-400'
-              }`}
+              className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${i === activeIndex ? 'w-6 bg-[#D32F2F]' : 'w-2 bg-zinc-300 hover:bg-zinc-400'
+                }`}
               aria-label={`Go to slide ${i + 1}`}
             />
           ))}
