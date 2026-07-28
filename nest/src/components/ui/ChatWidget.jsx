@@ -97,7 +97,7 @@ const ChatWidget = () => {
   const [pendingEstimate, setPendingEstimate] = useState(null);
   const [isRestartConfirming, setIsRestartConfirming] = useState(false);
   const isUnsure = (value) => /not sure|don't know|dont know|you decide|no idea/i.test(value);
-  const isChangePlanIntent = (value) => /\b(change\s*(plan|goal|my\s*plan)|replan|re-plan|start\s*over|restart|reset\s*plan|different\s*goal|new\s*plan|pick\s*another\s*plan)\b/i.test(value);
+  const isChangePlanIntent = (value) => /\b(change|redo|replan|re-plan|restart|start\s*over|reset|different\s*goal|new\s*plan|another\s*(goal|plan))\b/i.test(value);
   const inferDefaults = (planId) => {
     const defaults = {
       retirement: [1500000, 'Oct 2045', 2400],
@@ -656,6 +656,7 @@ const ChatWidget = () => {
   };
   const handleRiskPromptSelect = (agree, e) => {
     const sessionId = flowSessionRef.current;
+    setFlowState('processing');
     // If user agrees to redo risk profiling (Yes), navigate immediately with Iris curtain
     if (agree) {
       // Capture real click position for the Iris origin
@@ -706,6 +707,11 @@ const ChatWidget = () => {
     const trimmed = textToSend.trim();
     if (!trimmed) return;
     const sessionId = flowSessionRef.current;
+    const currentFlowState = flowState;
+
+    if (currentFlowState === 'asking_strategy') {
+      setFlowState('processing');
+    }
 
     // 1. Add user message
     setMessages(prev => [
@@ -835,7 +841,7 @@ const ChatWidget = () => {
         }]);
         setFlowState('asking_strategy');
 
-      } else if (flowState === 'asking_strategy') {
+      } else if (currentFlowState === 'asking_strategy' || flowState === 'asking_strategy') {
         const strategyUnsure = isUnsure(trimmed);
         const normalizedStrategy = strategyUnsure ? 'staggered' : (/stagger/i.test(trimmed) ? 'staggered' : 'lump-sum');
         setPaymentStrategy(normalizedStrategy);
@@ -866,8 +872,8 @@ const ChatWidget = () => {
 
         // Check if there are subgoals configured for this plan type
         const subgoals = planGoal === 'children-education'
-          ? EDUCATION_STAGE_SUBGOALS[estimationAnswers.educationStage] || PLAN_SUBGOALS[planGoal]
-          : PLAN_SUBGOALS[planGoal];
+          ? (EDUCATION_STAGE_SUBGOALS[estimationAnswers.educationStage] || PLAN_SUBGOALS[planGoal] || PLAN_SUBGOALS.savings)
+          : (PLAN_SUBGOALS[planGoal] || PLAN_SUBGOALS.savings);
         let messagePayload = {
           id: Date.now(),
           sender: 'bot',
@@ -878,7 +884,7 @@ const ChatWidget = () => {
 
         if (subgoals) {
           const K = subgoals.length;
-          breakdownSubgoals = subgoals.map((sub, i) => {
+          const breakdownSubgoals = subgoals.map((sub, i) => {
             const allocated = Math.round(sub.pct * targetAmount);
             let milestoneDate;
             if (i === K - 1) {
@@ -902,7 +908,7 @@ const ChatWidget = () => {
 
           setGeneratedSubgoals(breakdownSubgoals);
 
-          updateCustomPlanData(planGoal, {
+          updatePlanDraft(planGoal, {
             targetAmount: targetAmount,
             targetDate: formattedTargetDate,
             subgoals: breakdownSubgoals,
@@ -933,77 +939,41 @@ const ChatWidget = () => {
 
           setTimeout(() => {
             if (sessionId !== flowSessionRef.current) return;
-            setMessages(prev => [
-              ...prev.filter(m => m.id !== 'typing-strategy'),
-              {
-                id: Date.now(),
-                sender: 'bot',
-                text: (
-                  <span>
-                    To customize your payment options: <span className="text-brand-primary font-black">would you prefer your payments to be staggered or made as a 1-lump sum?</span>
-                  </span>
-                )
-              }
-            ]);
-            setFlowState('asking_strategy');
+            if (!hasCreatedFirstPlan) {
+              // First time user risk profiling prompt
+              setMessages(prev => [
+                ...prev.filter(m => m.id !== 'typing-strategy'),
+                {
+                  id: Date.now(),
+                  sender: 'bot',
+                  text: (
+                    <span>
+                      We haven't heard from you in a while! <span className="text-brand-primary font-black">Would you like to redo your risk profile?</span>
+                    </span>
+                  )
+                }
+              ]);
+              setFlowState('asking_risk_prompt');
+            } else {
+              // Returning user
+              setMessages(prev => [
+                ...prev.filter(m => m.id !== 'typing-strategy'),
+                {
+                  id: Date.now(),
+                  sender: 'bot',
+                  isReturningUserConfirmation: true,
+                  planTitle: planTitle,
+                  text: (
+                    <span>
+                      Your plan has been generated successfully! <span className="text-brand-primary font-black">Tap the button below to view and customize your Plan Details.</span>
+                    </span>
+                  )
+                }
+              ]);
+              setFlowState('idle');
+            }
           }, 1000);
         }, 1200);
-
-      } else if (flowState === 'asking_strategy') {
-        const strategyUnsure = isUnsure(trimmed);
-        const normalizedStrategy = strategyUnsure ? 'staggered' : (/stagger/i.test(trimmed) ? 'staggered' : 'lump-sum');
-        setPaymentStrategy(normalizedStrategy);
-        updatePlanDraft(planGoal, { paymentStrategy: normalizedStrategy });
-
-        if (unsureFields.length > 0 || strategyUnsure) {
-          const defaults = inferDefaults(planGoal);
-          const proposal = {
-            ...defaults,
-            amount: unsureFields.includes('amount') ? defaults.amount : targetAmount,
-            date: unsureFields.includes('date') ? defaults.date : targetDate,
-            strategy: strategyUnsure ? defaults.strategy : normalizedStrategy,
-          };
-          setUnsureFields(current => [...new Set([...current, ...(strategyUnsure ? ['strategy'] : [])])]);
-          setInferredDefaults(proposal);
-          setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', isInferredDefaults: true, proposal }]);
-          setFlowState('confirming_inference');
-          return;
-        }
-
-        // Post-plan Routing decision
-        if (!hasCreatedFirstPlan) {
-          // First time user risk profiling prompt
-          setMessages(prev => [
-            ...prev,
-            {
-              id: Date.now(),
-              sender: 'bot',
-              text: (
-                <span>
-                  We haven't heard from you in a while! <span className="text-brand-primary font-black">Would you like to update your risk portfolio?</span>
-                </span>
-              )
-            }
-          ]);
-          setFlowState('asking_risk_prompt');
-        } else {
-          // Returning user
-          setMessages(prev => [
-            ...prev,
-            {
-              id: Date.now(),
-              sender: 'bot',
-              isReturningUserConfirmation: true,
-              planTitle: planTitle,
-              text: (
-                <span>
-                  Your plan has been generated successfully! <span className="text-brand-primary font-black">Tap the button below to view and customize your Plan Details.</span>
-                </span>
-              )
-            }
-          ]);
-          setFlowState('idle');
-        }
       }
     }, 1500);
   };
@@ -1054,17 +1024,6 @@ const ChatWidget = () => {
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
-                {(planGoal || messages.some((message) => message.sender === 'user')) && (
-                  <button
-                    type="button"
-                    onClick={() => setIsRestartConfirming(true)}
-                    className="flex h-8 items-center gap-1 rounded-full px-2 text-[9px] font-black text-brand-primary transition-colors hover:bg-brand-primary/5 active:scale-95"
-                    aria-label="Change the goal being planned"
-                  >
-                    <RotateCcw className="h-3 w-3" />
-                    <span>Change goal</span>
-                  </button>
-                )}
                 <button
                   onClick={handleClose}
                   className="w-9 h-9 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-700 active:scale-95 transition-all cursor-pointer"
@@ -1133,7 +1092,7 @@ const ChatWidget = () => {
                             <div key={idx} className="flex flex-col border-l-2 border-brand-primary/20 pl-2 text-left">
                               <span className="font-extrabold text-[10px] text-zinc-800 leading-tight">{c.name}</span>
                               <div className="flex justify-between items-center text-[8.5px] font-bold text-zinc-400 mt-0.5">
-                                <span>Milestone: {c.date}</span>
+                                {c.date ? <span>Milestone: {c.date}</span> : <span />}
                                 <span className="text-zinc-800 font-extrabold">S${c.amount.toLocaleString()}</span>
                               </div>
                             </div>

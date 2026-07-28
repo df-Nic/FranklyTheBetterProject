@@ -264,24 +264,9 @@ const getPlanImpact = (action, alternative, plan) => {
   const savingPositive = savingChange <= 0;
 
   return {
-    fundingProbability: {
-      before: `${baseProb}%`,
-      after: `${afterProb}%`,
-      diff: probDiffText,
-      isPositive: probPositive
-    },
-    targetTimeline: {
-      before: `${baseTimeline}`,
-      after: `${afterTimeline} months`,
-      diff: timelineDiffText,
-      isPositive: timelinePositive
-    },
-    monthlySaving: {
-      before: `$${baseSaving.toLocaleString()}`,
-      after: `$${afterSaving.toLocaleString()}`,
-      diff: savingDiffText,
-      isPositive: savingPositive
-    }
+    fundingProbability: { before: "84%", after: "92%", diff: "+8%", isPositive: true },
+    targetTimeline: { before: "On Track", after: "On Track", diff: "No change", isPositive: true },
+    monthlySaving: { before: "S$450", after: "S$380", diff: "S$70 lower", isPositive: true }
   };
 };
 
@@ -289,10 +274,10 @@ const PlanChangeOptionPage = () => {
   const {
     activePlanId,
     setPage,
-    changingAction,
-    setChangingAction,
     changingCategory,
     setChangingCategory,
+    changingAction,
+    setChangingAction,
     chosenAlternatives,
     setChosenAlternatives,
     setPendingExcluded,
@@ -301,7 +286,6 @@ const PlanChangeOptionPage = () => {
     riskProfile
   } = useApp();
 
-  // Identify active plan template
   const getActivePlan = () => {
     if (activePlanId && PLANS_DATA[activePlanId]) return PLANS_DATA[activePlanId];
     return PLANS_DATA.default;
@@ -309,60 +293,10 @@ const PlanChangeOptionPage = () => {
 
   const activePlan = getActivePlan();
   const displayGoalTitle = activePlan.title;
-  const userPlanMeta = (activePlan && (planDrafts[activePlan.id] || customPlanData[activePlan.id])) || {};
 
-  // Detect category type to fetch appropriate reasons
   const catType = getCategoryType(changingCategory, changingAction);
   const reasonChips = REASONS_MAP[catType] || REASONS_MAP.deposit;
 
-  // Container height locking to prevent shrink/collapse during curtain transition
-  const containerRef = useRef(null);
-  const [lockedHeight, setLockedHeight] = useState(null);
-
-  // Deck carousel view mode: 'deposits' or 'cards'
-  const [deckMode, setDeckMode] = useState('deposits');
-  const [curtainPhase, setCurtainPhase] = useState('idle'); // 'idle' | 'covering' | 'revealing'
-  const [deckActiveIndex, setDeckActiveIndex] = useState(0);
-
-  // Recommended products optimized for active plan
-  const recommendedDeposits = useMemo(() => {
-    return getOptimizedDepositsForPlan(activePlan.id, activePlan);
-  }, [activePlan]);
-
-  const recommendedCards = useMemo(() => {
-    return getOptimizedCardsForPlan(activePlan.id, activePlan);
-  }, [activePlan]);
-
-  const deckItems = deckMode === 'deposits' ? recommendedDeposits : recommendedCards;
-  const activeDeckItem = deckItems[deckActiveIndex] || deckItems[0];
-
-  const handleSwitchDeckMode = (newMode) => {
-    if (newMode === deckMode || curtainPhase !== 'idle') return;
-
-    if (containerRef.current) {
-      setLockedHeight(containerRef.current.offsetHeight);
-    }
-    setCurtainPhase('covering');
-
-    setTimeout(() => {
-      setDeckMode(newMode);
-      setDeckActiveIndex(0);
-      setCurtainPhase('revealing');
-
-      requestAnimationFrame(() => {
-        if (containerRef.current) {
-          setLockedHeight(containerRef.current.scrollHeight);
-        }
-      });
-    }, 240);
-
-    setTimeout(() => {
-      setCurtainPhase('idle');
-      setLockedHeight(null);
-    }, 480);
-  };
-
-  // Multi-select selectedReasons state
   const [selectedReasons, setSelectedReasons] = useState([]);
 
   const handleToggleReason = (label) => {
@@ -375,22 +309,12 @@ const PlanChangeOptionPage = () => {
     });
   };
 
-  // Get dynamic pool of alternatives from the database for the active category
   const allAltsInCategory = ALTERNATIVES_DATABASE[catType] || [];
 
-  // Filter and sort alternatives based on selected reasons matching alternative tags
   let filteredAlts = [];
   if (selectedReasons.length > 0) {
     filteredAlts = allAltsInCategory.filter(alt => {
       return alt.tags && selectedReasons.every(reason => alt.tags.includes(reason));
-    });
-
-    filteredAlts = filteredAlts.filter(alt => {
-      const normAltName = alt.name.toLowerCase();
-      const normOrigName = (changingAction?.name || '').toLowerCase();
-      
-      if (normAltName === normOrigName) return false;
-      return true;
     });
 
     filteredAlts.sort((a, b) => {
@@ -400,10 +324,7 @@ const PlanChangeOptionPage = () => {
     });
   }
 
-  // Fallback initial alt
-  const defaultInitialAlt = filteredAlts[0];
-  const currentInitialAlt = changingAction ? (chosenAlternatives[changingAction.id] || defaultInitialAlt) : null;
-  const [selectedAltId, setSelectedAltId] = useState(currentInitialAlt ? currentInitialAlt.id : "");
+  const [selectedAltId, setSelectedAltId] = useState("");
 
   useEffect(() => {
     if (filteredAlts.length > 0 && !filteredAlts.some(a => a.id === selectedAltId)) {
@@ -412,11 +333,11 @@ const PlanChangeOptionPage = () => {
   }, [filteredAlts, selectedAltId]);
 
   const selectedAlt = filteredAlts.find(a => a.id === selectedAltId) || filteredAlts[0] || {
-    id: activeDeckItem?.id || 'alt_ocbc360',
-    name: activeDeckItem?.name || 'OCBC 360 Account',
-    desc: activeDeckItem?.tagline || 'High-yield deposit savings account',
+    id: 'alt_ocbc360',
+    name: 'OCBC 360 Account',
+    desc: 'High-yield deposit savings account',
     rate: 0.0465,
-    type: deckMode === 'deposits' ? 'deposit' : 'card'
+    type: 'deposit'
   };
 
   const handleSelectOption = (overrideAlt) => {
@@ -445,33 +366,11 @@ const PlanChangeOptionPage = () => {
     setPage('plan-details');
   };
 
-  if (!changingAction) {
-    return (
-      <div className="flex h-full w-full flex-col items-center justify-center bg-[#F5F5F7] px-6 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-zinc-400 shadow-sm">
-          <ArrowLeft className="h-5 w-5" />
-        </div>
-        <h1 className="mt-4 text-sm font-black text-zinc-900">No product selected</h1>
-        <p className="mt-1 max-w-[250px] text-[10px] font-medium leading-relaxed text-zinc-500">
-          Return to the plan and choose “Change product” on the recommendation you want to replace.
-        </p>
-        <button
-          onClick={() => setPage('plan-details')}
-          className="mt-5 rounded-xl bg-brand-primary px-5 py-2.5 text-[10px] font-black text-white shadow-sm active:scale-95"
-        >
-          Back to plan
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="w-full h-full flex flex-col bg-[#F5F5F7] relative overflow-hidden select-none text-left">
-      {/* Background Orbs */}
       <BackgroundOrb color="pink" size="300px" className="-top-12 -left-12" />
       <BackgroundOrb color="blue" size="250px" className="bottom-20 -right-10" />
 
-      {/* Sub-page Header */}
       <header className="pt-6 pb-2 h-auto w-full bg-white/60 backdrop-blur-xl border-b border-zinc-200/40 px-4 flex items-center justify-between shrink-0 z-40 sticky top-0 shadow-sm">
         <div className="flex items-center gap-3">
           <button
@@ -493,150 +392,23 @@ const PlanChangeOptionPage = () => {
         </button>
       </header>
 
-      {/* Sub-page Scroll Content - Unconstrained scrolling with clear bottom clearance */}
       <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-5 flex flex-col gap-4 z-10 pb-64 touch-pan-y min-h-0">
         
-        {/* Title */}
         <h1 className="text-lg font-black text-zinc-900 tracking-tight leading-none mt-1">
           Change {changingCategory?.name ? (changingCategory.name.endsWith('s') ? changingCategory.name.slice(0, -1) : changingCategory.name) : 'Product'} Option
         </h1>
 
-        {/* Top explanation box */}
         <div className="bg-white/70 border border-white/80 p-4 rounded-[24px] flex gap-3.5 items-start shadow-[0_2px_12px_rgba(0,0,0,0.02)] backdrop-blur-md">
           <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-600 shrink-0 shadow-inner">
             <Compass className="w-4.5 h-4.5" />
           </div>
           <div className="flex flex-col gap-0.5">
             <p className="text-[10px] font-semibold text-zinc-600 leading-relaxed">
-              Explore recommended deposit accounts & credit cards to optimize your financial plan.
+              Select your reason for changing options below to discover alternative financial products.
             </p>
           </div>
         </div>
 
-        {/* Visual 3D Card Recommendations Deck - Dynamic Auto Height & Conditional Overflow */}
-        <div
-          ref={containerRef}
-          style={lockedHeight ? { minHeight: `${lockedHeight}px` } : {}}
-          className={`w-full bg-white rounded-3xl p-4 shadow-sm border border-zinc-200/60 flex flex-col gap-3 relative transition-[min-height] duration-300 ease-out ${curtainPhase !== 'idle' ? 'overflow-hidden' : 'overflow-visible'}`}
-        >
-          
-          {/* Horizontal Container Curtain Scope Transition Overlay */}
-          <AnimatePresence>
-            {curtainPhase !== 'idle' && (
-              <motion.div
-                key="full-plan-card-box-horizontal-curtain"
-                initial={{ clipPath: 'inset(0% 100% 0% 0%)' }}
-                animate={{
-                  clipPath: curtainPhase === 'covering'
-                    ? 'inset(0% 0% 0% 0%)'
-                    : 'inset(0% 0% 0% 100%)'
-                }}
-                transition={{ duration: 0.24, ease: [0.4, 0, 0.2, 1] }}
-                className="absolute inset-0 z-50 bg-gradient-to-r from-[#E1251B] via-[#C62828] to-[#8E0000] rounded-3xl shadow-2xl pointer-events-none"
-              />
-            )}
-          </AnimatePresence>
-
-          <div className="flex items-center justify-between px-1 pt-1">
-            <div className="flex flex-col">
-              <span className="text-[10.5px] font-black text-zinc-400 uppercase tracking-wider">
-                {deckMode === 'deposits' ? 'Recommended Deposit Accounts' : 'Recommended Credit Cards'}
-              </span>
-            </div>
-
-            {/* Curtain Scope Mode Switcher Button */}
-            <div className="bg-zinc-100 p-0.5 rounded-full flex items-center border border-zinc-200/80 shadow-inner z-10">
-              <button
-                onClick={() => handleSwitchDeckMode('deposits')}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-extrabold transition-all duration-300 cursor-pointer ${
-                  deckMode === 'deposits'
-                    ? 'bg-red-600 text-white shadow-sm'
-                    : 'text-zinc-500 hover:text-zinc-800'
-                }`}
-              >
-                <Landmark className="w-3 h-3" />
-                <span>Deposits</span>
-              </button>
-              <button
-                onClick={() => handleSwitchDeckMode('cards')}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-extrabold transition-all duration-300 cursor-pointer ${
-                  deckMode === 'cards'
-                    ? 'bg-red-600 text-white shadow-sm'
-                    : 'text-zinc-500 hover:text-zinc-800'
-                }`}
-              >
-                <CreditCard className="w-3 h-3" />
-                <span>Cards</span>
-              </button>
-            </div>
-          </div>
-
-          {/* 3D Visual Deck Carousel */}
-          <div className="w-full py-1">
-            <CardDeckCarousel
-              cards={deckItems}
-              activeIndex={deckActiveIndex}
-              onChangeIndex={(newIdx) => setDeckActiveIndex(newIdx)}
-            />
-          </div>
-
-          {/* Active Item Recommendation Reason Breakdown */}
-          {activeDeckItem && (
-            <div className="flex flex-col gap-3 pt-3 border-t border-zinc-100 bg-zinc-50/50 p-3.5 rounded-2xl border border-zinc-200/50">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full border border-emerald-200">
-                    {activeDeckItem.matchScore || 96}% Plan Match
-                  </span>
-                  <span className="text-[9px] font-bold text-zinc-400">
-                    {activeDeckItem.extraContributions}
-                  </span>
-                </div>
-                <span className="text-xs font-black text-red-600">
-                  {activeDeckItem.headlineRate}
-                </span>
-              </div>
-
-              <div className="flex flex-col gap-1 min-w-0">
-                <h3 className="text-xs font-black text-zinc-900 leading-snug">{activeDeckItem.name}</h3>
-                <p className="text-[9.5px] font-medium text-zinc-600 leading-relaxed">
-                  {activeDeckItem.headlineReason}
-                </p>
-              </div>
-
-              {/* Specific Reasons why this is recommended */}
-              <div className="flex flex-col gap-1.5 mt-1">
-                <span className="text-[8.5px] font-black uppercase tracking-wider text-zinc-400">Why this is recommended:</span>
-                {activeDeckItem.specificReasons && activeDeckItem.specificReasons.map((reason, rIdx) => (
-                  <div key={rIdx} className="flex items-start gap-2 text-[9.5px] font-semibold text-zinc-700">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                    <span>{reason}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Quick Select Button for Card Deck Item */}
-              <button
-                onClick={() => {
-                  const altObj = {
-                    id: activeDeckItem.id,
-                    name: activeDeckItem.name,
-                    desc: activeDeckItem.tagline || activeDeckItem.headlineReason,
-                    rate: activeDeckItem.rewardsType === 'interest' ? 0.0465 : 0.03,
-                    type: deckMode === 'deposits' ? 'deposit' : 'card'
-                  };
-                  handleSelectOption(altObj);
-                }}
-                className="mt-2 w-full py-2.5 rounded-xl bg-red-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-sm hover:bg-red-700 active:scale-95 transition cursor-pointer flex items-center justify-center gap-1.5"
-              >
-                <Check className="w-3.5 h-3.5" />
-                <span>Select {activeDeckItem.name}</span>
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Chips Filter Section */}
         <div className="flex flex-col gap-2 shrink-0 mt-1">
           <div className="flex flex-col gap-0.5">
             <span className="text-[10.5px] font-black text-zinc-800 tracking-tight">Why would you like to change? (Select all that apply)</span>
@@ -667,25 +439,15 @@ const PlanChangeOptionPage = () => {
           </div>
         </div>
 
-        {/* Alternatives block */}
         <div className="flex flex-col gap-2.5 mt-1">
-          {selectedReasons.length > 0 && (
-            <div className="flex flex-col gap-0.5">
-              <span className="text-[10.5px] font-black text-zinc-800 tracking-tight">Here are {filteredAlts.length} alternative options</span>
-              <span className="text-[9.5px] font-medium text-zinc-400 leading-none mt-0.5">
-                We recommend options matching your criteria and profile.
-              </span>
-            </div>
-          )}
-
           <div className="flex flex-col gap-3">
             {selectedReasons.length === 0 ? (
               <div className="bg-white/80 border border-zinc-200/50 rounded-[24px] p-6 text-center flex flex-col items-center justify-center gap-3 shadow-[0_2px_12px_rgba(0,0,0,0.01)] backdrop-blur-md">
                 <Sparkles className="w-7 h-7 text-brand-primary animate-pulse" />
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-xs font-black text-zinc-800">Select reasons above or pick from recommendations above</span>
+                  <span className="text-xs font-black text-zinc-800">Select reasons above to view alternative options</span>
                   <p className="text-[9.5px] text-zinc-500 font-semibold leading-relaxed max-w-[250px] mx-auto">
-                    Choose one of the recommended cards/accounts above or select criteria chips to filter specific options.
+                    Select one or more criteria chips above to filter specific alternative options.
                   </p>
                 </div>
               </div>
