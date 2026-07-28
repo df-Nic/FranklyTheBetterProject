@@ -4,7 +4,7 @@ import { X, Send, Compass, Coins, TrendingUp, ShieldCheck, Gift, Scissors, Shiel
 import ocbcOwl from '../../assets/images/OCBC Owl.jpg';
 import { useApp } from '../../context/AppContext';
 import { PLANS_DATA } from '../../data/planTemplates';
-import { GOAL_ESTIMATION_QUESTIONS, estimateGoalAmount, supportsGuidedEstimate } from '../../data/goalEstimators';
+import { estimateGoalAmount, getGoalEstimationQuestions, supportsGuidedEstimate } from '../../data/goalEstimators';
 
 const PLAN_SUBGOALS = {
   'housing': [
@@ -44,8 +44,37 @@ const PLAN_SUBGOALS = {
   ]
 };
 
+const EDUCATION_STAGE_SUBGOALS = {
+  early: [
+    { name: "Preschool Fee Fund", pct: 0.60, icon: "Coins" },
+    { name: "Childcare & Learning Materials", pct: 0.25, icon: "Gift" },
+    { name: "Primary School Transition Reserve", pct: 0.15, icon: "ShieldCheck" },
+  ],
+  school: [
+    { name: "Primary School Cost Fund", pct: 0.35, icon: "Coins" },
+    { name: "Secondary School Cost Fund", pct: 0.45, icon: "TrendingUp" },
+    { name: "Activities & Enrichment Reserve", pct: 0.20, icon: "Gift" },
+  ],
+  postsecondary: [
+    { name: "Admission & Equipment Fund", pct: 0.25, icon: "Coins" },
+    { name: "Post-secondary Tuition Fund", pct: 0.55, icon: "TrendingUp" },
+    { name: "Completion & Transition Reserve", pct: 0.20, icon: "ShieldCheck" },
+  ],
+  university: [
+    { name: "University Admission Fund", pct: 0.15, icon: "Coins" },
+    { name: "University Tuition Fund", pct: 0.55, icon: "TrendingUp" },
+    { name: "Student Living Cost Reserve", pct: 0.30, icon: "Gift" },
+  ],
+  full: [
+    { name: "Early Years Education Fund", pct: 0.20, icon: "Coins" },
+    { name: "Primary & Secondary School Fund", pct: 0.30, icon: "TrendingUp" },
+    { name: "Post-secondary Education Fund", pct: 0.15, icon: "ShieldCheck" },
+    { name: "University Education Fund", pct: 0.35, icon: "Gift" },
+  ],
+};
+
 const ChatWidget = () => {
-  const { setPage, setClickPos, setActivePlanTitle, setActivePlanId, addCreatedPlan, setPlanDetailOrigin, hasCreatedFirstPlan, setHasCreatedFirstPlan, updateCustomPlanData, discardPlanDraft, planChatRequest, consumePlanChatRequest } = useApp();
+  const { setPage, setClickPos, setActivePlanTitle, setActivePlanId, setPlanDetailOrigin, hasCreatedFirstPlan, setHasCreatedFirstPlan, updatePlanDraft, discardPlanDraft, planChatRequest, consumePlanChatRequest } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -90,7 +119,7 @@ const ChatWidget = () => {
     setTargetAmount(proposal.amount);
     setTargetDate(proposal.date);
     setPaymentStrategy(proposal.strategy);
-    updateCustomPlanData(planGoal, {
+    updatePlanDraft(planGoal, {
       targetAmount: proposal.amount,
       targetDate: proposal.date,
       paymentStrategy: proposal.strategy,
@@ -124,10 +153,19 @@ const ChatWidget = () => {
     const now = new Date();
     let year = now.getFullYear();
     let month = now.getMonth();
+    const normalized = str.toLowerCase();
+    const relativeYears = normalized.match(/\b(?:in\s+)?(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s+years?\b/);
+    const relativeMonths = normalized.match(/\b(?:in\s+)?(\d+)\s+months?\b/);
+    const wordNumbers = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 };
 
     const yearMatch = str.match(/\b(202[6-9]|203[0-9]|204[0-9]|205[0-9])\b/);
     if (yearMatch) {
       year = parseInt(yearMatch[1], 10);
+    } else if (relativeYears) {
+      year += Number(relativeYears[1]) || wordNumbers[relativeYears[1]];
+    } else if (relativeMonths) {
+      const date = new Date(now.getFullYear(), now.getMonth() + Number(relativeMonths[1]), 1);
+      return date;
     } else {
       year = now.getFullYear() + 2;
     }
@@ -138,7 +176,7 @@ const ChatWidget = () => {
       ['jul', 'july'], ['aug', 'august'], ['sep', 'september'],
       ['oct', 'october'], ['nov', 'november'], ['dec', 'december']
     ];
-    const s = str.toLowerCase();
+    const s = normalized;
     let foundMonth = false;
     for (let i = 0; i < 12; i++) {
       if (months[i].some(m => s.includes(m))) {
@@ -147,7 +185,7 @@ const ChatWidget = () => {
         break;
       }
     }
-    if (!foundMonth) {
+    if (!foundMonth && !relativeYears) {
       month = 11;
     }
 
@@ -227,11 +265,11 @@ const ChatWidget = () => {
     setTimeout(() => chatInputRef.current?.focus(), 0);
   };
 
-  const estimationQuestions = GOAL_ESTIMATION_QUESTIONS[planGoal] || [];
+  const estimationQuestions = getGoalEstimationQuestions(planGoal, estimationAnswers);
   const currentEstimationQuestion = estimationQuestions[estimationStep];
 
   const startGuidedEstimation = () => {
-    const firstQuestion = GOAL_ESTIMATION_QUESTIONS[planGoal]?.[0];
+    const firstQuestion = getGoalEstimationQuestions(planGoal)[0];
     if (!firstQuestion) return false;
     setEstimationStep(0);
     setEstimationAnswers({});
@@ -256,8 +294,9 @@ const ChatWidget = () => {
     setEstimationAnswers(nextAnswers);
     setMessages(prev => [...prev, { id: Date.now(), sender: 'user', text: option.label }]);
 
+    const nextQuestions = getGoalEstimationQuestions(planGoal, nextAnswers);
     const nextStep = estimationStep + 1;
-    const nextQuestion = estimationQuestions[nextStep];
+    const nextQuestion = nextQuestions[nextStep];
     if (nextQuestion) {
       setEstimationStep(nextStep);
       setMessages(prev => [...prev, {
@@ -289,7 +328,7 @@ const ChatWidget = () => {
   const acceptGuidedEstimate = () => {
     if (!pendingEstimate) return;
     setTargetAmount(pendingEstimate.amount);
-    updateCustomPlanData(planGoal, {
+    updatePlanDraft(planGoal, {
       targetAmount: pendingEstimate.amount,
       estimationAnswers,
       estimationSummary: pendingEstimate.summary,
@@ -600,7 +639,7 @@ const ChatWidget = () => {
 
     // Save custom user parameters to AppContext
     if (targetAmount > 0 || targetDate) {
-      updateCustomPlanData(planId, {
+      updatePlanDraft(planId, {
         targetAmount: targetAmount,
         targetDate: targetDate,
         subgoals: generatedSubgoals,
@@ -798,7 +837,9 @@ const ChatWidget = () => {
         const planObj = PLANS_DATA[planGoal] || PLANS_DATA.default;
 
         // Check if there are subgoals configured for this plan type
-        const subgoals = PLAN_SUBGOALS[planGoal];
+        const subgoals = planGoal === 'children-education'
+          ? EDUCATION_STAGE_SUBGOALS[estimationAnswers.educationStage] || PLAN_SUBGOALS[planGoal]
+          : PLAN_SUBGOALS[planGoal];
         let messagePayload = {
           id: Date.now(),
           sender: 'bot',
@@ -836,14 +877,14 @@ const ChatWidget = () => {
           setGeneratedSubgoals(breakdownSubgoals);
 
           // Immediately persist target amount, date, and generated subgoals into AppContext
-          updateCustomPlanData(planGoal, {
+          updatePlanDraft(planGoal, {
             targetAmount: targetAmount,
             targetDate: formattedTargetDate,
             subgoals: breakdownSubgoals
           });
         } else {
           messagePayload.isSimpleSummary = true;
-          updateCustomPlanData(planGoal, {
+          updatePlanDraft(planGoal, {
             targetAmount: targetAmount,
             targetDate: formattedTargetDate
           });
@@ -885,7 +926,7 @@ const ChatWidget = () => {
         const strategyUnsure = isUnsure(trimmed);
         const normalizedStrategy = strategyUnsure ? 'staggered' : (/stagger/i.test(trimmed) ? 'staggered' : 'lump-sum');
         setPaymentStrategy(normalizedStrategy);
-        updateCustomPlanData(planGoal, { paymentStrategy: normalizedStrategy });
+        updatePlanDraft(planGoal, { paymentStrategy: normalizedStrategy });
 
         if (unsureFields.length > 0 || strategyUnsure) {
           const defaults = inferDefaults(planGoal);

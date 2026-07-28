@@ -6,10 +6,16 @@ function buildProgressMessage(plan, onTrack) {
   const delta = formatSGD(onTrack.deltaAmount);
   const date = plan.goalDate;
 
+  if (onTrack.status === "new") {
+    return `Your plan is ready. Progress tracking will begin with your first contribution toward ${date}.`;
+  }
   if (onTrack.ahead) {
     return `You’re ${delta} ahead of the pace for ${date}. That extra room can help absorb an uneven month without moving your goal date.`;
   }
-  if (onTrack.onTrack) {
+  if (onTrack.status === "on-track") {
+    return `You’re exactly on the saving pace needed for ${date}. Keep following the planned contribution schedule.`;
+  }
+  if (onTrack.status === "close") {
     return `You’re ${delta} below the pace for ${date}, and still within the plan’s normal buffer. A small adjustment can bring the next milestone closer without changing the whole plan.`;
   }
   return `You’re ${delta} below the pace for ${date}. The plan can focus first on the smallest adjustment that improves your path forward.`;
@@ -42,16 +48,22 @@ function buildEmotionalProgressMessage(plan, onTrack, prefix) {
   };
 
   if (plan.id === "children-education") {
+    if (onTrack.status === "new") {
+      return `${prefix}your education plan is ready. Progress will become clearer after the first contribution, with each milestone reflecting the learning stages you selected.`;
+    }
     if (onTrack.ahead) {
-      return `${prefix}you’re giving your child’s future more possibilities with every contribution. You’re already ahead of pace—keep going, because the steady progress you’re making today means greater freedom when university begins.`;
+      return `${prefix}you’re giving your child’s future more possibilities with every contribution. You’re already ahead of pace—keep going, because steady progress today means greater choice at the education stages ahead.`;
     }
     if (onTrack.onTrack) {
-      return `${prefix}every contribution is helping turn your hopes for your child’s education into something real. You’re within reach of the pace you need, and staying steady now will give your family more choices when university begins.`;
+      return `${prefix}every contribution is helping turn your hopes for your child’s education into something real. You’re within reach of the pace you need, and staying steady now will give your family more choices later.`;
     }
-    return `${prefix}this goal may need a little more attention, but the future you’re building for your child is still within reach. One manageable step now can restore momentum and keep more university choices open later.`;
+    return `${prefix}this goal may need a little more attention, but the future you’re building for your child is still within reach. One manageable step now can restore momentum and preserve more education choices later.`;
   }
 
   const focus = focusByPlan[plan.id] || plan.personalContext?.desiredOutcome || focusByPlan.default;
+  if (onTrack.status === "new") {
+    return `${prefix}your plan for ${focus} is ready. Progress tracking will begin after your first contribution, giving you a clear starting point without a premature performance label.`;
+  }
   if (onTrack.ahead) {
     return `${prefix}the steady choices you’re making are bringing you closer to ${focus}. You’re ahead of pace—keep going, because that extra breathing room gives you more choice when it matters.`;
   }
@@ -67,7 +79,7 @@ export function buildPersonalizedPlanCopy({
   const outcome = plan.personalContext?.desiredOutcome ?? NEUTRAL_OUTCOME;
   const name = userName?.trim();
   const prefix = name ? `${name}, ` : "";
-  let situation = onTrack.ahead ? "ahead" : onTrack.onTrack ? "close" : "behind";
+  let situation = onTrack.status;
   let introduction = buildEmotionalProgressMessage(plan, onTrack, prefix);
 
   if (recentActivity?.type === "milestone") {
@@ -93,11 +105,15 @@ export function buildPersonalizedPlanCopy({
     introduction,
     situation,
     progressMessage: buildProgressMessage(plan, onTrack),
-    statusLabel: onTrack.ahead
-      ? "Ahead of pace"
-      : onTrack.onTrack
-        ? "Close to plan"
-        : "Let’s adjust the pace",
+    statusLabel: onTrack.status === "new"
+      ? "Getting started"
+      : onTrack.status === "ahead"
+        ? "Ahead of pace"
+        : onTrack.status === "on-track"
+          ? "On pace"
+          : onTrack.status === "close"
+            ? "Slightly behind"
+            : "Behind schedule",
     reflection: buildReflection(plan),
   };
 }

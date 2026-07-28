@@ -1,19 +1,31 @@
 // src/components/milestones/OnTrackCard.jsx
-import { CheckCircle2, TrendingUp, Info, ArrowUpRight } from "lucide-react";
+import { CheckCircle2, TrendingUp, TrendingDown, Clock3, AlertTriangle, Info, ArrowUpRight } from "lucide-react";
 import { formatSGD } from "../../data/milestonePlans";
 
 export default function OnTrackCard({ onTrack, statusLabel }) {
+  const variants = {
+    new: { Icon: Clock3, header: "text-[#685D56]", badge: "bg-[#F0ECE8] text-[#685D56]" },
+    ahead: { Icon: TrendingUp, header: "text-[#2E7D4F]", badge: "bg-[#E7F1E9] text-[#2E7D4F]" },
+    "on-track": { Icon: CheckCircle2, header: "text-[#2E7D4F]", badge: "bg-[#E7F1E9] text-[#2E7D4F]" },
+    close: { Icon: AlertTriangle, header: "text-[#9A6700]", badge: "bg-[#FFF3D6] text-[#8A5C00]" },
+    behind: { Icon: TrendingDown, header: "text-[#A12B35]", badge: "bg-[#FBE7E9] text-[#A12B35]" },
+  };
+  const variant = variants[onTrack.status] || variants["on-track"];
+  const StatusIcon = variant.Icon;
+
   return (
     <div className="absolute left-[4%] top-[3%] z-30 w-[43%] rounded-2xl bg-white/[0.94] p-3 shadow-[0_6px_18px_rgba(0,0,0,0.12)] backdrop-blur-sm">
-      <div className="flex items-center gap-1.5 text-[12px] font-extrabold tracking-wide text-[#2E7D4F]">
-        <CheckCircle2 size={16} strokeWidth={2.4} />
+      <div className={`flex items-center gap-1.5 text-[12px] font-extrabold tracking-wide ${variant.header}`}>
+        <StatusIcon size={16} strokeWidth={2.4} />
         {statusLabel}
       </div>
       <div className="mt-2 text-[10px] leading-snug text-[#5E554F]">
-        {formatSGD(onTrack.saved)} saved of {formatSGD(onTrack.expected)} expected
+        {onTrack.isNew
+          ? "Tracking starts after your first contribution"
+          : `${formatSGD(onTrack.saved)} saved of ${formatSGD(onTrack.expected)} expected`}
       </div>
-      <div className="mt-2 flex items-center gap-1.5 rounded-lg bg-[#E7F1E9] px-2 py-1.5 text-[10.5px] font-bold text-[#2E7D4F]">
-        <TrendingUp size={14} strokeWidth={2.5} />
+      <div className={`mt-2 flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[10.5px] font-bold ${variant.badge}`}>
+        <StatusIcon size={14} strokeWidth={2.5} />
         {onTrack.deltaLabel}
       </div>
     </div>
