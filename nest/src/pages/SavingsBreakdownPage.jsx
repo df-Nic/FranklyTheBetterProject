@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { formatSGD, getMilestonePlan } from "../data/milestonePlans";
-import { getPlanOpportunity } from "../data/planOpportunities";
+import { applyOpportunityChanges, getPlanOpportunity } from "../data/planOpportunities";
 import { getPlanActivity } from "../data/planActivity";
 import owlImg from "../assets/images/ocbc-owl-transparent.png";
 
@@ -84,14 +84,24 @@ function ActivityItem({ event, expanded, onToggle }) {
 }
 
 export default function SavingsBreakdownPage() {
-  const { activePlanId, setPage, opportunityDecisions, planAdjustments, planActivity } = useApp();
-  const plan = getMilestonePlan(activePlanId, planAdjustments);
-  const opportunity = getPlanOpportunity(plan.id);
+  const {
+    activePlanId,
+    setPage,
+    opportunityDecisions,
+    planAdjustments,
+    planActivity,
+    opportunitySourceAmount,
+  } = useApp();
+  const basePlan = getMilestonePlan(activePlanId, planAdjustments);
+  const opportunity = getPlanOpportunity(opportunitySourceAmount);
+  const decision = Object.values(opportunityDecisions).find((item) =>
+    item.status === "accepted"
+    && item.allocations?.some((allocation) => allocation.planId === basePlan.id));
+  const plan = applyOpportunityChanges(basePlan, opportunity, decision);
   const events = getPlanActivity({
     plan,
     opportunity,
-    decision: Object.values(opportunityDecisions).find((item) =>
-      item.status === "accepted" && item.allocations?.some((allocation) => allocation.planId === plan.id)),
+    decision,
     runtimeEvents: planActivity,
   });
   const [expandedId, setExpandedId] = useState(null);

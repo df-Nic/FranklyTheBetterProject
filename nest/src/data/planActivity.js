@@ -78,8 +78,17 @@ export function buildSeededPlanActivity(plan, opportunity, decision) {
     })
     .forEach((item) => events.push({
     id: `milestone-${item.id}`, planId: plan.id, actor: "user", type: "milestone",
-    title: item.name, description: "You completed this step in your plan journey.",
-    timestamp: item.completedAt ?? item.date, status: "completed",
+    title: item.completionSource === "opportunity" ? `${item.name} reached` : item.name,
+    description: item.completionSource === "opportunity"
+      ? `Your confirmed S$${item.completionAmount.toLocaleString("en-SG")} opportunity allocation brought this plan to S$${item.savedAtCompletion.toLocaleString("en-SG")} saved and completed this milestone.`
+      : "You completed this step in your plan journey.",
+    timestamp: item.completedAt ?? item.date,
+    sortTimestamp: item.completionSource === "opportunity" ? item.completedAt : undefined,
+    lifecycleGroup: item.completionSource === "opportunity"
+      ? `opportunity-${item.completionOpportunityId}`
+      : undefined,
+    lifecycleStep: item.completionSource === "opportunity" ? 3 : undefined,
+    status: "completed",
   }));
 
   if (opportunity) events.push({
@@ -89,6 +98,9 @@ export function buildSeededPlanActivity(plan, opportunity, decision) {
     timestamp: createdDate && dateValue(opportunity.detectedDate) <= createdDate
       ? new Date(createdDate + 5 * 60_000).toISOString()
       : opportunity.detectedDate,
+    sortTimestamp: decision?.decidedAt ?? opportunity.detectedDate,
+    lifecycleGroup: `opportunity-${opportunity.id}`,
+    lifecycleStep: 0,
     status: "identified",
   });
 
@@ -99,7 +111,11 @@ export function buildSeededPlanActivity(plan, opportunity, decision) {
     description: decision.status === "accepted"
       ? "You approved Agent Owl’s recommendation and updated the plan."
       : "You reviewed the recommendation and chose not to change the plan.",
-    timestamp: decision.decidedAt, status: decision.status,
+    timestamp: decision.decidedAt,
+    sortTimestamp: decision.decidedAt,
+    lifecycleGroup: `opportunity-${opportunity?.id ?? plan.id}`,
+    lifecycleStep: 1,
+    status: decision.status,
   });
 
   if (decision?.status === "accepted" && opportunity) events.push({
@@ -112,6 +128,9 @@ export function buildSeededPlanActivity(plan, opportunity, decision) {
       ? `S$${(decision.allocations.find((allocation) => allocation.planId === plan.id)?.amount ?? 0).toLocaleString("en-SG")} was applied to ${plan.goalName} and S$${decision.returnedAmount.toLocaleString("en-SG")} was returned to your ${decision.sourceAccount}.`
       : `${opportunity.title} has been applied successfully.`,
     timestamp: decision.decidedAt,
+    sortTimestamp: decision.decidedAt,
+    lifecycleGroup: `opportunity-${opportunity.id}`,
+    lifecycleStep: 2,
     status: "completed",
   });
   return events.map((event) => ({ ...event, timestamp: normalizeTimestamp(event.timestamp) }));
@@ -121,14 +140,27 @@ export function getPlanActivity({ plan, opportunity, decision, runtimeEvents = [
   const byId = new Map();
   [...buildSeededPlanActivity(plan, opportunity, decision), ...runtimeEvents]
     .filter((event) => event.planId === plan.id)
-    .forEach((event) => byId.set(event.id, { ...event, timestamp: normalizeTimestamp(event.timestamp) }));
+    .forEach((event) => {
+      const existing = byId.get(event.id);
+      byId.set(event.id, {
+        ...existing,
+        ...event,
+        timestamp: normalizeTimestamp(event.timestamp),
+      });
+    });
   return [...byId.values()].sort((a, b) => {
-    const aDate = dateValue(a.timestamp);
-    const bDate = dateValue(b.timestamp);
+    if (a.lifecycleGroup && a.lifecycleGroup === b.lifecycleGroup) {
+      return (b.lifecycleStep ?? 0) - (a.lifecycleStep ?? 0);
+    }
+
+    const aDate = dateValue(a.sortTimestamp ?? a.timestamp);
+    const bDate = dateValue(b.sortTimestamp ?? b.timestamp);
     if (aDate !== bDate) return bDate - aDate;
 
     const lifecycleRank = (event) => {
-      if (["completion", "adjustment", "saving"].includes(event.type) || event.status === "completed") return 4;
+      if (event.type === "completion") return 6;
+      if (event.type === "milestone") return 5;
+      if (["adjustment", "saving"].includes(event.type) || event.status === "completed") return 4;
       if (["accepted", "declined"].includes(event.status) || event.type === "decision") return 3;
       if (["identified", "needs review", "assessed"].includes(event.status)) return 2;
       if (event.type === "created") return 1;

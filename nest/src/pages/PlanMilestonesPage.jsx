@@ -7,6 +7,7 @@ import sceneImg from "../assets/images/milestone-scene-clean.png";
 import {
   getMilestonePlan,
   deriveOnTrack,
+  getFundingJourneyProgress,
   getJourneyPosition,
   getJourneyProgressPosition,
   formatSGD,
@@ -44,9 +45,10 @@ export default function PlanMilestonesPage() {
     addPlanActivity,
     opportunityReveal,
     markOpportunityRevealViewed,
+    opportunitySourceAmount,
   } = useApp();
   const basePlan = getMilestonePlan(activePlanId, planAdjustments);
-  const opportunity = getPlanOpportunity(basePlan.id);
+  const opportunity = getPlanOpportunity(opportunitySourceAmount);
   const decision = Object.values(opportunityDecisions).find((item) =>
     item.status === "accepted" && item.allocations?.some((allocation) => allocation.planId === basePlan.id));
   const updatedPlan = applyOpportunityChanges(basePlan, opportunity, decision);
@@ -89,13 +91,39 @@ export default function PlanMilestonesPage() {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState(plan.goalName);
   const showReveal = Boolean(revealUpdate && visibleRevealPlanId === activePlanId);
-  const revealProgressBefore = revealUpdate
+  const revealFundingPercentBefore = revealUpdate
     ? Math.min(1, revealUpdate.before.saved / Math.max(revealUpdate.before.targetAmount, 1))
     : 0;
-  const revealProgressAfter = revealUpdate
+  const revealFundingPercentAfter = revealUpdate
     ? Math.min(1, revealUpdate.after.saved / Math.max(revealUpdate.after.targetAmount, 1))
     : 0;
-  const fundingProgress = Math.min(1, plan.onTrack.saved / Math.max(plan.targetAmount, 1));
+  const revealJourneyProgressBefore = revealUpdate
+    ? getFundingJourneyProgress(
+      revealUpdate.before.milestones,
+      revealUpdate.before.saved,
+      revealUpdate.before.targetAmount,
+    )
+    : 0;
+  const newlyCompletedMilestoneIndex = revealUpdate
+    ? revealUpdate.after.milestones.findIndex((milestone, index) =>
+      milestone.state === "completed"
+      && revealUpdate.before.milestones[index]?.state !== "completed")
+    : -1;
+  const calculatedRevealJourneyProgressAfter = revealUpdate
+    ? getFundingJourneyProgress(
+      revealUpdate.after.milestones,
+      revealUpdate.after.saved,
+      revealUpdate.after.targetAmount,
+    )
+    : 0;
+  const revealJourneyProgressAfter = newlyCompletedMilestoneIndex >= 0
+    ? newlyCompletedMilestoneIndex / Math.max(revealUpdate.after.milestones.length - 1, 1)
+    : calculatedRevealJourneyProgressAfter;
+  const journeyProgress = showReveal
+    ? showingBeforeState
+      ? revealJourneyProgressBefore
+      : revealJourneyProgressAfter
+    : getFundingJourneyProgress(plan.milestones, plan.onTrack.saved, plan.targetAmount);
 
   useEffect(() => {
     if (!revealUpdate) return undefined;
@@ -108,7 +136,7 @@ export default function PlanMilestonesPage() {
       const container = scrollContainerRef.current;
       const journey = journeyRef.current;
       if (!container || !journey) return;
-      const originalPosition = getJourneyProgressPosition(revealProgressBefore);
+      const originalPosition = getJourneyProgressPosition(revealJourneyProgressBefore);
       const owlOffset = journey.offsetTop + journey.clientHeight * (originalPosition.y / 100);
       const targetTop = Math.min(
         Math.max(0, owlOffset - container.clientHeight * 0.68),
@@ -290,7 +318,7 @@ export default function PlanMilestonesPage() {
             </div>
             <div className="px-1.5">
               <div className="text-[8px] font-bold text-[#8A7F78]">Funded</div>
-              <div className="mt-0.5 text-[10.5px] font-black">{Math.round(revealProgressBefore * 100)}% to {Math.round(revealProgressAfter * 100)}%</div>
+              <div className="mt-0.5 text-[10.5px] font-black">{Math.round(revealFundingPercentBefore * 100)}% to {Math.round(revealFundingPercentAfter * 100)}%</div>
             </div>
             <div className="px-1.5">
               <div className="text-[8px] font-bold text-[#8A7F78]">Time saved</div>
@@ -307,8 +335,8 @@ export default function PlanMilestonesPage() {
         <OnTrackCard onTrack={onTrack} statusLabel={personalCopy.statusLabel} />
         <JourneyOverlay
           milestones={plan.milestones}
-          fundingProgress={fundingProgress}
-          fromFundingProgress={showingMovingState ? revealProgressBefore : undefined}
+          fundingProgress={journeyProgress}
+          fromFundingProgress={showingMovingState ? revealJourneyProgressBefore : undefined}
         />
 
         {plan.milestones.map((m, i) => (
@@ -316,8 +344,11 @@ export default function PlanMilestonesPage() {
             key={m.id}
             milestone={m}
             position={getJourneyPosition(i, count)}
-            previousDate={showReveal && !showingBeforeState
+            previousDate={showReveal && !showingBeforeState && !showingMovingState
               ? revealUpdate.before.milestones.find((item) => item.id === m.id)?.date
+              : null}
+            previousState={showReveal && !showingBeforeState && !showingMovingState
+              ? revealUpdate.before.milestones.find((item) => item.id === m.id)?.state
               : null}
           />
         ))}

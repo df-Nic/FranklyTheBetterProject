@@ -1,3 +1,5 @@
+import { applyFundingMilestoneStates } from "./milestonePlans";
+
 export const PLAN_OPPORTUNITIES = {
   savings: {
     id: "hdb-flexi-deposit",
@@ -490,6 +492,25 @@ export function applyOpportunityChanges(plan, opportunity, decision) {
   const changes = opportunity.planChanges ?? {};
   const milestoneDates = changes.milestoneDates ?? {};
   const acceleratedGoalDate = accelerateGoalDate(plan.goalDate, allocation.monthsSaved);
+  const updatedSavedAmount = plan.onTrack.saved + allocation.amount;
+  const datedMilestones = plan.milestones.map((milestone, index) => {
+    if (milestoneDates[milestone.id]) return { ...milestone, date: milestoneDates[milestone.id] };
+    if (index === plan.milestones.length - 1) return { ...milestone, date: acceleratedGoalDate };
+    return milestone;
+  });
+  const fundedMilestones = applyFundingMilestoneStates(datedMilestones, updatedSavedAmount)
+    .map((milestone) => {
+      const previousMilestone = plan.milestones.find((item) => item.id === milestone.id);
+      if (milestone.state !== "completed" || previousMilestone?.state === "completed") return milestone;
+      return {
+        ...milestone,
+        completedAt: decision.decidedAt,
+        completionSource: "opportunity",
+        completionOpportunityId: opportunity.id,
+        completionAmount: allocation.amount,
+        savedAtCompletion: updatedSavedAmount,
+      };
+    });
   return {
     ...plan,
     goalDate: changes.goalDate ?? acceleratedGoalDate,
@@ -497,13 +518,9 @@ export function applyOpportunityChanges(plan, opportunity, decision) {
     ...(changes.strategy ? { strategy: changes.strategy } : {}),
     onTrack: {
       ...plan.onTrack,
-      saved: plan.onTrack.saved + allocation.amount,
+      saved: updatedSavedAmount,
     },
-    milestones: plan.milestones.map((milestone, index) => {
-      if (milestoneDates[milestone.id]) return { ...milestone, date: milestoneDates[milestone.id] };
-      if (index === plan.milestones.length - 1) return { ...milestone, date: acceleratedGoalDate };
-      return milestone;
-    }),
+    milestones: fundedMilestones,
   };
 }
 
