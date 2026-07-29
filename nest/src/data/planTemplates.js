@@ -104,7 +104,7 @@ export const PLANS_DATA = {
         name: "Investments",
         icon: "TrendingUp",
         actions: [
-          { id: "sav_tbills", name: "SG Treasury Bills (T-Bills)", desc: "Buy 6-month risk-free Singapore Government Securities to capture a state-backed 3.70% p.a. yield.", baseVal: 10000, rate: 0.037, type: "yield" },
+          { id: "sav_tbills", name: "Singapore Treasury Bills", desc: "Buy 6-month risk-free Singapore Government Securities to capture state-backed yields.", baseVal: 10000, rate: 0.037, type: "yield" },
           { id: "sav_mmf", name: "Lion-OCBC Money Market Fund", desc: "Allocate SG$5,000 to low-risk liquidity funds for a flexible 3.90% p.a. return with instant liquidity.", baseVal: 5000, rate: 0.039, type: "yield" }
         ]
       }
@@ -136,7 +136,7 @@ export const PLANS_DATA = {
         icon: "Scissors",
         actions: [
           { id: "em_sub", name: "Subscription Cleanup", desc: "Connect credit cards to let AI auto-cancel 4 unused/redundant subscription accounts, saving SG$65/mo.", baseVal: 780, rate: 0.0, type: "saving" },
-          { id: "em_dine", name: "Dining Out Savings Cap", desc: "Restrict food delivery app orders to save SG$200/mo and direct the savings to your safety net.", baseVal: 2400, rate: 0.0, type: "saving" }
+          { id: "em_dine", name: "Flexible Lifestyle Budget", desc: "Adjust spending caps across categories to save SG$150/mo and direct savings to your safety net.", baseVal: 2400, rate: 0.0, type: "saving" }
         ]
       },
       {
@@ -166,7 +166,7 @@ export const PLANS_DATA = {
         icon: "Coins",
         actions: [
           { id: "def_saver", name: "OCBC Smart Saver Deposit", desc: "Allocate SG$10,000 idle cash to the Smart Saver account to earn a 4.20% p.a. multiplier rate.", baseVal: 10000, rate: 0.042, type: "deposit" },
-          { id: "def_recurring", name: "Monthly Auto-Savings Flow", desc: "Configure an automatic recurring PayNow transfer of SG$500/mo directly to your savings vault.", baseVal: 6000, rate: 0.038, type: "deposit" }
+          { id: "def_recurring", name: "Automatic Monthly Goal Transfer", desc: "Configure an automatic recurring PayNow transfer of SG$500/mo directly to your savings vault.", baseVal: 6000, rate: 0.038, type: "deposit" }
         ]
       },
       {
@@ -206,7 +206,7 @@ export const PLANS_DATA = {
         icon: "Coins",
         actions: [
           { id: "wed_ocbc360", name: "OCBC 360 Savings Account", desc: "Credit your salary and save SG$500/mo to hit up to 4.65% p.a. interest rate on your active deposits.", baseVal: 6000, rate: 0.0465, type: "deposit" },
-          { id: "wed_recurring", name: "Monthly Auto-Savings Flow", desc: "Configure an automatic recurring PayNow transfer of SG$500/mo directly to your wedding savings vault.", baseVal: 12000, rate: 0.038, type: "deposit" }
+          { id: "wed_recurring", name: "Automatic Monthly Goal Transfer", desc: "Configure an automatic recurring PayNow transfer of SG$500/mo directly to your wedding savings vault.", baseVal: 12000, rate: 0.038, type: "deposit" }
         ]
       },
       {
@@ -214,7 +214,7 @@ export const PLANS_DATA = {
         name: "Investments",
         icon: "TrendingUp",
         actions: [
-          { id: "wed_tbills", name: "SG Treasury Bills (T-Bills)", desc: "Buy 6-month risk-free Singapore Government Securities to capture a state-backed 3.70% p.a. yield.", baseVal: 5000, rate: 0.037, type: "yield" }
+          { id: "wed_tbills", name: "Singapore Treasury Bills", desc: "Buy 6-month risk-free Singapore Government Securities to capture state-backed yields.", baseVal: 5000, rate: 0.037, type: "yield" }
         ]
       },
       {
@@ -222,7 +222,7 @@ export const PLANS_DATA = {
         name: "Lifestyle & Savings Adjustments",
         icon: "Scissors",
         actions: [
-          { id: "wed_dine", name: "Dining & Lifestyle Cap", desc: "Restrict food delivery app orders and high-end dining to save SG$150/mo to accelerate your wedding fund.", baseVal: 1800, rate: 0.0, type: "saving" }
+          { id: "wed_dine", name: "Flexible Lifestyle Budget", desc: "Restrict food delivery app orders and high-end dining to save SG$150/mo to accelerate your wedding fund.", baseVal: 1800, rate: 0.0, type: "saving" }
         ]
       }
     ]
@@ -292,7 +292,7 @@ export const PLANS_DATA = {
         icon: "Scissors",
         actions: [
           { id: "car_sweep", name: "OCBC Auto-Sweep Plan", desc: "Automatically sweep end-of-month excess balances into savings vaults at 3.50% p.a. yield.", baseVal: 2000, rate: 0.035, type: "saving" },
-          { id: "car_lifestyle", name: "Spend Fit Tracker Cap", desc: "Configure smart alerts to save SG$100/mo on redundant dining/lifestyle expenses.", baseVal: 1200, rate: 0.0, type: "saving" }
+          { id: "car_lifestyle", name: "Flexible Lifestyle Budget", desc: "Configure smart alerts to save SG$150/mo on redundant dining/lifestyle expenses.", baseVal: 1200, rate: 0.0, type: "saving" }
         ]
       }
     ]
@@ -351,12 +351,12 @@ export const PLAN_ALTERNATIVES = {
   em_saver: { id: "em_ocbc_360_pocket", name: "OCBC 360 Save Pocket Account", desc: "Credit SG$3,000 to hit high interest multipliers on a separate pocket in your OCBC Digital app.", baseVal: 5000, rate: 0.042, type: "deposit" },
   em_sweep: { id: "em_ocbc_sweep", name: "OCBC Auto-Save Sweep Plan", desc: "Sweep excess savings automatically into low-risk OCBC money market funds yielding 3.75% p.a.", baseVal: 3000, rate: 0.0375, type: "deposit" },
   em_sub: { id: "em_ocbc_card_rebates", name: "OCBC 365 Card Spend Optimization", desc: "Direct utilities and card payments to OCBC 365 Card to earn 5% cash rebate, saving SG$80/mo.", baseVal: 960, rate: 0.0, type: "saving" },
-  em_dine: { id: "em_ocbc_lifestyle_cap", name: "OCBC Spend Fit Tracker", desc: "Set dining/lifestyle spending limits in the OCBC Digital app to save SG$150/mo.", baseVal: 1800, rate: 0.0, type: "saving" },
+  em_dine: { id: "em_ocbc_lifestyle_cap", name: "Redirect S$150 from dining", desc: "Shift spending caps from food delivery and dining out to direct savings to your safety net.", baseVal: 1800, rate: 0.0, type: "saving" },
   em_shield: { id: "em_ge_supreme_ecare", name: "GE SupremeHealth H1 Rider Plan", desc: "Add Great Eastern SupremeHealth Rider to cover hospital co-payment caps using CPF Medisave.", baseVal: 1000, rate: 0.02, type: "saving" },
 
   // Default alternatives
   def_saver: { id: "def_ocbc_bonus", name: "OCBC Bonus+ Savings Yield", desc: "Store SG$10,000 cash in the OCBC Bonus+ saver to gain up to 3.75% p.a. without withdrawals.", baseVal: 10000, rate: 0.0375, type: "deposit" },
-  def_recurring: { id: "def_ocbc_giro", name: "OCBC GIRO Auto-Invest Flow", desc: "Configure an automatic monthly GIRO regular invest flow of SG$500 to OCBC Blue Chip Plan.", baseVal: 6000, rate: 0.04, type: "deposit" },
+  def_recurring: { id: "def_ocbc_giro", name: "S$500 once a month after salary credit", desc: "Configure an automatic recurring transfer of SG$500/mo scheduled 1 day after payday.", baseVal: 6000, rate: 0.04, type: "deposit" },
   def_etfs: { id: "def_ocbc_robo_growth", name: "OCBC RoboInvest Growth Portfolio", desc: "Invest SG$400/mo in OCBC RoboInvest's aggressive growth portfolios yielding 6.80% p.a.", baseVal: 4800, rate: 0.068, type: "investment" },
   def_reits: { id: "def_ocbc_bcip_reits", name: "OCBC BCIP Lion-Phillip REIT", desc: "Invest SG$200/mo in local REIT indices via OCBC BCIP to capture high SGD yields.", baseVal: 2400, rate: 0.058, type: "investment" },
   def_refinance: { id: "def_ocbc_easicredit", name: "OCBC EasiCredit Debt Transfer", desc: "Consolidate debt into an OCBC EasiCredit balance transfer at 0% interest for 12 months.", baseVal: 3000, rate: 0.226, type: "loan" },
@@ -364,7 +364,7 @@ export const PLAN_ALTERNATIVES = {
 
   // Wedding alternatives
   wed_ocbc360: { id: "wed_ocbc_boost", name: "OCBC Bonus+ Savings Yield", desc: "Save SG$500/mo into the OCBC Bonus+ Account to capture a high interest rate of up to 3.70% p.a. with zero withdrawals.", baseVal: 6000, rate: 0.037, type: "deposit" },
-  wed_recurring: { id: "wed_giro", name: "OCBC GIRO Auto-Invest Flow", desc: "Configure an automatic monthly GIRO regular invest flow of SG$500 to OCBC Blue Chip Plan.", baseVal: 6000, rate: 0.04, type: "deposit" },
+  wed_recurring: { id: "wed_giro", name: "S$500 once a month after salary credit", desc: "Configure an automatic recurring transfer of SG$500/mo scheduled 1 day after payday.", baseVal: 6000, rate: 0.04, type: "deposit" },
   wed_tbills: { id: "wed_mmf", name: "Lion-OCBC Money Market Fund", desc: "Allocate SG$5,000 to low-risk liquidity funds for a flexible 3.90% p.a. return with instant liquidity.", baseVal: 5000, rate: 0.039, type: "yield" },
   wed_dine: { id: "wed_card_rebates", name: "OCBC 365 Card Spend Optimization", desc: "Direct utilities and card payments to OCBC 365 Card to earn 5% cash rebate, saving SG$80/mo.", baseVal: 960, rate: 0.0, type: "saving" },
 
