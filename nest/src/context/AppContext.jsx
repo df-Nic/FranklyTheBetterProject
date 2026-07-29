@@ -5,9 +5,9 @@ import { getPlanOpportunity } from '../data/planOpportunities';
 const AppContext = createContext();
 
 const DEMO_HOUSING_SUBGOALS = [
-  { id: 1, name: 'First down payment', amount: 37500, date: 'Dec 2026' },
-  { id: 2, name: 'Second down payment', amount: 52500, date: 'Sep 2027' },
-  { id: 3, name: 'Rest of the housing loan', amount: 60000, date: 'Mar 2028' },
+  { id: 1, name: 'First down payment', amount: 125000, date: 'Dec 2027' },
+  { id: 2, name: 'Second down payment', amount: 175000, date: 'Dec 2028' },
+  { id: 3, name: 'Rest of the housing loan', amount: 200000, date: 'Aug 2030' },
 ];
 
 const getMonthsUntil = (targetDate) => {
@@ -76,16 +76,16 @@ export const AppProvider = ({ children }) => {
   const [opportunityNotice, setOpportunityNotice] = useState(null);
   const [planAdjustments, setPlanAdjustments] = useState({
     housing: {
-      targetAmount: 150000,
-      goalDate: 'Mar 2028',
+      targetAmount: 500000,
+      goalDate: 'Aug 2030',
       monthlyContribution: 2500,
       paymentStrategy: 'staggered',
       milestones: [
         { id: 'created', name: 'Goal Created', date: '12 Jan 2026', state: 'completed' },
         { id: 'initial', name: 'Initial Deposit Ready', date: '18 Mar 2026', state: 'completed' },
-        { id: 'quarter', name: '25% Funded', date: 'Jan 2027', state: 'next' },
-        { id: 'halfway', name: 'Halfway Funded', date: 'Jul 2027', state: 'upcoming' },
-        { id: 'ready', name: 'Downpayment Ready', date: 'Mar 2028', state: 'goal' },
+        { id: 'quarter', name: '25% Funded', date: 'Jan 2028', state: 'next' },
+        { id: 'halfway', name: 'Halfway Funded', date: 'Jul 2029', state: 'upcoming' },
+        { id: 'ready', name: 'Downpayment Ready', date: 'Aug 2030', state: 'goal' },
       ],
     },
   });
@@ -121,7 +121,7 @@ export const AppProvider = ({ children }) => {
   ]);
 
   const [selectedAccountId, setSelectedAccountId] = useState('acc-1');
-  const [opportunitySourceAmount, setOpportunitySourceAmount] = useState(8000);
+  const [opportunitySourceAmount, setOpportunitySourceAmount] = useState(0);
   const [showOpportunityPopup, setShowOpportunityPopup] = useState(false);
 
   const performMockDeposit = (amount, accountId = selectedAccountId || 'acc-1') => {
@@ -386,8 +386,8 @@ export const AppProvider = ({ children }) => {
 
   const [customPlanData, setCustomPlanData] = useState({
     housing: {
-      targetAmount: 150000,
-      targetDate: 'Mar 2028',
+      targetAmount: 500000,
+      targetDate: 'Aug 2030',
       paymentStrategy: 'staggered',
       subgoals: DEMO_HOUSING_SUBGOALS.map((subgoal) => ({ ...subgoal })),
       confirmedSubgoals: DEMO_HOUSING_SUBGOALS.map((subgoal) => ({ ...subgoal })),

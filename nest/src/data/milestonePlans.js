@@ -71,8 +71,8 @@ const retirementPlan = {
 const savingsPlan = {
   id: "savings",
   goalName: "HDB Downpayment",
-  targetAmount: 150000,
-  goalDate: "Mar 2028",
+  targetAmount: 500000,
+  goalDate: "Aug 2030",
   monthlyContribution: 2500,
   planType: "Home purchase",
   strategy: "Cash savings, CPF grants and low-risk yield",
@@ -86,9 +86,9 @@ const savingsPlan = {
   milestones: [
     { id: "created", name: "Goal Created", date: "21 Jul 2026", state: "completed" },
     { id: "initial", name: "Initial Deposit Ready", date: "Oct 2026", state: "completed" },
-    { id: "quarter", name: "25% Funded", date: "Jan 2027", state: "next" },
-    { id: "halfway", name: "Halfway Funded", date: "Jul 2027", state: "upcoming" },
-    { id: "ready", name: "Downpayment Ready", date: "Mar 2028", state: "goal" },
+    { id: "quarter", name: "25% Funded", date: "Jan 2028", state: "next" },
+    { id: "halfway", name: "Halfway Funded", date: "Jul 2029", state: "upcoming" },
+    { id: "ready", name: "Downpayment Ready", date: "Aug 2030", state: "goal" },
   ],
   impact: { additionalSavings: 1860, timeSaved: "5.2 hrs", opportunitiesActedOn: 3 },
 };

@@ -101,7 +101,7 @@ const ChatWidget = () => {
   const inferDefaults = (planId) => {
     const defaults = {
       retirement: [1500000, 'Oct 2045', 2400],
-      housing: [150000, 'Mar 2028', 2500],
+      housing: [500000, 'Aug 2030', 2500],
       savings: [50000, 'Jan 2030', 900],
       emergency: [30000, 'Dec 2026', 4000],
       'wedding-fund': [35000, 'Dec 2027', 1200],

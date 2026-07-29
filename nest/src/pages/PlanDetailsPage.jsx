@@ -71,9 +71,9 @@ const buildCanonicalProjection = ({
 // Default subgoals registry mapping matching chat widget proposals
 const INITIAL_PLAN_SUBGOALS = {
   'housing': [
-    { id: 1, name: "First down payment", amount: 37500, date: "Dec 2026" },
-    { id: 2, name: "Second down payment", amount: 52500, date: "Dec 2027" },
-    { id: 3, name: "Rest of the housing loan", amount: 60000, date: "Jun 2028" }
+    { id: 1, name: "First down payment", amount: 125000, date: "Dec 2027" },
+    { id: 2, name: "Second down payment", amount: 175000, date: "Dec 2028" },
+    { id: 3, name: "Rest of the housing loan", amount: 200000, date: "Aug 2030" }
   ],
   'savings': [
     { id: 1, name: "Emergency Buffer Deposit Goal", amount: 15000, date: "Dec 2026" },

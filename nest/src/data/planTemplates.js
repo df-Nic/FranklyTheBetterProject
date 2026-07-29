@@ -43,11 +43,11 @@ export const PLANS_DATA = {
   housing: {
     id: "housing",
     title: "OCBC HDB Housing Plan",
-    goal: "Save SG$150,000 for a downpayment and loan setup on an HDB flat in Singapore by 2028",
-    timelineAll: "Mar 2028 - Jun 2029",
+    goal: "Save SG$500,000 for a downpayment and loan setup on an HDB flat in Singapore by Aug 2030",
+    timelineAll: "Aug 2030",
     timelineExcluded: (numExcluded) => {
-      if (numExcluded === 0) return "Mar 2028 - Jun 2029";
-      if (numExcluded <= 2) return "Nov 2029 - Feb 2031";
+      if (numExcluded === 0) return "Aug 2030";
+      if (numExcluded <= 2) return "Nov 2030 - Feb 2031";
       return "Jan 2031 - Sep 2032";
     },
     categories: [
