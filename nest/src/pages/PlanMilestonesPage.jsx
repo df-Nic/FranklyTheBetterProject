@@ -1,12 +1,14 @@
 // src/pages/PlanMilestonesPage.jsx
-import { Check, CheckCircle2, ChevronLeft, ChevronRight, Pencil, X } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { Check, CheckCircle2, ChevronLeft, ChevronRight, Pencil, Sparkles, X } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { useApp } from "../context/AppContext";
 import sceneImg from "../assets/images/milestone-scene-clean.png";
 import {
   getMilestonePlan,
   deriveOnTrack,
   getJourneyPosition,
+  getJourneyProgressPosition,
   formatSGD,
 } from "../data/milestonePlans";
 import { buildPersonalizedPlanCopy } from "../data/personalizedPlanCopy";
@@ -29,6 +31,7 @@ import {
 export default function PlanMilestonesPage() {
   const {
     activePlanId,
+    setActivePlanId,
     setPage,
     setPlanDetailOrigin,
     user,
@@ -39,12 +42,43 @@ export default function PlanMilestonesPage() {
     adjustPlan,
     planActivity,
     addPlanActivity,
+    opportunityReveal,
+    markOpportunityRevealViewed,
   } = useApp();
   const basePlan = getMilestonePlan(activePlanId, planAdjustments);
   const opportunity = getPlanOpportunity(basePlan.id);
   const decision = Object.values(opportunityDecisions).find((item) =>
     item.status === "accepted" && item.allocations?.some((allocation) => allocation.planId === basePlan.id));
-  const plan = applyOpportunityChanges(basePlan, opportunity, decision);
+  const updatedPlan = applyOpportunityChanges(basePlan, opportunity, decision);
+  const revealUpdate = opportunityReveal?.opportunityId === decision?.opportunityId
+    ? opportunityReveal.updates.find((item) => item.planId === activePlanId)
+    : null;
+  const revealViewed = Boolean(opportunityReveal?.viewedPlanIds?.includes(activePlanId));
+  const reduceMotion = useReducedMotion();
+  const [movingRevealPlanId, setMovingRevealPlanId] = useState(null);
+  const [completedRevealPlanId, setCompletedRevealPlanId] = useState(null);
+  const [visibleRevealPlanId, setVisibleRevealPlanId] = useState(null);
+  const scrollContainerRef = useRef(null);
+  const journeyRef = useRef(null);
+  const showingMovingState = Boolean(
+    revealUpdate
+    && !revealViewed
+    && !reduceMotion
+    && movingRevealPlanId === activePlanId
+    && completedRevealPlanId !== activePlanId,
+  );
+  const showingBeforeState = Boolean(
+    revealUpdate
+    && !revealViewed
+    && !reduceMotion
+    && movingRevealPlanId !== activePlanId
+    && completedRevealPlanId !== activePlanId,
+  );
+  const plan = showingBeforeState
+    ? basePlan
+    : showingMovingState
+      ? { ...basePlan, onTrack: updatedPlan.onTrack }
+      : updatedPlan;
   const onTrack = deriveOnTrack(plan.onTrack);
   const activities = getPlanActivity({ plan, opportunity, decision, runtimeEvents: planActivity });
   const wasHealed = Boolean(planAdjustments?.[activePlanId]?.healed);
@@ -54,6 +88,58 @@ export default function PlanMilestonesPage() {
   const count = plan.milestones.length;
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState(plan.goalName);
+  const showReveal = Boolean(revealUpdate && visibleRevealPlanId === activePlanId);
+  const revealProgressBefore = revealUpdate
+    ? Math.min(1, revealUpdate.before.saved / Math.max(revealUpdate.before.targetAmount, 1))
+    : 0;
+  const revealProgressAfter = revealUpdate
+    ? Math.min(1, revealUpdate.after.saved / Math.max(revealUpdate.after.targetAmount, 1))
+    : 0;
+  const fundingProgress = Math.min(1, plan.onTrack.saved / Math.max(plan.targetAmount, 1));
+
+  useEffect(() => {
+    if (!revealUpdate) return undefined;
+    if (revealViewed) {
+      if (visibleRevealPlanId !== null) setVisibleRevealPlanId(activePlanId);
+      return undefined;
+    }
+    setVisibleRevealPlanId(activePlanId);
+    const scrollFrame = window.requestAnimationFrame(() => {
+      const container = scrollContainerRef.current;
+      const journey = journeyRef.current;
+      if (!container || !journey) return;
+      const originalPosition = getJourneyProgressPosition(revealProgressBefore);
+      const owlOffset = journey.offsetTop + journey.clientHeight * (originalPosition.y / 100);
+      const targetTop = Math.min(
+        Math.max(0, owlOffset - container.clientHeight * 0.68),
+        Math.max(0, container.scrollHeight - container.clientHeight),
+      );
+      container.scrollTo({
+        top: targetTop,
+        behavior: reduceMotion ? "auto" : "smooth",
+      });
+    });
+    if (reduceMotion) {
+      setMovingRevealPlanId(null);
+      setCompletedRevealPlanId(activePlanId);
+      markOpportunityRevealViewed(activePlanId);
+      return () => window.cancelAnimationFrame(scrollFrame);
+    }
+    setMovingRevealPlanId(null);
+    setCompletedRevealPlanId(null);
+    const moveTimer = window.setTimeout(() => {
+      setMovingRevealPlanId(activePlanId);
+    }, 1200);
+    const completeTimer = window.setTimeout(() => {
+      setCompletedRevealPlanId(activePlanId);
+      markOpportunityRevealViewed(activePlanId);
+    }, 2800);
+    return () => {
+      window.cancelAnimationFrame(scrollFrame);
+      window.clearTimeout(moveTimer);
+      window.clearTimeout(completeTimer);
+    };
+  }, [activePlanId, revealUpdate?.planId, revealViewed, reduceMotion]);
 
   useEffect(() => {
     if (!isEditingTitle) setTitleDraft(plan.goalName);
@@ -91,7 +177,7 @@ export default function PlanMilestonesPage() {
   }, [activePlanId, planAdjustments, adjustPlan]);
 
   return (
-    <div className="h-full overflow-y-auto no-scrollbar bg-[#F9F4EE] text-[#2B2320]">
+    <div ref={scrollContainerRef} className="h-full overflow-y-auto no-scrollbar bg-[#F9F4EE] text-[#2B2320]">
       {/* Header */}
       <div className="px-[18px] pb-1.5 pt-3.5">
         <div className="flex items-center justify-between text-[#7C2230]">
@@ -148,23 +234,98 @@ export default function PlanMilestonesPage() {
           </div>
         </div>
 
+        {showReveal && opportunityReveal.updates.length > 1 && (
+          <div className="mt-4">
+            <div className="text-[8.5px] font-black uppercase tracking-[0.13em] text-[#8A7F78]">
+              Updated plan {opportunityReveal.updates.findIndex((item) => item.planId === activePlanId) + 1} of {opportunityReveal.updates.length}
+            </div>
+            <div className="mt-2 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+              {opportunityReveal.updates.map((item) => {
+                const itemPlan = getMilestonePlan(item.planId, planAdjustments);
+                const selected = item.planId === activePlanId;
+                const viewed = opportunityReveal.viewedPlanIds.includes(item.planId);
+                return (
+                  <button
+                    key={item.planId}
+                    type="button"
+                    onClick={() => setActivePlanId(item.planId)}
+                    className={`shrink-0 rounded-full border px-3 py-2 text-[9.5px] font-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C2230] ${
+                      selected ? "border-[#7C2230] bg-[#7C2230] text-white" : "border-[#D9CEC5] bg-white text-[#6F6560]"
+                    }`}
+                  >
+                    {viewed && !selected ? "Viewed: " : ""}{itemPlan.goalName}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
       </div>
 
+      {showReveal && (
+        <motion.section
+          initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mx-4 mt-3 rounded-[18px] border border-[#D8C481] bg-[#FFF8DC] p-3.5 text-[#5E4920]"
+          aria-live="polite"
+        >
+          <div className="flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFE9A8] text-[#8B641B]"><Sparkles size={15} /></span>
+            <div>
+              <div className="text-[8px] font-black uppercase tracking-[0.13em] text-[#9A641E]">
+                {showingBeforeState
+                  ? "Preparing your journey"
+                  : showingMovingState
+                    ? "Moving your progress"
+                    : "Journey updated"}
+              </div>
+              <div className="text-[11.5px] font-black">Your opportunity moved this plan forward</div>
+            </div>
+          </div>
+          <div className="mt-3 grid grid-cols-3 divide-x divide-[#E6D39E] rounded-[12px] bg-white/65 py-2.5 text-center">
+            <div className="px-1.5">
+              <div className="text-[8px] font-bold text-[#8A7F78]">Allocated</div>
+              <div className="mt-0.5 text-[10.5px] font-black">{formatSGD(revealUpdate.amount)}</div>
+            </div>
+            <div className="px-1.5">
+              <div className="text-[8px] font-bold text-[#8A7F78]">Funded</div>
+              <div className="mt-0.5 text-[10.5px] font-black">{Math.round(revealProgressBefore * 100)}% to {Math.round(revealProgressAfter * 100)}%</div>
+            </div>
+            <div className="px-1.5">
+              <div className="text-[8px] font-bold text-[#8A7F78]">Time saved</div>
+              <div className="mt-0.5 text-[10.5px] font-black">{revealUpdate.monthsSaved ? `${revealUpdate.monthsSaved} mo` : "Stronger"}</div>
+            </div>
+          </div>
+        </motion.section>
+      )}
+
       {/* Scene with on-track overlay + milestone rail */}
-      <div className="relative mt-1.5 w-full" style={{ aspectRatio: "853 / 1844" }}>
+      <div ref={journeyRef} className="relative mt-1.5 w-full" style={{ aspectRatio: "853 / 1844" }}>
         <img src={sceneImg} alt="Goal journey" className="absolute inset-0 h-full w-full object-cover" />
 
         <OnTrackCard onTrack={onTrack} statusLabel={personalCopy.statusLabel} />
-        <JourneyOverlay milestones={plan.milestones} />
+        <JourneyOverlay
+          milestones={plan.milestones}
+          fundingProgress={fundingProgress}
+          fromFundingProgress={showingMovingState ? revealProgressBefore : undefined}
+        />
 
         {plan.milestones.map((m, i) => (
-          <MilestoneNode key={m.id} milestone={m} position={getJourneyPosition(i, count)} />
+          <MilestoneNode
+            key={m.id}
+            milestone={m}
+            position={getJourneyPosition(i, count)}
+            previousDate={showReveal && !showingBeforeState
+              ? revealUpdate.before.milestones.find((item) => item.id === m.id)?.date
+              : null}
+          />
         ))}
       </div>
 
       {/* Cards */}
       <div className="-mt-1 flex flex-col gap-3.5 px-4 pb-28 pt-3.5">
-        {opportunityNotice?.planId === plan.id && (
+        {opportunityNotice?.planId === plan.id && !showReveal && (
           <div className="flex items-start gap-2.5 rounded-[16px] border border-[#CFE2D3] bg-[#EDF7EF] p-3.5 text-[#2E523A]">
             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#2E7D4F]" />
             <div className="flex-1 text-[11.5px] font-semibold leading-relaxed">{opportunityNotice.message}</div>

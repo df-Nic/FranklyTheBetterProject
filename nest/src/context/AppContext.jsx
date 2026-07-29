@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { createTransactionDeviation } from '../data/transactionDeviations';
-import { getPlanOpportunity } from '../data/planOpportunities';
+import { getMilestonePlan } from '../data/milestonePlans';
+import { applyOpportunityChanges, getAllocationImpact, getPlanOpportunity } from '../data/planOpportunities';
 
 const AppContext = createContext();
 
@@ -96,6 +97,7 @@ export const AppProvider = ({ children }) => {
   const [planDetailOrigin, setPlanDetailOrigin] = useState('home'); // 'home' | 'plan-dashboard'
   const [opportunityDecisions, setOpportunityDecisions] = useState({});
   const [opportunityNotice, setOpportunityNotice] = useState(null);
+  const [opportunityReveal, setOpportunityReveal] = useState(null);
   const [planAdjustments, setPlanAdjustments] = useState({
     housing: {
       propertyType: 'hdb',
@@ -337,8 +339,17 @@ export const AppProvider = ({ children }) => {
     if (opportunity.status !== 'active' || opportunityDecisions[planId]) return false;
     if (status === 'accepted' && opportunity.eligibility?.status !== 'verified') return false;
 
+    const acceptedAllocations = status === 'accepted'
+      ? allocations.map((allocation) => {
+        const plan = getMilestonePlan(allocation.planId, planAdjustments);
+        return {
+          ...allocation,
+          monthsSaved: allocation.monthsSaved ?? getAllocationImpact(plan, allocation.amount).monthsSaved,
+        };
+      })
+      : [];
     const allocatedAmount = status === 'accepted'
-      ? allocations.reduce((sum, allocation) => sum + allocation.amount, 0)
+      ? acceptedAllocations.reduce((sum, allocation) => sum + allocation.amount, 0)
       : 0;
     if (status === 'accepted' && (
       allocatedAmount <= 0
@@ -346,25 +357,57 @@ export const AppProvider = ({ children }) => {
       || allocations.some((allocation) => !Number.isInteger(allocation.amount) || allocation.amount < 0)
     )) return false;
 
-    const decidedAt = '24 Jul 2026';
+    const decidedAt = new Date().toISOString();
     const returnedAmount = status === 'accepted'
       ? Math.max(0, (opportunity.sourceAmount ?? 0) - allocatedAmount)
       : opportunity.sourceAmount ?? 0;
     const formatAmount = (amount) => `S$${amount.toLocaleString('en-SG')}`;
+    const decision = {
+      opportunityId: opportunity.id,
+      status,
+      decidedAt,
+      sourcePlanId: planId,
+      allocations: acceptedAllocations,
+      allocatedAmount,
+      returnedAmount,
+      sourceAccount: opportunity.sourceAccount ?? 'source account',
+      appliedChanges: status === 'accepted' ? opportunity.planChanges : null,
+    };
     setOpportunityDecisions((current) => ({
       ...current,
-      [planId]: {
-        opportunityId: opportunity.id,
-        status,
-        decidedAt,
-        sourcePlanId: planId,
-        allocations: status === 'accepted' ? allocations : [],
-        allocatedAmount,
-        returnedAmount,
-        sourceAccount: opportunity.sourceAccount ?? 'source account',
-        appliedChanges: status === 'accepted' ? opportunity.planChanges : null,
-      },
+      [planId]: decision,
     }));
+    if (status === 'accepted') {
+      const updates = acceptedAllocations
+        .filter((allocation) => allocation.amount > 0)
+        .map((allocation) => {
+          const beforePlan = getMilestonePlan(allocation.planId, planAdjustments);
+          const afterPlan = applyOpportunityChanges(beforePlan, opportunity, decision);
+          return {
+            planId: allocation.planId,
+            amount: allocation.amount,
+            monthsSaved: allocation.monthsSaved,
+            before: {
+              saved: beforePlan.onTrack.saved,
+              targetAmount: beforePlan.targetAmount,
+              goalDate: beforePlan.goalDate,
+              milestones: beforePlan.milestones.map((milestone) => ({ ...milestone })),
+            },
+            after: {
+              saved: afterPlan.onTrack.saved,
+              targetAmount: afterPlan.targetAmount,
+              goalDate: afterPlan.goalDate,
+              milestones: afterPlan.milestones.map((milestone) => ({ ...milestone })),
+            },
+          };
+        });
+      setOpportunityReveal({
+        opportunityId: opportunity.id,
+        createdAt: decidedAt,
+        updates,
+        viewedPlanIds: [],
+      });
+    }
     setOpportunityNotice({
       planId,
       status,
@@ -387,6 +430,13 @@ export const AppProvider = ({ children }) => {
       status,
     }]);
     return true;
+  };
+
+  const markOpportunityRevealViewed = (planId) => {
+    setOpportunityReveal((current) => {
+      if (!current || current.viewedPlanIds.includes(planId)) return current;
+      return { ...current, viewedPlanIds: [...current.viewedPlanIds, planId] };
+    });
   };
 
   const investmentsData = {
@@ -558,6 +608,8 @@ export const AppProvider = ({ children }) => {
         opportunityDecisions,
         opportunityNotice,
         setOpportunityNotice,
+        opportunityReveal,
+        markOpportunityRevealViewed,
         decideOpportunity,
         user,
         setUser,

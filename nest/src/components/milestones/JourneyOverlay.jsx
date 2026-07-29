@@ -1,26 +1,70 @@
 import { motion, useReducedMotion } from "framer-motion";
 import owlImage from "../../assets/images/ocbc-owl-transparent.png";
 import fullProgressImage from "../../assets/images/milestone-scene-progress-full.png";
-import { getCurrentMilestoneIndex, getJourneyPosition } from "../../data/milestonePlans";
+import {
+  getCurrentMilestoneIndex,
+  getJourneyPosition,
+  getJourneyProgressPosition,
+} from "../../data/milestonePlans";
 
-export default function JourneyOverlay({ milestones }) {
+export default function JourneyOverlay({ milestones, fundingProgress, fromFundingProgress }) {
   const reduceMotion = useReducedMotion();
   const currentIndex = getCurrentMilestoneIndex(milestones);
-  const currentPosition = getJourneyPosition(currentIndex, milestones.length);
+  const currentPosition = Number.isFinite(fundingProgress)
+    ? getJourneyProgressPosition(fundingProgress)
+    : getJourneyPosition(currentIndex, milestones.length);
+  const isTraveling = !reduceMotion
+    && Number.isFinite(fromFundingProgress)
+    && Number.isFinite(fundingProgress)
+    && fundingProgress > fromFundingProgress;
+  const travelPositions = isTraveling
+    ? Array.from({ length: 9 }, (_, index) => {
+      const progress = fromFundingProgress + ((fundingProgress - fromFundingProgress) * index) / 8;
+      return getJourneyProgressPosition(progress);
+    })
+    : [currentPosition];
+  const travelTimes = travelPositions.map((_, index) =>
+    travelPositions.length === 1 ? 1 : index / (travelPositions.length - 1));
+  const journeyTransition = reduceMotion
+    ? { duration: 0 }
+    : {
+      duration: isTraveling ? 1.5 : 1.25,
+      ease: [0.22, 1, 0.36, 1],
+      ...(isTraveling ? { times: travelTimes } : {}),
+    };
 
   return (
     <>
-      <img
+      <motion.img
         src={fullProgressImage}
         alt=""
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 z-10 h-full w-full object-cover"
-        style={{ clipPath: `inset(${currentPosition.y}% 0 0 0)` }}
+        animate={{
+          clipPath: isTraveling
+            ? travelPositions.map((position) => `inset(${position.y}% 0 0 0)`)
+            : `inset(${currentPosition.y}% 0 0 0)`,
+          filter: isTraveling
+            ? ["brightness(1)", "brightness(1.18) drop-shadow(0 0 7px rgba(200,138,46,0.65))", "brightness(1)"]
+            : "brightness(1)",
+        }}
+        transition={{
+          clipPath: journeyTransition,
+          filter: reduceMotion ? { duration: 0 } : { duration: 1.5, times: [0, 0.55, 1] },
+        }}
       />
 
-      <div
+      <motion.div
         className="pointer-events-none absolute z-30 h-[88px] w-[82px] -translate-x-1/2 -translate-y-[88%]"
-        style={{ left: `${currentPosition.x}%`, top: `${currentPosition.y}%` }}
+        animate={{
+          left: isTraveling
+            ? travelPositions.map((position) => `${position.x}%`)
+            : `${currentPosition.x}%`,
+          top: isTraveling
+            ? travelPositions.map((position) => `${position.y}%`)
+            : `${currentPosition.y}%`,
+        }}
+        transition={{ left: journeyTransition, top: journeyTransition }}
         role="img"
         aria-label="Current milestone"
       >
@@ -59,7 +103,7 @@ export default function JourneyOverlay({ milestones }) {
             }}
           />
         </motion.div>
-      </div>
+      </motion.div>
     </>
   );
 }
