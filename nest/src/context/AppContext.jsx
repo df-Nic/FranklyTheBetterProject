@@ -70,7 +70,8 @@ export const AppProvider = ({ children }) => {
   }, [activePlanId]);
 
   const [hasCreatedFirstPlan, setHasCreatedFirstPlan] = useState(false);
-  const [riskProfile, setRiskProfile] = useState('Balanced Wealth');
+  const [riskProfile, setRiskProfile] = useState('Balanced');
+  const [hasAssessedRisk, setHasAssessedRisk] = useState(false);
   const [planDetailOrigin, setPlanDetailOrigin] = useState('home'); // 'home' | 'plan-dashboard'
   const [opportunityDecisions, setOpportunityDecisions] = useState({});
   const [opportunityNotice, setOpportunityNotice] = useState(null);
@@ -503,6 +504,8 @@ export const AppProvider = ({ children }) => {
         setHasCreatedFirstPlan,
         riskProfile,
         setRiskProfile,
+        hasAssessedRisk,
+        setHasAssessedRisk,
         planAdjustments,
         adjustPlan,
         planActivity,

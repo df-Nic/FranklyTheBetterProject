@@ -133,7 +133,7 @@ const renderCategoryIcon = (iconName) => {
   }
 };
 
-const PlanTabbedDeck = ({ categories = [], pendingExcluded = new Set(), toggleAction, isReadOnly = false, onChangeProduct, chosenAlternatives = {}, activePlan, riskProfile = 'Balanced Wealth' }) => {
+const PlanTabbedDeck = ({ categories = [], pendingExcluded = new Set(), toggleAction, isReadOnly = false, onChangeProduct, chosenAlternatives = {}, activePlan, riskProfile = 'Balanced' }) => {
   const generateFitDescription = (alt, activePlan) => {
     const age = 28;
     const stageOfLife = "Young Professional";

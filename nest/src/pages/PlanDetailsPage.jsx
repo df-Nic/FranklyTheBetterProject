@@ -14,7 +14,8 @@ import {
   Target,
   AlertTriangle,
   CheckCircle2,
-  Coins
+  Coins,
+  ShieldCheck
 } from 'lucide-react';
 import GlassCard from '../components/ui/GlassCard';
 import BackgroundOrb from '../components/ui/BackgroundOrb';
@@ -124,6 +125,7 @@ const PlanDetailsPage = () => {
     planDrafts,
     confirmPlan,
     riskProfile,
+    hasAssessedRisk,
     planAdjustments,
     changingAction,
     setChangingAction,
@@ -887,20 +889,21 @@ const PlanDetailsPage = () => {
   const chartPoints = buildCanonicalProjection({
     targetAmount: canonicalTargetAmount || adjustedPlan?.targetAmount || 0,
     targetDate: canonicalTargetDate || adjustedPlan?.goalDate,
-    paymentStrategy: userPlanMeta.paymentStrategy || adjustedPlan?.paymentStrategy || 'staggered',
+    paymentStrategy: userPlanMeta?.paymentStrategy || adjustedPlan?.paymentStrategy || 'staggered',
     monthlyContribution: projectionMonthlyContribution,
     startingBalance: isDraftReview ? 0 : adjustedPlan?.onTrack?.saved || 0,
-    categories: categoriesList
+    categories: (categoriesList || [])
       .map(category => ({
         ...category,
-        actions: category.actions.filter(action => !appliedExcluded.has(action.id)),
+        actions: (category?.actions || []).filter(action => !appliedExcluded?.has(action.id)),
       })),
-  });
-  const maxVal = Math.max(50000, Math.max(...chartPoints.map(p => p.y3)) * 1.15);
+  }) || [];
 
-  const activeTimeline = activePlan.id === 'savings'
-    ? activePlan.timelineExcluded(0, false)
-    : activePlan.timelineExcluded(0);
+  const maxVal = Math.max(50000, Math.max(...(chartPoints.length ? chartPoints.map(p => p.y3 || 0) : [0])) * 1.15);
+
+  const activeTimeline = activePlan?.id === 'savings'
+    ? (typeof activePlan?.timelineExcluded === 'function' ? activePlan.timelineExcluded(0, false) : (activePlan?.timelineAll || ''))
+    : (typeof activePlan?.timelineExcluded === 'function' ? activePlan.timelineExcluded(0) : (activePlan?.timelineAll || ''));
 
   return (
     <motion.div
@@ -951,9 +954,9 @@ const PlanDetailsPage = () => {
             </h2>
             <div className="flex flex-wrap items-center gap-2 mt-0.5">
               {displayGoalAmount && (
-                <div className="flex items-center gap-1.5 py-1.5 px-3 bg-emerald-50 rounded-full border border-emerald-200/60 text-emerald-700">
-                  <Coins className="w-3.5 h-3.5 text-emerald-600" />
-                  <span className="text-[10px] font-bold tracking-tight">
+                <div className="flex items-center gap-1.5 py-1.5 px-3 bg-indigo-50/90 rounded-full border border-indigo-200/80 text-indigo-900 shadow-2xs">
+                  <Coins className="w-3.5 h-3.5 text-indigo-600" />
+                  <span className="text-[10px] font-extrabold tracking-tight">
                     Target Goal: {displayGoalAmount}
                   </span>
                 </div>
@@ -965,6 +968,37 @@ const PlanDetailsPage = () => {
                 </span>
               </div>
             </div>
+          </GlassCard>
+
+          {/* User Risk Profile Status Card */}
+          <GlassCard className="p-3.5 border-indigo-100/60 bg-gradient-to-br from-indigo-50/40 via-white/50 to-purple-50/30 shadow-xs flex flex-col gap-2.5 shrink-0 relative overflow-hidden">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-xl bg-indigo-600/10 border border-indigo-200/50 flex items-center justify-center text-indigo-700 shrink-0">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[8.5px] font-black uppercase tracking-wider text-indigo-900/60">YOUR RISK PROFILE</span>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="text-xs font-black text-indigo-950">{riskProfile || 'Balanced'}</span>
+                    {hasAssessedRisk && (
+                      <span className="text-[8px] font-black px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full border border-emerald-200/60 flex items-center gap-0.5">
+                        <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" /> Assessed
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setPage('risk-profiling')}
+                className="text-[9.5px] font-extrabold text-indigo-700 bg-white hover:bg-indigo-50 border border-indigo-200/80 px-2.5 py-1.5 rounded-lg shadow-2xs transition-all active:scale-95 flex items-center gap-1 cursor-pointer"
+              >
+                Reassess Risk
+              </button>
+            </div>
+            <p className="text-[9.5px] text-zinc-600 leading-relaxed font-medium">
+              Your plan suggestions and alternatives are dynamically calibrated to match your <strong className="text-brand-primary font-black">{riskProfile || 'Balanced'}</strong> risk profile.
+            </p>
           </GlassCard>
 
           {/* Middle Section: Interactive Subgoals Table & Validation */}

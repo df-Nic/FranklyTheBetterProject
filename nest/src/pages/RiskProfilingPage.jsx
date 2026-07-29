@@ -162,7 +162,7 @@ const SwipeCardComponent = ({ scenario, stackIndex, isTop, onSwipe, swipeTopCard
 };
 
 const RiskProfilingPage = () => {
-  const { navigate, setPage, activePlanId, activePlanTitle, setClickPos, setPlanDetailOrigin, setRiskProfile } = useApp();
+  const { navigate, setPage, activePlanId, activePlanTitle, setClickPos, setPlanDetailOrigin, setRiskProfile, setHasAssessedRisk } = useApp();
   const [cards, setCards] = useState(SCENARIOS);
   const [decisions, setDecisions] = useState({});
   const [isComplete, setIsComplete] = useState(false);
@@ -188,26 +188,33 @@ const RiskProfilingPage = () => {
 
   const getRiskProfile = () => {
     const agreeCount = Object.values(decisions).filter(d => d === 'right').length;
-    if (agreeCount >= 5) {
+    if (agreeCount >= 6) {
       return {
         badge: 'Aggressive Growth',
-        description: 'You prioritize long-term growth and are comfortable riding out high market volatility for maximum returns.',
+        description: 'Maximum long-term compounding through tech, megatrends, and equity growth.',
         color: 'from-orange-500 to-red-600',
         text: 'text-red-500'
       };
+    } else if (agreeCount >= 4) {
+      return {
+        badge: 'Growth',
+        description: 'Higher long-term returns through market index & diversified equity exposure.',
+        color: 'from-purple-500 to-indigo-600',
+        text: 'text-purple-600'
+      };
     } else if (agreeCount >= 2) {
       return {
-        badge: 'Balanced Wealth',
-        description: 'You seek a stable mix of capital growth and income, accepting moderate market fluctuations.',
+        badge: 'Balanced',
+        description: 'Steady growth with lower ups & downs, balancing high-yield cash and core investments.',
         color: 'from-amber-500 to-orange-500',
         text: 'text-amber-500'
       };
     } else {
       return {
-        badge: 'Conservative Safety',
-        description: 'You prioritize wealth preservation, preferring steady capital and low-risk interest yields.',
+        badge: 'Capital Safety',
+        description: 'Preserves money with zero market risk and guaranteed interest yields.',
         color: 'from-emerald-500 to-teal-600',
-        text: 'text-emerald-500'
+        text: 'text-emerald-600'
       };
     }
   };
@@ -216,6 +223,7 @@ const RiskProfilingPage = () => {
 
   const handleProceedToPlanDetails = (e) => {
     setRiskProfile(profile.badge);
+    setHasAssessedRisk(true);
     if (e) {
       setClickPos({ x: e.clientX, y: e.clientY });
     } else {
