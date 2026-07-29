@@ -26,9 +26,10 @@ const TAG_STYLES = {
   goal: "bg-[#F3ECE1] text-[#8A7F72]",
 };
 
-export default function MilestoneNode({ milestone, position }) {
+export default function MilestoneNode({ milestone, position, previousDate }) {
   const reduce = useReducedMotion();
   const isCurrent = milestone.state === "current" || milestone.state === "next";
+  const dateChanged = Boolean(previousDate && previousDate !== milestone.date);
 
   return (
     <div
@@ -52,7 +53,11 @@ export default function MilestoneNode({ milestone, position }) {
         )}
       </div>
 
-      <div
+      <motion.div
+        animate={dateChanged && !reduce
+          ? { scale: [1, 1.04, 1], boxShadow: ["0 3px 12px rgba(62,39,25,0.14)", "0 0 0 4px rgba(200,138,46,0.28)", "0 3px 12px rgba(62,39,25,0.14)"] }
+          : undefined}
+        transition={{ duration: 1.15, delay: 0.15 }}
         className={`absolute top-1/2 w-[116px] -translate-y-1/2 rounded-xl bg-[#FFF9F2]/90 px-2.5 py-2 leading-tight shadow-[0_3px_12px_rgba(62,39,25,0.14)] backdrop-blur-sm ${
           position.labelSide === "right" ? "left-[44px] text-left" : "right-[44px] text-right"
         }`}
@@ -60,13 +65,14 @@ export default function MilestoneNode({ milestone, position }) {
         <div className="text-[12px] font-extrabold leading-[1.15] text-[#7C2230]">
           {milestone.name}
         </div>
-        <div className="mb-1 mt-0.5 text-[11px] text-[#8A7F78]">{milestone.date}</div>
+        <div className={`mt-0.5 text-[11px] ${dateChanged ? "font-black text-[#2E7D4F]" : "mb-1 text-[#8A7F78]"}`}>{milestone.date}</div>
+        {dateChanged && <div className="mb-1 text-[8.5px] font-semibold text-[#9A8D84] line-through">Was {previousDate}</div>}
         <span
           className={`inline-block rounded-full px-2 py-0.5 text-[9.5px] font-bold ${TAG_STYLES[milestone.state]}`}
         >
           {TAG_TEXT[milestone.state]}
         </span>
-      </div>
+      </motion.div>
     </div>
   );
 }

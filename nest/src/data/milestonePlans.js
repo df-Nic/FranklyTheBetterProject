@@ -332,6 +332,20 @@ export function getJourneyPosition(index, count) {
   };
 }
 
+export function getJourneyProgressPosition(progress = 0) {
+  const clamped = Math.min(1, Math.max(0, Number(progress) || 0));
+  const scaled = clamped * (JOURNEY_POINTS.length - 1);
+  const lower = Math.floor(scaled);
+  const upper = Math.min(Math.ceil(scaled), JOURNEY_POINTS.length - 1);
+  const mix = scaled - lower;
+  const a = JOURNEY_POINTS[lower];
+  const b = JOURNEY_POINTS[upper];
+  return {
+    x: a.x + (b.x - a.x) * mix,
+    y: a.y + (b.y - a.y) * mix,
+  };
+}
+
 export function getCurrentMilestoneIndex(milestones) {
   // Legacy compatibility: older data used `current` for the owl position.
   const legacyCurrent = milestones.findIndex((milestone) => milestone.state === "current");

@@ -72,15 +72,6 @@ export function buildRecoveryOptions(plan, amount) {
       after: extendedDate,
     },
     {
-      id: "yield",
-      title: "Optimize asset yields",
-      label: "Keep target date",
-      description: `Use the OCBC 360 Account yield to help absorb the S$${amount.toLocaleString("en-SG")} gap.`,
-      changes: {},
-      before: plan.strategy,
-      after: "OCBC High-Yield reallocation active (4.65% p.a.)",
-    },
-    {
       id: "sweep",
       title: "Enable cash-flow auto-sweeps",
       label: "Use spare cash flow",

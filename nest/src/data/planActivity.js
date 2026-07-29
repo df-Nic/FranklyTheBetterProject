@@ -5,18 +5,17 @@ const dateValue = (value) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
+const normalizeTimestamp = (value) => {
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? new Date(parsed).toISOString() : value;
+};
+
 const offsetDate = (value, days) => {
   const parsed = Date.parse(value);
   if (!Number.isFinite(parsed)) return value;
   const date = new Date(parsed);
   date.setDate(date.getDate() + days);
   return date.toISOString();
-};
-
-const offsetMinutes = (value, minutes) => {
-  const parsed = Date.parse(value);
-  if (!Number.isFinite(parsed)) return value;
-  return new Date(parsed + minutes * 60_000).toISOString();
 };
 
 export function buildSeededPlanActivity(plan, opportunity, decision) {
@@ -112,24 +111,30 @@ export function buildSeededPlanActivity(plan, opportunity, decision) {
     description: decision.returnedAmount > 0
       ? `S$${(decision.allocations.find((allocation) => allocation.planId === plan.id)?.amount ?? 0).toLocaleString("en-SG")} was applied to ${plan.goalName} and S$${decision.returnedAmount.toLocaleString("en-SG")} was returned to your ${decision.sourceAccount}.`
       : `${opportunity.title} has been applied successfully.`,
-    timestamp: offsetMinutes(decision.decidedAt, 2),
+    timestamp: decision.decidedAt,
     status: "completed",
   });
-  return events;
+  return events.map((event) => ({ ...event, timestamp: normalizeTimestamp(event.timestamp) }));
 }
 
 export function getPlanActivity({ plan, opportunity, decision, runtimeEvents = [] }) {
   const byId = new Map();
   [...buildSeededPlanActivity(plan, opportunity, decision), ...runtimeEvents]
     .filter((event) => event.planId === plan.id)
-    .forEach((event) => byId.set(event.id, event));
+    .forEach((event) => byId.set(event.id, { ...event, timestamp: normalizeTimestamp(event.timestamp) }));
   return [...byId.values()].sort((a, b) => {
     const aDate = dateValue(a.timestamp);
     const bDate = dateValue(b.timestamp);
     if (aDate !== bDate) return bDate - aDate;
 
-    // Deterministic fallback for legacy records that only contain a calendar date.
-    const lifecycleRank = { completed: 3, accepted: 2, identified: 1 };
-    return (lifecycleRank[b.status] ?? 0) - (lifecycleRank[a.status] ?? 0);
+    const lifecycleRank = (event) => {
+      if (["completion", "adjustment", "saving"].includes(event.type) || event.status === "completed") return 4;
+      if (["accepted", "declined"].includes(event.status) || event.type === "decision") return 3;
+      if (["identified", "needs review", "assessed"].includes(event.status)) return 2;
+      if (event.type === "created") return 1;
+      return 0;
+    };
+    const rankDifference = lifecycleRank(b) - lifecycleRank(a);
+    return rankDifference || String(b.id).localeCompare(String(a.id));
   });
 }
