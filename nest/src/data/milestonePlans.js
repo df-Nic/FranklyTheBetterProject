@@ -85,10 +85,10 @@ const savingsPlan = {
   onTrack: { expected: 31500, saved: 32800 },
   milestones: [
     { id: "created", name: "Goal Created", date: "21 Jul 2026", state: "completed" },
-    { id: "initial", name: "Initial Deposit Ready", date: "Oct 2026", state: "completed" },
-    { id: "quarter", name: "25% Funded", date: "Jan 2028", state: "next" },
-    { id: "halfway", name: "Halfway Funded", date: "Jul 2029", state: "upcoming" },
-    { id: "ready", name: "Downpayment Ready", date: "Aug 2030", state: "goal" },
+    { id: "initial", name: "Initial Deposit Ready", date: "Jul 2026", amount: 40000, state: "next" },
+    { id: "quarter", name: "25% Funded", date: "Jan 2028", amount: 125000, state: "upcoming" },
+    { id: "halfway", name: "Halfway Funded", date: "Jul 2029", amount: 250000, state: "upcoming" },
+    { id: "ready", name: "Downpayment Ready", date: "Aug 2030", amount: 500000, state: "goal" },
   ],
   impact: { additionalSavings: 1860, timeSaved: "5.2 hrs", opportunitiesActedOn: 3 },
 };
@@ -344,6 +344,52 @@ export function getJourneyProgressPosition(progress = 0) {
     x: a.x + (b.x - a.x) * mix,
     y: a.y + (b.y - a.y) * mix,
   };
+}
+
+export function getFundingJourneyProgress(milestones, savedAmount, targetAmount) {
+  const fallback = Math.min(1, Math.max(0, savedAmount / Math.max(targetAmount || 0, 1)));
+  if (!milestones?.length || !milestones.some((milestone) => Number.isFinite(milestone.amount))) {
+    return fallback;
+  }
+
+  const thresholds = milestones
+    .map((milestone, index) => ({
+      index,
+      amount: Number.isFinite(milestone.amount) ? milestone.amount : index === 0 ? 0 : null,
+    }))
+    .filter((milestone) => milestone.amount !== null);
+  if (thresholds.length < 2) return fallback;
+  if (savedAmount >= thresholds[thresholds.length - 1].amount) return 1;
+
+  for (let index = 1; index < thresholds.length; index += 1) {
+    const previous = thresholds[index - 1];
+    const next = thresholds[index];
+    if (savedAmount <= next.amount) {
+      const segmentSize = Math.max(1, next.amount - previous.amount);
+      const segmentProgress = Math.min(1, Math.max(0, (savedAmount - previous.amount) / segmentSize));
+      const visualIndex = previous.index + (next.index - previous.index) * segmentProgress;
+      return visualIndex / Math.max(milestones.length - 1, 1);
+    }
+  }
+  return fallback;
+}
+
+export function applyFundingMilestoneStates(milestones, savedAmount) {
+  if (!milestones.some((milestone) => Number.isFinite(milestone.amount))) {
+    return milestones.map((milestone) => ({ ...milestone }));
+  }
+  let nextAssigned = false;
+  return milestones.map((milestone, index) => {
+    if (!Number.isFinite(milestone.amount)) return { ...milestone };
+    if (savedAmount >= milestone.amount) return { ...milestone, state: "completed" };
+    const isGoal = index === milestones.length - 1 || milestone.state === "goal";
+    if (isGoal) return { ...milestone, state: "goal" };
+    if (!nextAssigned) {
+      nextAssigned = true;
+      return { ...milestone, state: "next" };
+    }
+    return { ...milestone, state: "upcoming" };
+  });
 }
 
 export function getCurrentMilestoneIndex(milestones) {

@@ -26,10 +26,11 @@ const TAG_STYLES = {
   goal: "bg-[#F3ECE1] text-[#8A7F72]",
 };
 
-export default function MilestoneNode({ milestone, position, previousDate }) {
+export default function MilestoneNode({ milestone, position, previousDate, previousState }) {
   const reduce = useReducedMotion();
   const isCurrent = milestone.state === "current" || milestone.state === "next";
   const dateChanged = Boolean(previousDate && previousDate !== milestone.date);
+  const newlyCompleted = previousState && previousState !== "completed" && milestone.state === "completed";
 
   return (
     <div
@@ -37,11 +38,15 @@ export default function MilestoneNode({ milestone, position, previousDate }) {
       style={{ left: `${position.x}%`, top: `${position.y}%` }}
     >
       <div className="relative flex-shrink-0">
-        <div
+        <motion.div
+          animate={newlyCompleted && !reduce
+            ? { scale: [1, 1.45, 1], boxShadow: ["0 2px 5px rgba(0,0,0,0.15)", "0 0 0 7px rgba(46,125,79,0.22)", "0 2px 5px rgba(0,0,0,0.15)"] }
+            : undefined}
+          transition={{ duration: 0.9 }}
           className={`flex h-[26px] w-[26px] items-center justify-center rounded-full shadow-[0_2px_5px_rgba(0,0,0,0.15)] ${DOT_STYLES[milestone.state]}`}
         >
           {milestone.state === "completed" && <Check size={14} strokeWidth={3} color="#fff" />}
-        </div>
+        </motion.div>
 
         {isCurrent && !reduce && (
           <motion.span
@@ -54,7 +59,7 @@ export default function MilestoneNode({ milestone, position, previousDate }) {
       </div>
 
       <motion.div
-        animate={dateChanged && !reduce
+        animate={(dateChanged || newlyCompleted) && !reduce
           ? { scale: [1, 1.04, 1], boxShadow: ["0 3px 12px rgba(62,39,25,0.14)", "0 0 0 4px rgba(200,138,46,0.28)", "0 3px 12px rgba(62,39,25,0.14)"] }
           : undefined}
         transition={{ duration: 1.15, delay: 0.15 }}

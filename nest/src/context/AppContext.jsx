@@ -107,10 +107,10 @@ export const AppProvider = ({ children }) => {
       paymentStrategy: 'staggered',
       milestones: [
         { id: 'created', name: 'Goal Created', date: '12 Jan 2026', state: 'completed' },
-        { id: 'initial', name: 'Initial Deposit Ready', date: '18 Mar 2026', state: 'completed' },
-        { id: 'quarter', name: '25% Funded', date: 'Jan 2028', state: 'next' },
-        { id: 'halfway', name: 'Halfway Funded', date: 'Jul 2029', state: 'upcoming' },
-        { id: 'ready', name: 'Downpayment Ready', date: 'Aug 2030', state: 'goal' },
+        { id: 'initial', name: 'Initial Deposit Ready', date: 'Jul 2026', amount: 40000, state: 'next' },
+        { id: 'quarter', name: '25% Funded', date: 'Jan 2028', amount: 125000, state: 'upcoming' },
+        { id: 'halfway', name: 'Halfway Funded', date: 'Jul 2029', amount: 250000, state: 'upcoming' },
+        { id: 'ready', name: 'Downpayment Ready', date: 'Aug 2030', amount: 500000, state: 'goal' },
       ],
     },
   });
