@@ -35,11 +35,22 @@ const ACTION_ELABORATIONS = {
 
   // Housing / Savings
   sav_cpf_grant: "Unlocks maximum state grants to reduce your loan downpayment.",
+  sav_ehg_grant: "Access up to S$80,000 in Enhanced Housing Grants credited to CPF OA.",
   sav_hdb_loan: "Locks in concessionary rates to keep mortgage payments predictable.",
   sav_ocbc360: "High-yield daily-liquid cash account for your short-term savings.",
+  sav_bonus_plus: "High-yield savings with zero withdrawal penalties for downpayments.",
   sav_fd_promo: "Locks in promotional yields risk-free for your upcoming downpayment.",
   sav_tbills: "Captures safe, state-backed yield higher than normal savings accounts.",
   sav_mmf: "Maintains yield near T-Bills but keeps cash 100% flexible for withdrawals.",
+
+  // Condo & Landed Housing
+  sav_ocbc_ecogreen: "Secures green mortgage rate-caps with zero legal fee subsidy.",
+  sav_premier_deposit: "Earns top-tier premier interest on liquid downpayment capital.",
+  sav_foreign_deposit: "Diversifies idle treasury cash into high-yielding USD/AUD notes.",
+  sav_landed_loan: "Custom landed property mortgage structuring at competitive rates.",
+  sav_equity_loan: "Unlocks existing equity buffers to finance property acquisition.",
+  sav_robo_growth: "Accelerates wealth accumulation via high-growth global portfolios.",
+  sav_global_core: "Compounds global core equity returns for long-term property capital.",
 
   // Housing / Savings Alternatives
   sav_ocbc_boostshield: "Earns high bonus interest without requiring salary credit.",

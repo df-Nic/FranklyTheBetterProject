@@ -55,17 +55,48 @@ export const GOAL_ESTIMATION_QUESTIONS = {
   ],
   housing: [
     {
+      id: "propertyType",
+      prompt: "What type of property are you planning to purchase?",
+      options: [
+        { value: "hdb", label: "HDB (BTO)", detail: "Public housing with staggered downpayments" },
+        { value: "condo", label: "Condominium", detail: "Private condo or EC with bank financing" },
+        { value: "landed", label: "Landed Property", detail: "Freehold/leasehold landed title" },
+      ],
+    },
+    {
       id: "flatType",
-      prompt: "What type of flat are you considering?",
+      prompt: "What flat size are you considering?",
+      when: (answers) => !answers.propertyType || answers.propertyType === "hdb",
       options: [
         { value: "bto3", label: "BTO 3-room", detail: "About S$300,000" },
         { value: "bto4", label: "BTO 4-room", detail: "About S$420,000" },
-        { value: "resale", label: "Resale flat", detail: "2025 median S$628,000" },
+        { value: "bto5", label: "BTO 5-room / Prime", detail: "About S$650,000" },
+      ],
+    },
+    {
+      id: "condoTier",
+      prompt: "What tier of condo are you considering?",
+      when: (answers) => answers.propertyType === "condo",
+      options: [
+        { value: "ec", label: "Executive Condo (EC)", detail: "About S$1,200,000" },
+        { value: "private2b", label: "Suburban 2-3 Bedder Condo", detail: "About S$1,800,000" },
+        { value: "luxury", label: "Core Central Luxury Condo", detail: "About S$3,200,000" },
+      ],
+    },
+    {
+      id: "landedTier",
+      prompt: "What landed home category are you preparing for?",
+      when: (answers) => answers.propertyType === "landed",
+      options: [
+        { value: "terrace", label: "Terrace House", detail: "About S$3,500,000" },
+        { value: "semid", label: "Semi-Detached House", detail: "About S$6,000,000" },
+        { value: "bungalow", label: "Bungalow / GCBA", detail: "About S$12,000,000" },
       ],
     },
     {
       id: "loanType",
-      prompt: "Which loan type are you considering?",
+      prompt: "Which loan option are you considering?",
+      when: (answers) => !answers.propertyType || answers.propertyType === "hdb",
       options: [
         { value: "hdb", label: "HDB loan", detail: "20% downpayment" },
         { value: "bank", label: "Bank loan", detail: "25% downpayment" },
@@ -75,8 +106,8 @@ export const GOAL_ESTIMATION_QUESTIONS = {
       id: "ownership",
       prompt: "Will you buy jointly or on your own?",
       options: [
-        { value: "joint", label: "Joint", detail: "Your half of the downpayment" },
-        { value: "solo", label: "Solo", detail: "Full downpayment" },
+        { value: "joint", label: "Joint", detail: "Your half of the target fund" },
+        { value: "solo", label: "Solo", detail: "Full target fund" },
       ],
     },
   ],
@@ -204,14 +235,31 @@ export function estimateGoalAmount(planId, answers) {
   }
 
   if (planId === "housing") {
-    const propertyPrice = { bto3: 300000, bto4: 420000, resale: 628000 }[answers.flatType];
-    if (!propertyPrice) return null;
-    const downpaymentRate = answers.loanType === "bank" ? 0.25 : 0.2;
+    const propType = answers.propertyType || "hdb";
+    let propertyPrice = 0;
+    let downpaymentRate = 0.25;
+    let desc = "";
+
+    if (propType === "condo") {
+      propertyPrice = { ec: 1200000, private2b: 1800000, luxury: 3200000 }[answers.condoTier] || 1800000;
+      downpaymentRate = 0.25;
+      desc = answers.condoTier === "ec" ? "Executive Condo (EC)" : answers.condoTier === "luxury" ? "Core Central Luxury Condo" : "Suburban 2-3 Bedder Condo";
+    } else if (propType === "landed") {
+      propertyPrice = { terrace: 3500000, semid: 6000000, bungalow: 12000000 }[answers.landedTier] || 3500000;
+      downpaymentRate = 0.25;
+      desc = answers.landedTier === "bungalow" ? "Bungalow / GCBA" : answers.landedTier === "semid" ? "Semi-Detached House" : "Terrace House";
+    } else {
+      propertyPrice = { bto3: 300000, bto4: 420000, bto5: 650000 }[answers.flatType] || 500000;
+      downpaymentRate = answers.loanType === "bank" ? 0.25 : 0.20;
+      desc = answers.flatType === "bto5" ? "BTO 5-room / Prime flat" : answers.flatType === "bto3" ? "BTO 3-room flat" : "BTO 4-room flat";
+    }
+
     const fullDownpayment = propertyPrice * downpaymentRate;
-    const amount = answers.ownership === "joint" ? fullDownpayment / 2 : fullDownpayment;
+    const amount = roundToThousand(answers.ownership === "joint" ? fullDownpayment / 2 : fullDownpayment);
     return {
       amount,
-      summary: `${Math.round(downpaymentRate * 100)}% downpayment on a ${answers.flatType === "resale" ? "resale flat" : answers.flatType === "bto4" ? "BTO 4-room flat" : "BTO 3-room flat"}${answers.ownership === "joint" ? ", showing your half" : ""}.`,
+      propertyType: propType,
+      summary: `${Math.round(downpaymentRate * 100)}% downpayment target for a ${desc}${answers.ownership === "joint" ? ", showing your half" : ""}.`,
     };
   }
 

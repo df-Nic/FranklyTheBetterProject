@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useApp } from '../context/AppContext';
+import { useApp, getHousingSubgoals } from '../context/AppContext';
 import {
   ArrowLeft,
   Calendar,
@@ -136,51 +136,56 @@ const PlanDetailsPage = () => {
     pendingExcluded,
     setPendingExcluded,
     appliedExcluded,
-    setAppliedExcluded
+    setAppliedExcluded,
+    housingPropertyType,
   } = useApp();
 
   // 1. Identify active plan template — prefer activePlanId (precise), fall back to fuzzy title match
   const getActivePlan = () => {
-    if (activePlanId && PLANS_DATA[activePlanId]) return PLANS_DATA[activePlanId];
-    // Legacy fuzzy title-based fallback
-    const title = (activePlanTitle || '').toLowerCase();
-    const scores = {
-      'retirement': 0,
-      'wedding-fund': 0,
-      'housing': 0,
-      'savings': 0,
-      'emergency': 0,
-      'children-education': 0,
-      'career-break': 0,
-      'parents-retirement': 0
-    };
+    let resolvedId = activePlanId;
+    if (!resolvedId) {
+      const title = (activePlanTitle || '').toLowerCase();
+      const scores = {
+        'retirement': 0,
+        'wedding-fund': 0,
+        'housing': 0,
+        'savings': 0,
+        'emergency': 0,
+        'children-education': 0,
+        'career-break': 0,
+        'parents-retirement': 0
+      };
 
-    if (title.includes('retire') || title.includes('retirement')) {
-      if (title.includes('parent') || title.includes('father') || title.includes('mother') || title.includes('parents')) {
-        scores['parents-retirement'] += 10;
-      } else {
-        scores['retirement'] += 10;
+      if (title.includes('retire') || title.includes('retirement')) {
+        if (title.includes('parent') || title.includes('father') || title.includes('mother') || title.includes('parents')) {
+          scores['parents-retirement'] += 10;
+        } else {
+          scores['retirement'] += 10;
+        }
+      }
+      if (title.includes('wed') || title.includes('wedding') || title.includes('marry') || title.includes('marriage')) scores['wedding-fund'] += 10;
+      if (title.includes('emerg') || title.includes('emergency')) scores['emergency'] += 10;
+      if (title.includes('hdb') || title.includes('bto') || title.includes('condo') || title.includes('condominium') || title.includes('landed') || title.includes('terrace') || title.includes('bungalow') || title.includes('semi-d') || title.includes('semid') || title.includes('downpayment') || title.includes('flat') || title.includes('house') || title.includes('housing') || title.includes('property')) scores['housing'] += 10;
+      if (title.includes('save') || title.includes('savings') || title.includes('vault') || title.includes('buffer')) scores['savings'] += 10;
+      if (title.includes('child') || title.includes('children') || title.includes('education') || title.includes('school') || title.includes('uni') || title.includes('university') || title.includes('tuition')) scores['children-education'] += 10;
+      if (title.includes('career') || title.includes('break') || title.includes('sabbatical') || title.includes('transition')) scores['career-break'] += 10;
+      if (title.includes('parent') || title.includes('parents') || title.includes('elderly')) scores['parents-retirement'] += 10;
+
+      let highestScore = 0;
+
+      for (const [planId, score] of Object.entries(scores)) {
+        if (score > highestScore) {
+          highestScore = score;
+          resolvedId = planId;
+        }
       }
     }
-    if (title.includes('wed') || title.includes('wedding') || title.includes('marry') || title.includes('marriage')) scores['wedding-fund'] += 10;
-    if (title.includes('emerg') || title.includes('emergency')) scores['emergency'] += 10;
-    if (title.includes('hdb') || title.includes('downpayment') || title.includes('flat') || title.includes('house') || title.includes('housing') || title.includes('property')) scores['housing'] += 10;
-    if (title.includes('save') || title.includes('savings') || title.includes('vault') || title.includes('buffer')) scores['savings'] += 10;
-    if (title.includes('child') || title.includes('children') || title.includes('education') || title.includes('school') || title.includes('uni') || title.includes('university') || title.includes('tuition')) scores['children-education'] += 10;
-    if (title.includes('career') || title.includes('break') || title.includes('sabbatical') || title.includes('transition')) scores['career-break'] += 10;
-    if (title.includes('parent') || title.includes('parents') || title.includes('elderly')) scores['parents-retirement'] += 10;
 
-    let highestScore = 0;
-    let resolvedId = 'default';
-
-    for (const [planId, score] of Object.entries(scores)) {
-      if (score > highestScore) {
-        highestScore = score;
-        resolvedId = planId;
-      }
+    if (resolvedId === 'housing' && PLANS_DATA.housing?.getByType) {
+      return PLANS_DATA.housing.getByType(housingPropertyType || 'hdb');
     }
 
-    if (resolvedId !== 'default' && PLANS_DATA[resolvedId]) {
+    if (resolvedId && PLANS_DATA[resolvedId]) {
       return PLANS_DATA[resolvedId];
     }
     return PLANS_DATA.default;
@@ -251,7 +256,9 @@ const PlanDetailsPage = () => {
         date: sub.date
       })));
     } else {
-      const baseSubgoals = INITIAL_PLAN_SUBGOALS[activePlan.id] || INITIAL_PLAN_SUBGOALS['default'];
+      const baseSubgoals = activePlan.id === 'housing'
+        ? getHousingSubgoals(housingPropertyType || 'hdb', userPlanMeta.targetAmount || 500000, userPlanMeta.targetDate || 'Aug 2030')
+        : (INITIAL_PLAN_SUBGOALS[activePlan.id] || INITIAL_PLAN_SUBGOALS['default']);
       const targetAmountVal = userPlanMeta.targetAmount ? Number(userPlanMeta.targetAmount) : null;
 
       if (targetAmountVal && baseSubgoals.length > 0) {
@@ -287,7 +294,7 @@ const PlanDetailsPage = () => {
         setSubgoals(baseSubgoals);
       }
     }
-  }, [activePlanTitle, activePlan, isConfirmedBreakdown, userPlanMeta]);
+  }, [activePlan, isConfirmedBreakdown, userPlanMeta.confirmedSubgoals, userPlanMeta.subgoals, userPlanMeta.targetAmount, userPlanMeta.targetDate, housingPropertyType]);
 
   // Extract target numerical plan amount from user meta or goal string
   const getTargetPlanAmount = (plan) => {
@@ -958,6 +965,13 @@ const PlanDetailsPage = () => {
                   <Coins className="w-3.5 h-3.5 text-indigo-600" />
                   <span className="text-[10px] font-extrabold tracking-tight">
                     Target Goal: {displayGoalAmount}
+                  </span>
+                </div>
+              )}
+              {activePlan.id === 'housing' && (
+                <div className="flex items-center gap-1.5 py-1.5 px-3 bg-amber-50/90 rounded-full border border-amber-200/80 text-amber-900 shadow-2xs">
+                  <span className="text-[10px] font-extrabold tracking-tight">
+                    {housingPropertyType === 'condo' ? 'Condominium' : housingPropertyType === 'landed' ? 'Landed Property' : 'HDB (BTO)'}
                   </span>
                 </div>
               )}

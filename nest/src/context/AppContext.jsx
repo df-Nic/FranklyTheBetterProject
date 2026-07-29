@@ -4,11 +4,31 @@ import { getPlanOpportunity } from '../data/planOpportunities';
 
 const AppContext = createContext();
 
-const DEMO_HOUSING_SUBGOALS = [
-  { id: 1, name: 'First down payment', amount: 125000, date: 'Dec 2027' },
-  { id: 2, name: 'Second down payment', amount: 175000, date: 'Dec 2028' },
-  { id: 3, name: 'Rest of the housing loan', amount: 200000, date: 'Aug 2030' },
-];
+export const getHousingSubgoals = (propertyType = 'hdb', targetAmount = 500000, targetDate = 'Aug 2030') => {
+  const amt = Number(targetAmount) || 500000;
+  if (propertyType === 'condo') {
+    return [
+      { id: 1, name: "OTP Booking Cash Deposit", amount: Math.round(amt * 0.20), date: "Dec 2027" },
+      { id: 2, name: "S&P Agreement & Stamp Duties (BSD)", amount: Math.round(amt * 0.35), date: "Dec 2028" },
+      { id: 3, name: "Full Mortgage Payoff & Condo Ownership", amount: Math.round(amt * 0.45), date: targetDate }
+    ];
+  }
+  if (propertyType === 'landed') {
+    return [
+      { id: 1, name: "OTP Booking Cash Deposit", amount: Math.round(amt * 0.15), date: "Dec 2027" },
+      { id: 2, name: "Full Downpayment & Stamp Duty (BSD)", amount: Math.round(amt * 0.40), date: "Dec 2028" },
+      { id: 3, name: "Full Mortgage Settlement & Landed Title", amount: Math.round(amt * 0.45), date: targetDate }
+    ];
+  }
+  // Default HDB (BTO)
+  return [
+    { id: 1, name: "First down payment (Agreement to Lease)", amount: Math.round(amt * 0.25), date: "Dec 2027" },
+    { id: 2, name: "Second down payment (Key Collection)", amount: Math.round(amt * 0.35), date: "Dec 2028" },
+    { id: 3, name: "Full Home Ownership & Mortgage Cleared", amount: Math.round(amt * 0.40), date: targetDate }
+  ];
+};
+
+const DEMO_HOUSING_SUBGOALS = getHousingSubgoals('hdb', 500000, 'Aug 2030');
 
 const getMonthsUntil = (targetDate) => {
   const parsed = new Date(targetDate);
@@ -70,6 +90,7 @@ export const AppProvider = ({ children }) => {
   }, [activePlanId]);
 
   const [hasCreatedFirstPlan, setHasCreatedFirstPlan] = useState(false);
+  const [housingPropertyType, setHousingPropertyType] = useState('hdb'); // 'hdb' | 'condo' | 'landed'
   const [riskProfile, setRiskProfile] = useState('Balanced');
   const [hasAssessedRisk, setHasAssessedRisk] = useState(false);
   const [planDetailOrigin, setPlanDetailOrigin] = useState('home'); // 'home' | 'plan-dashboard'
@@ -77,6 +98,7 @@ export const AppProvider = ({ children }) => {
   const [opportunityNotice, setOpportunityNotice] = useState(null);
   const [planAdjustments, setPlanAdjustments] = useState({
     housing: {
+      propertyType: 'hdb',
       targetAmount: 500000,
       goalDate: 'Aug 2030',
       monthlyContribution: 2500,
@@ -502,6 +524,8 @@ export const AppProvider = ({ children }) => {
         addCreatedPlan,
         hasCreatedFirstPlan,
         setHasCreatedFirstPlan,
+        housingPropertyType,
+        setHousingPropertyType,
         riskProfile,
         setRiskProfile,
         hasAssessedRisk,

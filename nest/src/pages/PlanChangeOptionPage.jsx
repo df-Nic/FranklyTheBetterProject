@@ -509,11 +509,15 @@ const PlanChangeOptionPage = () => {
     setPendingExcluded,
     customPlanData,
     planDrafts,
-    riskProfile
+    riskProfile,
+    housingPropertyType
   } = useApp();
 
   const getActivePlan = () => {
-    const basePlan = (activePlanId && PLANS_DATA[activePlanId]) ? PLANS_DATA[activePlanId] : PLANS_DATA.default;
+    let basePlan = (activePlanId && PLANS_DATA[activePlanId]) ? PLANS_DATA[activePlanId] : PLANS_DATA.default;
+    if (activePlanId === 'housing' && PLANS_DATA.housing?.getByType) {
+      basePlan = PLANS_DATA.housing.getByType(housingPropertyType || 'hdb');
+    }
     const planMeta = (activePlanId && customPlanData[activePlanId]) || (activePlanId && planDrafts[activePlanId]) || {};
     return {
       ...basePlan,
