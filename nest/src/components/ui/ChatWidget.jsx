@@ -6,12 +6,26 @@ import { useApp } from '../../context/AppContext';
 import { PLANS_DATA } from '../../data/planTemplates';
 import { estimateGoalAmount, getGoalEstimationQuestions, supportsGuidedEstimate } from '../../data/goalEstimators';
 
-const PLAN_SUBGOALS = {
-  'housing': [
-    { name: "First down payment", pct: 0.25, icon: "Coins" },
-    { name: "Second down payment", pct: 0.35, icon: "TrendingUp" },
-    { name: "Rest of the housing loan", pct: 0.40, icon: "Gift" }
+const HOUSING_SUBGOALS_BY_TYPE = {
+  hdb: [
+    { name: "First down payment (Agreement to Lease)", pct: 0.25, icon: "Coins" },
+    { name: "Second down payment (Key Collection)", pct: 0.35, icon: "TrendingUp" },
+    { name: "Full Home Ownership & Mortgage Cleared", pct: 0.40, icon: "Gift" }
   ],
+  condo: [
+    { name: "OTP Booking Cash Deposit (5%)", pct: 0.20, icon: "Coins" },
+    { name: "S&P Agreement & Stamp Duties (BSD)", pct: 0.35, icon: "TrendingUp" },
+    { name: "Full Mortgage Payoff & Condo Ownership", pct: 0.45, icon: "Gift" }
+  ],
+  landed: [
+    { name: "OTP Booking Cash Deposit (5%)", pct: 0.15, icon: "Coins" },
+    { name: "Full Downpayment & Stamp Duty (BSD)", pct: 0.40, icon: "TrendingUp" },
+    { name: "Full Mortgage Settlement & Landed Title", pct: 0.45, icon: "Gift" }
+  ]
+};
+
+const PLAN_SUBGOALS = {
+  'housing': HOUSING_SUBGOALS_BY_TYPE.hdb,
   'savings': [
     { name: "Emergency Buffer Deposit Goal", pct: 0.30, icon: "Coins" },
     { name: "High-Yield Vault Target", pct: 0.30, icon: "TrendingUp" },
@@ -74,7 +88,7 @@ const EDUCATION_STAGE_SUBGOALS = {
 };
 
 const ChatWidget = () => {
-  const { setPage, setClickPos, setActivePlanTitle, setActivePlanId, setPlanDetailOrigin, hasCreatedFirstPlan, setHasCreatedFirstPlan, updatePlanDraft, discardPlanDraft, planChatRequest, consumePlanChatRequest } = useApp();
+  const { setPage, setClickPos, setActivePlanTitle, setActivePlanId, setPlanDetailOrigin, hasCreatedFirstPlan, setHasCreatedFirstPlan, updatePlanDraft, discardPlanDraft, planChatRequest, consumePlanChatRequest, housingPropertyType, setHousingPropertyType } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -85,6 +99,7 @@ const ChatWidget = () => {
   // Conversational planning flow states
   const [flowState, setFlowState] = useState('idle');
   const [planGoal, setPlanGoal] = useState(null);
+  const [selectedPropertyType, setSelectedPropertyType] = useState('hdb');
   const [planTitle, setPlanTitle] = useState('');
   const [targetAmount, setTargetAmount] = useState(0);
   const [targetDate, setTargetDate] = useState('');
@@ -101,7 +116,7 @@ const ChatWidget = () => {
   const inferDefaults = (planId) => {
     const defaults = {
       retirement: [1500000, 'Oct 2045', 2400],
-      housing: [150000, 'Mar 2028', 2500],
+      housing: [500000, 'Aug 2030', 2500],
       savings: [50000, 'Jan 2030', 900],
       emergency: [30000, 'Dec 2026', 4000],
       'wedding-fund': [35000, 'Dec 2027', 1200],
@@ -252,11 +267,39 @@ const ChatWidget = () => {
     }
   ]);
 
+  const handleSelectHousingPropertyType = (propType) => {
+    setSelectedPropertyType(propType);
+    setHousingPropertyType(propType);
+    setEstimationAnswers(prev => ({ ...prev, propertyType: propType }));
+    const titleMap = {
+      hdb: 'OCBC HDB (BTO) Housing Plan',
+      condo: 'OCBC Condominium Housing Plan',
+      landed: 'OCBC Landed Property Plan',
+    };
+    const title = titleMap[propType] || 'OCBC Housing Plan';
+    setPlanTitle(title);
+    setMessages(prev => [
+      ...prev,
+      { id: Date.now(), sender: 'user', text: propType === 'hdb' ? 'HDB (BTO)' : propType === 'condo' ? 'Condominium' : 'Landed Property' },
+      {
+        id: Date.now() + 1,
+        sender: 'bot',
+        text: (
+          <span>
+            Great! Let's build your strategy for: <span className="text-brand-primary font-black">"{title}"</span>. What is the total target financial amount or budget you'll need? (If you're not sure, reply <span className="text-brand-primary font-black font-mono">"not sure"</span> for guided estimation).
+          </span>
+        ),
+      }
+    ]);
+    setFlowState('asking_amount');
+  };
+
   const restartPlanningFlow = () => {
     flowSessionRef.current += 1;
     discardPlanDraft(planGoal);
     setFlowState('idle');
     setPlanGoal(null);
+    setSelectedPropertyType('hdb');
     setPlanTitle('');
     setTargetAmount(0);
     setTargetDate('');
@@ -623,7 +666,7 @@ const ChatWidget = () => {
     }
     if (t.includes('wed') || t.includes('wedding') || t.includes('marry') || t.includes('marriage')) scores['wedding-fund'] += 10;
     if (t.includes('emerg') || t.includes('emergency')) scores['emergency'] += 10;
-    if (t.includes('hdb') || t.includes('downpayment') || t.includes('flat') || t.includes('house') || t.includes('housing') || t.includes('property')) scores['housing'] += 10;
+    if (t.includes('hdb') || t.includes('bto') || t.includes('condo') || t.includes('condominium') || t.includes('landed') || t.includes('terrace') || t.includes('bungalow') || t.includes('semi-d') || t.includes('semid') || t.includes('downpayment') || t.includes('flat') || t.includes('house') || t.includes('housing') || t.includes('property')) scores['housing'] += 10;
     if (t.includes('save') || t.includes('savings') || t.includes('vault') || t.includes('buffer')) scores['savings'] += 10;
     if (t.includes('child') || t.includes('children') || t.includes('education') || t.includes('school') || t.includes('uni') || t.includes('university') || t.includes('tuition')) scores['children-education'] += 10;
     if (t.includes('career') || t.includes('break') || t.includes('sabbatical') || t.includes('transition')) scores['career-break'] += 10;
@@ -767,9 +810,62 @@ const ChatWidget = () => {
 
       if (flowState === 'idle') {
         const planId = resolvePlanId(trimmed);
-        const planObj = PLANS_DATA[planId] || PLANS_DATA.default;
-
         setPlanGoal(planId);
+
+        if (planId === 'housing') {
+          const lower = trimmed.toLowerCase();
+          let explicitType = null;
+          if (lower.includes('bto') || lower.includes('hdb') || lower.includes('public')) {
+            explicitType = 'hdb';
+          } else if (lower.includes('condo') || lower.includes('condominium') || lower.includes('private')) {
+            explicitType = 'condo';
+          } else if (lower.includes('landed') || lower.includes('terrace') || lower.includes('bungalow') || lower.includes('semi-d') || lower.includes('semid')) {
+            explicitType = 'landed';
+          }
+
+          if (explicitType) {
+            setSelectedPropertyType(explicitType);
+            setHousingPropertyType(explicitType);
+            setEstimationAnswers(prev => ({ ...prev, propertyType: explicitType }));
+            const titleMap = {
+              hdb: 'OCBC HDB (BTO) Housing Plan',
+              condo: 'OCBC Condominium Housing Plan',
+              landed: 'OCBC Landed Property Plan',
+            };
+            const title = titleMap[explicitType] || 'OCBC Housing Plan';
+            setPlanTitle(title);
+            setMessages(prev => [
+              ...prev,
+              {
+                id: Date.now(),
+                sender: 'bot',
+                text: (
+                  <span>
+                    Great choice! Let's build your custom strategy for: <span className="text-brand-primary font-black">"{title}"</span>. To start, <span className="text-brand-primary font-black">what is the total target financial amount or budget you'll need?</span>
+                  </span>
+                )
+              }
+            ]);
+            setFlowState('asking_amount');
+          } else {
+            setMessages(prev => [
+              ...prev,
+              {
+                id: Date.now(),
+                sender: 'bot',
+                text: (
+                  <span>
+                    Great! What type of property are you planning to purchase? <span className="text-brand-primary font-black">Select one of the 3 property categories below to customize your plan.</span>
+                  </span>
+                )
+              }
+            ]);
+            setFlowState('asking_property_type');
+          }
+          return;
+        }
+
+        const planObj = PLANS_DATA[planId] || PLANS_DATA.default;
         setPlanTitle(planObj.title);
 
         setMessages(prev => [
@@ -885,10 +981,12 @@ const ChatWidget = () => {
 
         const planObj = PLANS_DATA[planGoal] || PLANS_DATA.default;
 
-        // Check if there are subgoals configured for this plan type
+        const activePropType = selectedPropertyType || housingPropertyType || 'hdb';
         const subgoals = planGoal === 'children-education'
           ? (EDUCATION_STAGE_SUBGOALS[estimationAnswers.educationStage] || PLAN_SUBGOALS[planGoal] || PLAN_SUBGOALS.savings)
-          : (PLAN_SUBGOALS[planGoal] || PLAN_SUBGOALS.savings);
+          : planGoal === 'housing'
+            ? (HOUSING_SUBGOALS_BY_TYPE[activePropType] || HOUSING_SUBGOALS_BY_TYPE.hdb)
+            : (PLAN_SUBGOALS[planGoal] || PLAN_SUBGOALS.savings);
         let messagePayload = {
           id: Date.now(),
           sender: 'bot',
@@ -1251,6 +1349,33 @@ const ChatWidget = () => {
                       Start over
                     </button>
                   </div>
+                </div>
+              ) : flowState === 'asking_property_type' ? (
+                <div className="grid w-full grid-cols-3 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleSelectHousingPropertyType('hdb')}
+                    className="flex flex-col items-center justify-center p-2 rounded-xl border border-zinc-200 bg-white hover:border-brand-primary/40 active:scale-95 shadow-sm transition-all"
+                  >
+                    <span className="text-[10px] font-black text-zinc-800">HDB (BTO)</span>
+                    <span className="text-[8px] text-zinc-400 font-medium text-center">Public / BTO</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSelectHousingPropertyType('condo')}
+                    className="flex flex-col items-center justify-center p-2 rounded-xl border border-zinc-200 bg-white hover:border-brand-primary/40 active:scale-95 shadow-sm transition-all"
+                  >
+                    <span className="text-[10px] font-black text-zinc-800">Condo</span>
+                    <span className="text-[8px] text-zinc-400 font-medium text-center">Private / EC</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSelectHousingPropertyType('landed')}
+                    className="flex flex-col items-center justify-center p-2 rounded-xl border border-zinc-200 bg-white hover:border-brand-primary/40 active:scale-95 shadow-sm transition-all"
+                  >
+                    <span className="text-[10px] font-black text-zinc-800">Landed</span>
+                    <span className="text-[8px] text-zinc-400 font-medium text-center">Freehold Title</span>
+                  </button>
                 </div>
               ) : flowState === 'estimating_amount' && currentEstimationQuestion ? (
                 <div className="grid w-full grid-cols-1 gap-1.5">

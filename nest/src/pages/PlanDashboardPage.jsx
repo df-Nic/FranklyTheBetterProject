@@ -231,7 +231,7 @@ const PlanDashboardPage = () => {
           </div>
         </button>
 
-        {createdPlans.length > 0 && !opportunityHandled && !healerPending && (
+        {createdPlans.length > 0 && opportunitySourceAmount > 0 && !opportunityHandled && !healerPending && (
           <button
             onClick={() => {
               setActivePlanId(recommendedPlan?.id ?? createdPlans[0]);

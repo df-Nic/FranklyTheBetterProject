@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useApp } from '../context/AppContext';
+import { useApp, getHousingSubgoals } from '../context/AppContext';
 import {
   ArrowLeft,
   Calendar,
@@ -14,7 +14,8 @@ import {
   Target,
   AlertTriangle,
   CheckCircle2,
-  Coins
+  Coins,
+  ShieldCheck
 } from 'lucide-react';
 import GlassCard from '../components/ui/GlassCard';
 import BackgroundOrb from '../components/ui/BackgroundOrb';
@@ -71,9 +72,9 @@ const buildCanonicalProjection = ({
 // Default subgoals registry mapping matching chat widget proposals
 const INITIAL_PLAN_SUBGOALS = {
   'housing': [
-    { id: 1, name: "First down payment", amount: 37500, date: "Dec 2026" },
-    { id: 2, name: "Second down payment", amount: 52500, date: "Dec 2027" },
-    { id: 3, name: "Rest of the housing loan", amount: 60000, date: "Jun 2028" }
+    { id: 1, name: "First down payment", amount: 125000, date: "Dec 2027" },
+    { id: 2, name: "Second down payment", amount: 175000, date: "Dec 2028" },
+    { id: 3, name: "Rest of the housing loan", amount: 200000, date: "Aug 2030" }
   ],
   'savings': [
     { id: 1, name: "Emergency Buffer Deposit Goal", amount: 15000, date: "Dec 2026" },
@@ -124,6 +125,7 @@ const PlanDetailsPage = () => {
     planDrafts,
     confirmPlan,
     riskProfile,
+    hasAssessedRisk,
     planAdjustments,
     changingAction,
     setChangingAction,
@@ -134,51 +136,56 @@ const PlanDetailsPage = () => {
     pendingExcluded,
     setPendingExcluded,
     appliedExcluded,
-    setAppliedExcluded
+    setAppliedExcluded,
+    housingPropertyType,
   } = useApp();
 
   // 1. Identify active plan template — prefer activePlanId (precise), fall back to fuzzy title match
   const getActivePlan = () => {
-    if (activePlanId && PLANS_DATA[activePlanId]) return PLANS_DATA[activePlanId];
-    // Legacy fuzzy title-based fallback
-    const title = (activePlanTitle || '').toLowerCase();
-    const scores = {
-      'retirement': 0,
-      'wedding-fund': 0,
-      'housing': 0,
-      'savings': 0,
-      'emergency': 0,
-      'children-education': 0,
-      'career-break': 0,
-      'parents-retirement': 0
-    };
+    let resolvedId = activePlanId;
+    if (!resolvedId) {
+      const title = (activePlanTitle || '').toLowerCase();
+      const scores = {
+        'retirement': 0,
+        'wedding-fund': 0,
+        'housing': 0,
+        'savings': 0,
+        'emergency': 0,
+        'children-education': 0,
+        'career-break': 0,
+        'parents-retirement': 0
+      };
 
-    if (title.includes('retire') || title.includes('retirement')) {
-      if (title.includes('parent') || title.includes('father') || title.includes('mother') || title.includes('parents')) {
-        scores['parents-retirement'] += 10;
-      } else {
-        scores['retirement'] += 10;
+      if (title.includes('retire') || title.includes('retirement')) {
+        if (title.includes('parent') || title.includes('father') || title.includes('mother') || title.includes('parents')) {
+          scores['parents-retirement'] += 10;
+        } else {
+          scores['retirement'] += 10;
+        }
+      }
+      if (title.includes('wed') || title.includes('wedding') || title.includes('marry') || title.includes('marriage')) scores['wedding-fund'] += 10;
+      if (title.includes('emerg') || title.includes('emergency')) scores['emergency'] += 10;
+      if (title.includes('hdb') || title.includes('bto') || title.includes('condo') || title.includes('condominium') || title.includes('landed') || title.includes('terrace') || title.includes('bungalow') || title.includes('semi-d') || title.includes('semid') || title.includes('downpayment') || title.includes('flat') || title.includes('house') || title.includes('housing') || title.includes('property')) scores['housing'] += 10;
+      if (title.includes('save') || title.includes('savings') || title.includes('vault') || title.includes('buffer')) scores['savings'] += 10;
+      if (title.includes('child') || title.includes('children') || title.includes('education') || title.includes('school') || title.includes('uni') || title.includes('university') || title.includes('tuition')) scores['children-education'] += 10;
+      if (title.includes('career') || title.includes('break') || title.includes('sabbatical') || title.includes('transition')) scores['career-break'] += 10;
+      if (title.includes('parent') || title.includes('parents') || title.includes('elderly')) scores['parents-retirement'] += 10;
+
+      let highestScore = 0;
+
+      for (const [planId, score] of Object.entries(scores)) {
+        if (score > highestScore) {
+          highestScore = score;
+          resolvedId = planId;
+        }
       }
     }
-    if (title.includes('wed') || title.includes('wedding') || title.includes('marry') || title.includes('marriage')) scores['wedding-fund'] += 10;
-    if (title.includes('emerg') || title.includes('emergency')) scores['emergency'] += 10;
-    if (title.includes('hdb') || title.includes('downpayment') || title.includes('flat') || title.includes('house') || title.includes('housing') || title.includes('property')) scores['housing'] += 10;
-    if (title.includes('save') || title.includes('savings') || title.includes('vault') || title.includes('buffer')) scores['savings'] += 10;
-    if (title.includes('child') || title.includes('children') || title.includes('education') || title.includes('school') || title.includes('uni') || title.includes('university') || title.includes('tuition')) scores['children-education'] += 10;
-    if (title.includes('career') || title.includes('break') || title.includes('sabbatical') || title.includes('transition')) scores['career-break'] += 10;
-    if (title.includes('parent') || title.includes('parents') || title.includes('elderly')) scores['parents-retirement'] += 10;
 
-    let highestScore = 0;
-    let resolvedId = 'default';
-
-    for (const [planId, score] of Object.entries(scores)) {
-      if (score > highestScore) {
-        highestScore = score;
-        resolvedId = planId;
-      }
+    if (resolvedId === 'housing' && PLANS_DATA.housing?.getByType) {
+      return PLANS_DATA.housing.getByType(housingPropertyType || 'hdb');
     }
 
-    if (resolvedId !== 'default' && PLANS_DATA[resolvedId]) {
+    if (resolvedId && PLANS_DATA[resolvedId]) {
       return PLANS_DATA[resolvedId];
     }
     return PLANS_DATA.default;
@@ -249,7 +256,9 @@ const PlanDetailsPage = () => {
         date: sub.date
       })));
     } else {
-      const baseSubgoals = INITIAL_PLAN_SUBGOALS[activePlan.id] || INITIAL_PLAN_SUBGOALS['default'];
+      const baseSubgoals = activePlan.id === 'housing'
+        ? getHousingSubgoals(housingPropertyType || 'hdb', userPlanMeta.targetAmount || 500000, userPlanMeta.targetDate || 'Aug 2030')
+        : (INITIAL_PLAN_SUBGOALS[activePlan.id] || INITIAL_PLAN_SUBGOALS['default']);
       const targetAmountVal = userPlanMeta.targetAmount ? Number(userPlanMeta.targetAmount) : null;
 
       if (targetAmountVal && baseSubgoals.length > 0) {
@@ -285,7 +294,7 @@ const PlanDetailsPage = () => {
         setSubgoals(baseSubgoals);
       }
     }
-  }, [activePlanTitle, activePlan, isConfirmedBreakdown, userPlanMeta]);
+  }, [activePlan, isConfirmedBreakdown, userPlanMeta.confirmedSubgoals, userPlanMeta.subgoals, userPlanMeta.targetAmount, userPlanMeta.targetDate, housingPropertyType]);
 
   // Extract target numerical plan amount from user meta or goal string
   const getTargetPlanAmount = (plan) => {
@@ -887,20 +896,21 @@ const PlanDetailsPage = () => {
   const chartPoints = buildCanonicalProjection({
     targetAmount: canonicalTargetAmount || adjustedPlan?.targetAmount || 0,
     targetDate: canonicalTargetDate || adjustedPlan?.goalDate,
-    paymentStrategy: userPlanMeta.paymentStrategy || adjustedPlan?.paymentStrategy || 'staggered',
+    paymentStrategy: userPlanMeta?.paymentStrategy || adjustedPlan?.paymentStrategy || 'staggered',
     monthlyContribution: projectionMonthlyContribution,
     startingBalance: isDraftReview ? 0 : adjustedPlan?.onTrack?.saved || 0,
-    categories: categoriesList
+    categories: (categoriesList || [])
       .map(category => ({
         ...category,
-        actions: category.actions.filter(action => !appliedExcluded.has(action.id)),
+        actions: (category?.actions || []).filter(action => !appliedExcluded?.has(action.id)),
       })),
-  });
-  const maxVal = Math.max(50000, Math.max(...chartPoints.map(p => p.y3)) * 1.15);
+  }) || [];
 
-  const activeTimeline = activePlan.id === 'savings'
-    ? activePlan.timelineExcluded(0, false)
-    : activePlan.timelineExcluded(0);
+  const maxVal = Math.max(50000, Math.max(...(chartPoints.length ? chartPoints.map(p => p.y3 || 0) : [0])) * 1.15);
+
+  const activeTimeline = activePlan?.id === 'savings'
+    ? (typeof activePlan?.timelineExcluded === 'function' ? activePlan.timelineExcluded(0, false) : (activePlan?.timelineAll || ''))
+    : (typeof activePlan?.timelineExcluded === 'function' ? activePlan.timelineExcluded(0) : (activePlan?.timelineAll || ''));
 
   return (
     <motion.div
@@ -951,10 +961,17 @@ const PlanDetailsPage = () => {
             </h2>
             <div className="flex flex-wrap items-center gap-2 mt-0.5">
               {displayGoalAmount && (
-                <div className="flex items-center gap-1.5 py-1.5 px-3 bg-emerald-50 rounded-full border border-emerald-200/60 text-emerald-700">
-                  <Coins className="w-3.5 h-3.5 text-emerald-600" />
-                  <span className="text-[10px] font-bold tracking-tight">
+                <div className="flex items-center gap-1.5 py-1.5 px-3 bg-indigo-50/90 rounded-full border border-indigo-200/80 text-indigo-900 shadow-2xs">
+                  <Coins className="w-3.5 h-3.5 text-indigo-600" />
+                  <span className="text-[10px] font-extrabold tracking-tight">
                     Target Goal: {displayGoalAmount}
+                  </span>
+                </div>
+              )}
+              {activePlan.id === 'housing' && (
+                <div className="flex items-center gap-1.5 py-1.5 px-3 bg-amber-50/90 rounded-full border border-amber-200/80 text-amber-900 shadow-2xs">
+                  <span className="text-[10px] font-extrabold tracking-tight">
+                    {housingPropertyType === 'condo' ? 'Condominium' : housingPropertyType === 'landed' ? 'Landed Property' : 'HDB (BTO)'}
                   </span>
                 </div>
               )}
@@ -965,6 +982,37 @@ const PlanDetailsPage = () => {
                 </span>
               </div>
             </div>
+          </GlassCard>
+
+          {/* User Risk Profile Status Card */}
+          <GlassCard className="p-3.5 border-indigo-100/60 bg-gradient-to-br from-indigo-50/40 via-white/50 to-purple-50/30 shadow-xs flex flex-col gap-2.5 shrink-0 relative overflow-hidden">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-xl bg-indigo-600/10 border border-indigo-200/50 flex items-center justify-center text-indigo-700 shrink-0">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[8.5px] font-black uppercase tracking-wider text-indigo-900/60">YOUR RISK PROFILE</span>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="text-xs font-black text-indigo-950">{riskProfile || 'Balanced'}</span>
+                    {hasAssessedRisk && (
+                      <span className="text-[8px] font-black px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full border border-emerald-200/60 flex items-center gap-0.5">
+                        <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" /> Assessed
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setPage('risk-profiling')}
+                className="text-[9.5px] font-extrabold text-indigo-700 bg-white hover:bg-indigo-50 border border-indigo-200/80 px-2.5 py-1.5 rounded-lg shadow-2xs transition-all active:scale-95 flex items-center gap-1 cursor-pointer"
+              >
+                Reassess Risk
+              </button>
+            </div>
+            <p className="text-[9.5px] text-zinc-600 leading-relaxed font-medium">
+              Your plan suggestions and alternatives are dynamically calibrated to match your <strong className="text-brand-primary font-black">{riskProfile || 'Balanced'}</strong> risk profile.
+            </p>
           </GlassCard>
 
           {/* Middle Section: Interactive Subgoals Table & Validation */}

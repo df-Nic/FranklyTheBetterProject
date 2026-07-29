@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import {
@@ -15,262 +15,485 @@ import {
   ShieldCheck,
   AlertCircle,
   CreditCard,
-  Landmark,
+  Scissors,
   Zap,
   CheckCircle2,
   Check
 } from 'lucide-react';
 import { PLANS_DATA, PLAN_ALTERNATIVES } from '../data/planTemplates';
 import BackgroundOrb from '../components/ui/BackgroundOrb';
-import CardDeckCarousel from '../components/ui/CardDeckCarousel';
-import { getOptimizedCardsForPlan } from '../data/ocbcCards';
-import { getOptimizedDepositsForPlan } from '../data/ocbcDeposits';
 
-// Category Helper
-const getCategoryType = (changingCategory, changingAction) => {
+// Category Context Classifier
+const getActionContext = (changingCategory, changingAction) => {
+  const actId = (changingAction?.id || '').toLowerCase();
+  const actName = (changingAction?.name || '').toLowerCase();
   const catId = (changingCategory?.id || '').toLowerCase();
   const catName = (changingCategory?.name || '').toLowerCase();
-  const actType = (changingAction?.type || '').toLowerCase();
-  
-  // Investments category or action type checks
-  if (catId.includes('invest') || catName.includes('invest') || actType === 'investment') {
-    return 'investment';
+
+  // 1. Monthly Auto-Savings Flow / Automatic Monthly Goal Transfer
+  if (
+    actId.includes('recurring') ||
+    actId.includes('transfer') ||
+    actId.includes('auto_transfer') ||
+    actName.includes('auto-savings') ||
+    actName.includes('goal transfer') ||
+    actName.includes('monthly auto') ||
+    actName.includes('transfer')
+  ) {
+    return 'auto_transfer';
   }
-  
-  // Insurance / Protection category or action type checks
-  if (catId.includes('insur') || catId.includes('protect') || catName.includes('insur') || catName.includes('protect') || actType === 'defense' || actType === 'insurance' || actType === 'protection') {
+
+  // 2. Flexible Lifestyle Budget / Dining Cap
+  if (
+    actId.includes('dine') ||
+    actId.includes('lifestyle') ||
+    actName.includes('lifestyle') ||
+    actName.includes('dining') ||
+    actName.includes('cap') ||
+    actName.includes('tracker')
+  ) {
+    return 'lifestyle_budget';
+  }
+
+  // 3. Singapore Treasury Bills / Fixed Income
+  if (
+    actId.includes('tbills') ||
+    actId.includes('t-bills') ||
+    actId.includes('fixed_income') ||
+    actName.includes('treasury') ||
+    actName.includes('t-bill') ||
+    actName.includes('fixed deposit') ||
+    catId.includes('fixed')
+  ) {
+    return 'tbills';
+  }
+
+  // 4. OCBC RoboInvest
+  if (
+    actId.includes('robo') ||
+    actName.includes('robo')
+  ) {
+    return 'robo_invest';
+  }
+
+  // 5. OCBC Blue Chip Investment Plan (BCIP)
+  if (
+    actId.includes('bcip') ||
+    actName.includes('blue chip') ||
+    actName.includes('bcip') ||
+    actName.includes('reit')
+  ) {
+    return 'blue_chip';
+  }
+
+  // 6. Generic Investment
+  if (
+    catId.includes('invest') ||
+    catName.includes('invest') ||
+    changingAction?.type === 'investment'
+  ) {
+    return 'robo_invest';
+  }
+
+  // 7. Protection / Insurance
+  if (
+    catId.includes('insur') ||
+    catId.includes('protect') ||
+    catName.includes('insur') ||
+    catName.includes('protect') ||
+    changingAction?.type === 'defense' ||
+    changingAction?.type === 'insurance' ||
+    changingAction?.type === 'protection'
+  ) {
     return 'protection';
   }
 
-  // Deposits / Grants / Savings checks
-  if (catId.includes('deposit') || catName.includes('deposit') || actType === 'deposit' || actType === 'yield' || actType === 'grant' || actType === 'saving') {
-    return 'deposit';
-  }
-  
+  // 8. Default: Deposit products
   return 'deposit';
 };
 
-// Category Specific Unique Reasons Map
-const REASONS_MAP = {
-  deposit: [
-    { label: "Higher interest yield", icon: Percent },
-    { label: "Access cash anytime (Liquidity)", icon: Droplet },
-    { label: "No lock-in period", icon: Lock },
-    { label: "Government-backed safety", icon: ShieldCheck },
-    { label: "Flexibility to top-up", icon: MoreHorizontal }
-  ],
-  investment: [
-    { label: "Higher growth potential", icon: Percent },
-    { label: "Dividends & passive income", icon: Droplet },
-    { label: "Diversified global markets", icon: Compass },
-    { label: "Lower management fees", icon: Lock },
-    { label: "Dynamic automated rebalancing", icon: MoreHorizontal }
-  ],
-  protection: [
-    { label: "Comprehensive cover limits", icon: ShieldCheck },
-    { label: "Pay via CPF Medisave", icon: Lock },
-    { label: "Lower premium costs", icon: Percent },
-    { label: "Critical illness add-ons", icon: Compass },
-    { label: "Lump-sum payout options", icon: MoreHorizontal }
-  ]
-};
-
-// Rich dynamic alternatives database
-const ALTERNATIVES_DATABASE = {
-  deposit: [
-    {
-      id: "alt_ocbc360",
-      name: "OCBC 360 Account",
-      desc: "High-yield daily-liquid savings account earning bonus interest for salary credits and monthly savings.",
-      rate: 0.0765,
-      type: "deposit",
-      tags: ["Higher interest yield", "Access cash anytime (Liquidity)", "No lock-in period", "Flexibility to top-up"]
-    },
-    {
-      id: "alt_bonus_plus",
-      name: "OCBC Bonus+ Savings Account",
-      desc: "Special savings account rewarding regular monthly savers with bonus interest rates up to 4.15% p.a.",
-      rate: 0.0415,
-      type: "deposit",
-      tags: ["Higher interest yield", "No lock-in period", "Flexibility to top-up"]
-    },
-    {
-      id: "alt_fd_promo_6m",
-      name: "OCBC Fixed Deposit (6M)",
-      desc: "Earn a guaranteed 3.35% p.a. interest rate with capital fully protected during a 6-month term.",
-      rate: 0.0335,
-      type: "deposit",
-      tags: ["Higher interest yield", "Government-backed safety"]
-    },
-    {
-      id: "alt_premier_div",
-      name: "OCBC Premier Dividend Account",
-      desc: "Premier wealth tier account offering up to 3.85% p.a. and seamless multi-currency FX liquidity.",
-      rate: 0.0385,
-      type: "deposit",
-      tags: ["Higher interest yield", "Access cash anytime (Liquidity)", "Flexibility to top-up"]
-    },
-    {
-      id: "alt_frank_saver",
-      name: "OCBC FRANK Savings Account",
-      desc: "Digital-first savings account with sub-pockets, card round-up micro-savings, and zero min balance.",
-      rate: 0.025,
-      type: "deposit",
-      tags: ["Access cash anytime (Liquidity)", "No lock-in period", "Flexibility to top-up"]
-    },
-    {
-      id: "alt_lion_liq",
-      name: "Lion-OCBC Enhanced Liquidity Fund",
-      desc: "A high-yielding cash management fund targeting ~3.85% p.a. returns with daily liquidity.",
-      rate: 0.0385,
-      type: "deposit",
-      tags: ["Higher interest yield", "Access cash anytime (Liquidity)", "No lock-in period"]
-    },
-    {
-      id: "alt_foreign_curr",
-      name: "OCBC Global Savings Account",
-      desc: "Multi-currency foreign exchange deposit account earning up to 5.20% p.a. on USD balances.",
-      rate: 0.052,
-      type: "deposit",
-      tags: ["Higher interest yield", "Access cash anytime (Liquidity)"]
-    }
-  ],
-  investment: [
-    {
-      id: "alt_robo_aggressive",
-      name: "OCBC RoboInvest (Aggressive Growth)",
-      desc: "A dynamically rebalanced portfolio focusing on US tech equities and global ETFs for maximum growth.",
-      rate: 0.072,
-      type: "investment",
-      tags: ["Higher growth potential", "Diversified global markets", "Dynamic automated rebalancing"]
-    },
-    {
-      id: "alt_lion_global_core",
-      name: "Lion-OCBC Global Core Fund (Balanced)",
-      desc: "Diversified unit trust holding global equities and fixed income to secure steady growth with low fee overheads.",
-      rate: 0.065,
-      type: "investment",
-      tags: ["Higher growth potential", "Diversified global markets", "Lower management fees"]
-    },
-    {
-      id: "alt_bcip_banks",
-      name: "OCBC BCIP Blue Chip Share Plan",
-      desc: "Regular savings plan investing in top SG banks & blue chips to secure steady, compounding dividends.",
-      rate: 0.055,
-      type: "investment",
-      tags: ["Higher growth potential", "Dividends & passive income", "Lower management fees"]
-    },
-    {
-      id: "alt_bcip_reits",
-      name: "OCBC BCIP Lion-Phillip S-REIT ETF",
-      desc: "Dollar-cost average into premium Singapore real estate portfolios to generate monthly passive dividend yields.",
-      rate: 0.058,
-      type: "investment",
-      tags: ["Dividends & passive income", "Lower management fees", "Diversified global markets"]
-    }
-  ],
-  protection: [
-    {
-      id: "alt_supreme_standard",
-      name: "GE GREAT SupremeHealth Standard",
-      desc: "Basic Medisave-approved health shield plan protecting against large medical bills and hospital fees.",
-      rate: 0.0,
-      type: "protection",
-      tags: ["Comprehensive cover limits", "Pay via CPF Medisave", "Lower premium costs"]
-    },
-    {
-      id: "alt_supreme_rider",
-      name: "GE SupremeHealth H1 Rider Plan",
-      desc: "Hospital co-payment rider protecting your cash savings by covering up to 90% of hospital bill co-payments.",
-      rate: 0.0,
-      type: "protection",
-      tags: ["Comprehensive cover limits", "Lower premium costs"]
-    },
-    {
-      id: "alt_careshield_enhance",
-      name: "GE GREAT CareShield Enhance Plus",
-      desc: "Supplement to CareShield Life that boosts monthly payouts in case of disability, paid via Medisave.",
-      rate: 0.0,
-      type: "protection",
-      tags: ["Comprehensive cover limits", "Pay via CPF Medisave"]
-    }
-  ]
-};
-
-const generateFitDescription = (alt, activePlan, selectedReasons, riskProfile = 'Balanced Wealth') => {
-  const age = 28;
-  const stageOfLife = "Young Professional";
-  const planTitle = activePlan?.title || activePlan?.goalName || activePlan?.name || "Nest Plan";
-  const targetDate = activePlan?.targetDate || activePlan?.goalDate || activePlan?.canonicalTargetDate;
-  const timeline = targetDate
-    ? (targetDate.includes('-') ? targetDate : `by ${targetDate}`)
-    : (activePlan?.timelineAll || "medium-term");
-
-  let text = `Excellent match for you (Age ${age}, ${stageOfLife}) with a ${riskProfile} risk profile. `;
-  
-  if (alt.type === 'deposit') {
-    text += `Aligns with your ${planTitle} timeline (${timeline}) by keeping assets protected from short-term market volatility. `;
-    if (selectedReasons.includes("Access cash anytime (Liquidity)") || selectedReasons.includes("No lock-in period")) {
-      text += `Directly addresses your request for liquidity and flexibility, letting you withdraw or redirect funds without penalty. `;
-    } else if (selectedReasons.includes("Higher interest yield")) {
-      text += `Optimizes your deposit returns up to ${(alt.rate * 100).toFixed(2)}% p.a. while keeping capital 100% secure. `;
-    } else {
-      text += `Provides a stable, liquid foundation for your regular contributions. `;
-    }
-  } else if (alt.type === 'investment') {
-    text += `Fits your long-term ${planTitle} horizon by compounding wealth through global markets. `;
-    if (selectedReasons.includes("Higher growth potential")) {
-      text += `Positions your portfolio to capture aggressive equity upside targeting ${(alt.rate * 100).toFixed(2)}% p.a. growth. `;
-    } else if (selectedReasons.includes("Dividends & passive income")) {
-      text += `Focuses on steady cash-flow distributions to supplement your plan's progress. `;
-    } else {
-      text += `Maintains consistent dollar-cost averaging to buffer against entry timing risks. `;
-    }
-  } else if (alt.type === 'protection') {
-    text += `Secures your financial runway and protects your ${planTitle} from unexpected disruption. `;
-    if (selectedReasons.includes("Pay via CPF Medisave")) {
-      text += `Allows premium funding via Medisave to preserve your cash flow for active investments. `;
-    } else if (selectedReasons.includes("Lower premium costs")) {
-      text += `Optimizes coverage limits to lower premium overhead by up to 15%, keeping your savings rate high. `;
-    } else {
-      text += `Provides a comprehensive safety net so medical expenses won't erode your savings milestones. `;
-    }
+// Simplified category pills & alternatives config map
+const CONTEXT_CONFIG = {
+  deposit: {
+    title: "Change Deposit Product",
+    buttonLabel: "Change deposit",
+    pills: [
+      { label: "Higher interest", icon: Percent },
+      { label: "Easier access", icon: Droplet },
+      { label: "Fewer conditions", icon: Unlock }
+    ],
+    guardrail: "OCBC 360’s interest depends on activities such as salary crediting, saving and card spending, so 'fewer conditions' is a defensible preference.",
+    alternatives: [
+      {
+        id: "alt_ocbc360",
+        name: "OCBC 360 Account",
+        desc: "Credit your salary, save, and spend to earn up to 4.65% p.a. high interest on your primary liquid cash.",
+        rate: 0.0465,
+        type: "deposit product",
+        riskBand: "Capital Safety",
+        tags: ["Higher interest", "Easier access"],
+        fitText: "Provides high interest yield while maintaining daily liquidity access for your cash."
+      },
+      {
+        id: "alt_bonus_plus",
+        name: "OCBC Bonus+ Savings Account",
+        desc: "Suited to customers who can avoid withdrawals. Earn high bonus interest rates up to 4.15% p.a. for months with zero withdrawals.",
+        rate: 0.0415,
+        type: "deposit product",
+        riskBand: "Capital Safety",
+        tags: ["Higher interest", "Fewer conditions"],
+        fitText: "Suited to customers who can avoid withdrawals to maximize bonus yield."
+      },
+      {
+        id: "alt_monthly_savings",
+        name: "OCBC Monthly Savings Account",
+        desc: "Suited to regular monthly saving. Earn high baseline interest by committing consistent monthly savings.",
+        rate: 0.0380,
+        type: "deposit product",
+        riskBand: "Capital Safety",
+        tags: ["Higher interest", "Easier access"],
+        fitText: "Suited to regular monthly saving with flexible penalty-free withdrawal access."
+      },
+      {
+        id: "alt_time_deposit",
+        name: "OCBC Time Deposit",
+        desc: "Guaranteed capital returns with maturity structured before your next goal payment date.",
+        rate: 0.0335,
+        type: "deposit product",
+        riskBand: "Capital Safety",
+        tags: ["Higher interest", "Fewer conditions"],
+        fitText: "Guarantees principal safety with fixed maturity before your next goal deadline."
+      },
+      {
+        id: "alt_premier_div",
+        name: "OCBC Premier Dividend Account",
+        desc: "Premier wealth tier account offering up to 3.85% p.a. and seamless multi-currency FX liquidity.",
+        rate: 0.0385,
+        type: "deposit product",
+        riskBand: "Capital Safety",
+        tags: ["Higher interest", "Easier access"],
+        fitText: "Provides high interest yield while maintaining daily multi-currency liquidity access."
+      }
+    ]
+  },
+  auto_transfer: {
+    title: "Edit Goal Transfer Flow",
+    buttonLabel: "Edit transfer",
+    pills: [
+      { label: "Transfer after payday", icon: Sparkles },
+      { label: "Split into two transfers", icon: Scissors },
+      { label: "Use another account", icon: CreditCard }
+    ],
+    guardrail: "Monthly amount and target date remain unchanged. Do not show other bank products here; these are execution preferences, not product alternatives.",
+    isExecutionOnly: true,
+    alternatives: [
+      {
+        id: "alt_payday_transfer",
+        name: "S$500 once a month after salary credit",
+        desc: "S$500 once a month after salary credit. Scheduled automatically 1 day after payday to secure your goal savings.",
+        rate: 0,
+        type: "execution preference",
+        tags: ["Transfer after payday"],
+        fitText: "Automates goal contribution immediately following your monthly salary credit."
+      },
+      {
+        id: "alt_split_transfer",
+        name: "S$250 twice a month",
+        desc: "S$250 twice a month. Split into two recurring transfers on the 1st and 15th to smooth cash flow impact.",
+        rate: 0,
+        type: "execution preference",
+        tags: ["Split into two transfers"],
+        fitText: "Reduces peak cash-flow strain by dividing contributions across two pay periods."
+      },
+      {
+        id: "alt_other_account",
+        name: "S$500 from another selected OCBC account",
+        desc: "S$500 from another selected OCBC account. Deduct goal transfers from your secondary OCBC deposit account.",
+        rate: 0,
+        type: "execution preference",
+        tags: ["Use another account"],
+        fitText: "Keeps your goal funding separate from your daily operating checking account."
+      }
+    ]
+  },
+  tbills: {
+    title: "Change Fixed-Income Option",
+    buttonLabel: "Change fixed-income option",
+    pills: [
+      { label: "Shorter maturity", icon: Lock },
+      { label: "Longer maturity", icon: Lock },
+      { label: "More flexible access", icon: Unlock }
+    ],
+    guardrail: "Only display options that mature or can be redeemed before the relevant goal payment. Singapore T-bills are issued with six-month and one-year original maturities, while Savings Bonds can be submitted for redemption in a chosen month. Avoid hardcoding yield because it changes by issue.",
+    alternatives: [
+      {
+        id: "alt_tbill_6m",
+        name: "6-month Singapore T-bill",
+        desc: "6-month Singapore T-bill. Short-term Singapore Government Securities backed by sovereign guarantee.",
+        rateText: "Auction yield",
+        type: "fixed income",
+        riskBand: "Capital Safety",
+        tags: ["Shorter maturity"],
+        fitText: "Matures in 6 months before your goal payment with zero credit risk."
+      },
+      {
+        id: "alt_tbill_1y",
+        name: "1-year Singapore T-bill",
+        desc: "1-year Singapore T-bill. Guaranteed sovereign yield locked over a 12-month original maturity.",
+        rateText: "Auction yield",
+        type: "fixed income",
+        riskBand: "Capital Safety",
+        tags: ["Longer maturity"],
+        fitText: "Matures in 1 year, locking in fixed sovereign yield prior to your target deadline."
+      },
+      {
+        id: "alt_ssb_bond",
+        name: "Singapore Savings Bond (SSB)",
+        desc: "Singapore Savings Bond, where greater redemption flexibility is required. Step-up interest with monthly penalty-free exit.",
+        rateText: "Step-up rate",
+        type: "fixed income",
+        riskBand: "Capital Safety",
+        tags: ["More flexible access"],
+        fitText: "Can be submitted for redemption in any chosen month before your relevant goal payment."
+      },
+      {
+        id: "alt_ocbc_mmf",
+        name: "Lion-OCBC Money Market Fund",
+        desc: "Allocate funds into low-risk institutional liquidity instruments yielding 3.90% p.a. with instant cash retrieval.",
+        rate: 0.039,
+        type: "fixed income",
+        riskBand: "Capital Safety",
+        tags: ["More flexible access"],
+        fitText: "Maintains high capital protection with instant liquidity for upcoming goal payments."
+      }
+    ]
+  },
+  lifestyle_budget: {
+    title: "Edit Strategy",
+    buttonLabel: "Edit strategy",
+    pills: [
+      { label: "Choose another category", icon: Scissors },
+      { label: "Split across categories", icon: Sparkles },
+      { label: "Use a savings transfer", icon: ArrowLeft }
+    ],
+    guardrail: "Required monthly contribution and target date remain unchanged. Do not show OCBC 360 or another financial product as the alternative result here.",
+    isExecutionOnly: true,
+    alternatives: [
+      {
+        id: "alt_dining_redirect",
+        name: "Redirect S$150 from dining",
+        desc: "Redirect S$150 from dining. Adjust food delivery and restaurant spending caps to fund your goal.",
+        rate: 0,
+        type: "spending strategy",
+        tags: ["Choose another category"],
+        fitText: "Targets dining out as a focused category to recover your required monthly contribution."
+      },
+      {
+        id: "alt_split_categories",
+        name: "Redirect S$50 each from dining, shopping and entertainment",
+        desc: "Redirect S$50 each from dining, shopping and entertainment to balance lifestyle changes lightly.",
+        rate: 0,
+        type: "spending strategy",
+        tags: ["Split across categories"],
+        fitText: "Spreads small spending trims across three categories to minimize personal impact."
+      },
+      {
+        id: "alt_increase_transfer",
+        name: "Keep lifestyle spending unchanged and increase the automatic goal transfer by S$150",
+        desc: "Keep lifestyle spending unchanged and increase the automatic goal transfer by S$150 directly.",
+        rate: 0,
+        type: "spending strategy",
+        tags: ["Use a savings transfer"],
+        fitText: "Preserves your current spending habits while automating goal funding from cash flow."
+      }
+    ]
+  },
+  robo_invest: {
+    title: "Change Investment Option",
+    buttonLabel: "Change investment option",
+    pills: [
+      { label: "Lower fees", icon: Percent },
+      { label: "More diversified", icon: Compass },
+      { label: "Easier access", icon: Unlock }
+    ],
+    guardrail: "OCBC RoboInvest provides ETF-based portfolios, automated portfolio management and multiple portfolios under one account.",
+    alternatives: [
+      {
+        id: "alt_robo_defensive",
+        name: "OCBC RoboInvest Defensive Portfolio",
+        desc: "OCBC RoboInvest lower-volatility portfolio focusing on defensive global bonds and capital preservation.",
+        rate: 0.050,
+        type: "roboinvest portfolio",
+        riskBand: "Capital Safety",
+        tags: ["Lower fees", "Easier access"],
+        fitText: "Protects capital from market volatility while maintaining automated portfolio rebalancing."
+      },
+      {
+        id: "alt_robo_balanced",
+        name: "OCBC RoboInvest Balanced Portfolio",
+        desc: "OCBC RoboInvest balanced portfolio allocated across global equities, tech, and fixed income assets.",
+        rate: 0.065,
+        type: "roboinvest portfolio",
+        riskBand: "Balanced",
+        tags: ["More diversified", "Lower fees"],
+        fitText: "Balances equity growth with capital protection across international markets."
+      },
+      {
+        id: "alt_lion_income",
+        name: "Lion-OCBC Global Income Fund",
+        desc: "Allocates capital to high-quality dividend equities and corporate debt returning 5.20% p.a. monthly payouts.",
+        rate: 0.052,
+        type: "unit trust",
+        riskBand: "Balanced",
+        tags: ["More diversified", "Lower fees"],
+        fitText: "Provides steady monthly income distributions to buffer against equity swings."
+      },
+      {
+        id: "alt_robo_growth",
+        name: "OCBC RoboInvest Growth Portfolio",
+        desc: "Automated global equity ETF portfolio compounding wealth through broad market appreciation.",
+        rate: 0.075,
+        type: "roboinvest portfolio",
+        riskBand: "Growth",
+        tags: ["More diversified", "Easier access"],
+        fitText: "Compounds wealth through global equity upside for long-term target timelines."
+      },
+      {
+        id: "alt_us_dividend",
+        name: "Lion-Global US Dividend Equity Fund",
+        desc: "Focuses on premier US dividend growth stocks compounding at 7.80% p.a. average historical growth.",
+        rate: 0.078,
+        type: "unit trust",
+        riskBand: "Growth",
+        tags: ["More diversified"],
+        fitText: "Captures US dividend growth to accelerate long-term capital accumulation."
+      },
+      {
+        id: "alt_robo_dynamic",
+        name: "OCBC RoboInvest Dynamic Growth Portfolio",
+        desc: "High-conviction portfolio allocated to global innovation, semiconductors, and green energy ETFs.",
+        rate: 0.085,
+        type: "roboinvest portfolio",
+        riskBand: "Aggressive Growth",
+        tags: ["More diversified"],
+        fitText: "Maximizes capital appreciation via high-conviction global growth themes."
+      },
+      {
+        id: "alt_disruptive_innovation",
+        name: "Lion Global Disruptive Innovation Fund",
+        desc: "High-growth fund invested in global leaders reshaping AI, cloud computing, and next-gen tech.",
+        rate: 0.090,
+        type: "unit trust",
+        riskBand: "Aggressive Growth",
+        tags: ["More diversified"],
+        fitText: "Targets maximum long-term upside by participating in global technological transformation."
+      }
+    ]
+  },
+  blue_chip: {
+    title: "Change Investment Option",
+    buttonLabel: "Change investment option",
+    pills: [
+      { label: "More diversified", icon: Compass },
+      { label: "Lower monthly amount", icon: Percent },
+      { label: "Different market exposure", icon: Droplet }
+    ],
+    guardrail: "BCIP supports recurring contributions from S$100 a month and offers eligible Singapore-listed shares and ETFs without a lock-in period.",
+    alternatives: [
+      {
+        id: "alt_bcip_sreits",
+        name: "OCBC BCIP Lion-Phillip S-REIT ETF",
+        desc: "DCA into Singapore's top prime commercial and industrial real estate trusts for a 5.80% dividend yield.",
+        rate: 0.058,
+        type: "recurring investment",
+        riskBand: "Balanced",
+        tags: ["More diversified", "Different market exposure"],
+        fitText: "Gains instant basket exposure to Singapore real estate investment trusts."
+      },
+      {
+        id: "alt_bcip_sti",
+        name: "OCBC BCIP SPDR Straits Times Index ETF",
+        desc: "Dollar-cost average into Singapore's top 30 blue-chip companies starting from S$100/month.",
+        rate: 0.055,
+        type: "recurring investment",
+        riskBand: "Balanced",
+        tags: ["Lower monthly amount"],
+        fitText: "Dollar-cost average into top dividend-paying SG blue chips with low monthly minimums."
+      },
+      {
+        id: "alt_bcip_shares",
+        name: "Singapore Blue-Chip Shares (DBS/OCBC/Singtel)",
+        desc: "Direct regular savings into premier SGX banking and telecom counters with steady 5.20% dividend payouts.",
+        rate: 0.052,
+        type: "recurring investment",
+        riskBand: "Growth",
+        tags: ["Lower monthly amount"],
+        fitText: "Builds equity ownership in Singapore's largest corporate market leaders."
+      },
+      {
+        id: "alt_tech_innovation",
+        name: "OCBC Global Tech & Innovation ETF",
+        desc: "Invest in a basket of global technology and semiconductor leaders yielding an estimated 8.50% p.a.",
+        rate: 0.085,
+        type: "recurring investment",
+        riskBand: "Aggressive Growth",
+        tags: ["Different market exposure", "More diversified"],
+        fitText: "Captures global tech sector expansion to supercharge portfolio growth."
+      },
+      {
+        id: "alt_megatrends_equity",
+        name: "OCBC Megatrends Equity Portfolio",
+        desc: "Allocates recurring investment into global mega-trend themes including AI infrastructure and clean tech.",
+        rate: 0.088,
+        type: "recurring investment",
+        riskBand: "Aggressive Growth",
+        tags: ["More diversified"],
+        fitText: "Aligns recurring savings with high-growth future economic shifts."
+      }
+    ]
+  },
+  protection: {
+    title: "Change Protection Option",
+    buttonLabel: "Change protection option",
+    pills: [
+      { label: "Lower premiums", icon: Percent },
+      { label: "Medisave payable", icon: ShieldCheck },
+      { label: "Broader coverage", icon: Compass }
+    ],
+    guardrail: "Ensure insurance protection keeps your financial runway secure from unexpected health events.",
+    alternatives: [
+      {
+        id: "alt_supreme_standard",
+        name: "GE GREAT SupremeHealth Standard",
+        desc: "Basic Medisave-approved health shield plan protecting against large medical bills and hospital fees.",
+        rate: 0.0,
+        type: "protection",
+        riskBand: "Capital Safety",
+        tags: ["Lower premiums", "Medisave payable"],
+        fitText: "Fully Medisave payable health cover keeping out-of-pocket cash overhead minimal."
+      },
+      {
+        id: "alt_supreme_rider",
+        name: "GE SupremeHealth H1 Rider Plan",
+        desc: "Hospital co-payment rider protecting your cash savings by covering up to 90% of hospital bill co-payments.",
+        rate: 0.0,
+        type: "protection",
+        riskBand: "Capital Safety",
+        tags: ["Lower premiums", "Broader coverage"],
+        fitText: "Covers cash co-payment caps so medical emergencies won't drain your nest egg."
+      },
+      {
+        id: "alt_careshield_enhance",
+        name: "GE GREAT CareShield Enhance Plus",
+        desc: "Supplement to CareShield Life that boosts monthly payouts in case of disability, paid via Medisave.",
+        rate: 0.0,
+        type: "protection",
+        riskBand: "Capital Safety",
+        tags: ["Medisave payable", "Broader coverage"],
+        fitText: "Enhances long-term disability protection using Medisave without impacting monthly cash flow."
+      }
+    ]
   }
-  
-  return text;
-};
-
-const getPlanImpact = (action, alternative, plan) => {
-  if (!action || !alternative) return null;
-
-  // Fallback dynamic computation
-  const originalRate = action.rate || 0.03;
-  const alternativeRate = alternative.rate || 0.03;
-  const rateDiff = alternativeRate - originalRate;
-  
-  const baseProb = 86;
-  const probChange = Math.round(rateDiff * 100 * 1.5);
-  const afterProb = baseProb + probChange;
-  const probDiffText = probChange > 0 ? `+${probChange}pp` : probChange < 0 ? `${probChange}pp` : "No change";
-  const probPositive = probChange >= 0;
-
-  const baseTimeline = 24;
-  const timelineChange = -Math.round(rateDiff * 100 * 0.5);
-  const afterTimeline = baseTimeline + timelineChange;
-  const timelineDiffText = timelineChange > 0 ? `+${timelineChange} month${timelineChange > 1 ? 's' : ''}` : timelineChange < 0 ? `${timelineChange} month${timelineChange < -1 ? 's' : ''}` : "No change";
-  const timelinePositive = timelineChange <= 0;
-
-  const baseSaving = 2500;
-  const savingChange = -Math.round(rateDiff * 100 * 30);
-  const afterSaving = baseSaving + savingChange;
-  const savingDiffText = savingChange > 0 ? `+$${savingChange}` : savingChange < 0 ? `-$${Math.abs(savingChange)}` : "No change";
-  const savingPositive = savingChange <= 0;
-
-  return {
-    fundingProbability: { before: "84%", after: "92%", diff: "+8%", isPositive: true },
-    targetTimeline: { before: "On Track", after: "On Track", diff: "No change", isPositive: true },
-    monthlySaving: { before: "S$450", after: "S$380", diff: "S$70 lower", isPositive: true }
-  };
 };
 
 const PlanChangeOptionPage = () => {
@@ -286,11 +509,15 @@ const PlanChangeOptionPage = () => {
     setPendingExcluded,
     customPlanData,
     planDrafts,
-    riskProfile
+    riskProfile,
+    housingPropertyType
   } = useApp();
 
   const getActivePlan = () => {
-    const basePlan = (activePlanId && PLANS_DATA[activePlanId]) ? PLANS_DATA[activePlanId] : PLANS_DATA.default;
+    let basePlan = (activePlanId && PLANS_DATA[activePlanId]) ? PLANS_DATA[activePlanId] : PLANS_DATA.default;
+    if (activePlanId === 'housing' && PLANS_DATA.housing?.getByType) {
+      basePlan = PLANS_DATA.housing.getByType(housingPropertyType || 'hdb');
+    }
     const planMeta = (activePlanId && customPlanData[activePlanId]) || (activePlanId && planDrafts[activePlanId]) || {};
     return {
       ...basePlan,
@@ -301,9 +528,10 @@ const PlanChangeOptionPage = () => {
   const activePlan = getActivePlan();
   const displayGoalTitle = activePlan.title;
 
-  const catType = getCategoryType(changingCategory, changingAction);
-  const reasonChips = REASONS_MAP[catType] || REASONS_MAP.deposit;
+  const ctxKey = getActionContext(changingCategory, changingAction);
+  const currentConfig = CONTEXT_CONFIG[ctxKey] || CONTEXT_CONFIG.deposit;
 
+  const reasonChips = currentConfig.pills;
   const [selectedReasons, setSelectedReasons] = useState([]);
 
   const handleToggleReason = (label) => {
@@ -316,20 +544,32 @@ const PlanChangeOptionPage = () => {
     });
   };
 
-  const allAltsInCategory = ALTERNATIVES_DATABASE[catType] || [];
+  const allAltsInCategory = currentConfig.alternatives;
 
-  let filteredAlts = [];
+  let filteredAlts = allAltsInCategory;
   if (selectedReasons.length > 0) {
-    filteredAlts = allAltsInCategory.filter(alt => {
-      return alt.tags && selectedReasons.every(reason => alt.tags.includes(reason));
-    });
-
-    filteredAlts.sort((a, b) => {
-      const matchA = a.tags.filter(tag => selectedReasons.includes(tag)).length;
-      const matchB = b.tags.filter(tag => selectedReasons.includes(tag)).length;
-      return matchB - matchA;
-    });
+    const matched = allAltsInCategory.filter(alt =>
+      alt.tags && selectedReasons.some(reason => alt.tags.includes(reason))
+    );
+    if (matched.length > 0) {
+      filteredAlts = [...matched].sort((a, b) => {
+        const countA = a.tags.filter(t => selectedReasons.includes(t)).length;
+        const countB = b.tags.filter(t => selectedReasons.includes(t)).length;
+        return countB - countA;
+      });
+    }
   }
+
+  // Sort/prioritize alternatives that match the user's risk profile
+  filteredAlts = useMemo(() => {
+    return [...filteredAlts].sort((a, b) => {
+      const isAMatch = a.riskBand === riskProfile;
+      const isBMatch = b.riskBand === riskProfile;
+      if (isAMatch && !isBMatch) return -1;
+      if (!isAMatch && isBMatch) return 1;
+      return 0;
+    });
+  }, [filteredAlts, riskProfile]);
 
   const [selectedAltId, setSelectedAltId] = useState("");
 
@@ -339,13 +579,7 @@ const PlanChangeOptionPage = () => {
     }
   }, [filteredAlts, selectedAltId]);
 
-  const selectedAlt = filteredAlts.find(a => a.id === selectedAltId) || filteredAlts[0] || {
-    id: 'alt_ocbc360',
-    name: 'OCBC 360 Account',
-    desc: 'High-yield deposit savings account',
-    rate: 0.0465,
-    type: 'deposit'
-  };
+  const selectedAlt = filteredAlts.find(a => a.id === selectedAltId) || filteredAlts[0];
 
   const handleSelectOption = (overrideAlt) => {
     const targetAlt = overrideAlt || selectedAlt;
@@ -378,6 +612,7 @@ const PlanChangeOptionPage = () => {
       <BackgroundOrb color="pink" size="300px" className="-top-12 -left-12" />
       <BackgroundOrb color="blue" size="250px" className="bottom-20 -right-10" />
 
+      {/* Header */}
       <header className="pt-6 pb-2 h-auto w-full bg-white/60 backdrop-blur-xl border-b border-zinc-200/40 px-4 flex items-center justify-between shrink-0 z-40 sticky top-0 shadow-sm">
         <div className="flex items-center gap-3">
           <button
@@ -401,26 +636,43 @@ const PlanChangeOptionPage = () => {
 
       <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-5 flex flex-col gap-4 z-10 pb-64 touch-pan-y min-h-0">
         
+        {/* Sub-header Title */}
         <h1 className="text-lg font-black text-zinc-900 tracking-tight leading-none mt-1">
-          Change {changingCategory?.name ? (changingCategory.name.endsWith('s') ? changingCategory.name.slice(0, -1) : changingCategory.name) : 'Product'} Option
+          {currentConfig.title}
         </h1>
 
-        <div className="bg-white/70 border border-white/80 p-4 rounded-[24px] flex gap-3.5 items-start shadow-[0_2px_12px_rgba(0,0,0,0.02)] backdrop-blur-md">
-          <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-600 shrink-0 shadow-inner">
-            <Compass className="w-4.5 h-4.5" />
+        {/* Action being updated info card */}
+        {changingAction && (
+          <div className="bg-white/90 border border-zinc-200/60 p-3.5 rounded-[20px] flex items-center justify-between gap-3 shadow-xs">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[8px] font-black text-zinc-400 uppercase tracking-wider">Currently Selected</span>
+              <span className="text-xs font-black text-zinc-900">{changingAction.name}</span>
+            </div>
+            <span className="text-[8.5px] font-bold px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 uppercase tracking-wider">
+              {changingCategory?.name || 'Current'}
+            </span>
           </div>
-          <div className="flex flex-col gap-0.5">
-            <p className="text-[10px] font-semibold text-zinc-600 leading-relaxed">
-              Select your reason for changing options below to discover alternative financial products.
-            </p>
-          </div>
-        </div>
+        )}
 
+        {/* Guardrail & Context Callout */}
+        {currentConfig.guardrail && (
+          <div className="bg-emerald-50/80 border border-emerald-200/60 p-3.5 rounded-[20px] flex items-start gap-3 shadow-xs">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            <div className="flex flex-col gap-0.5 text-left">
+              <span className="text-[9px] font-black text-emerald-900 uppercase tracking-wider">Guardrail & Guidelines</span>
+              <p className="text-[9.5px] font-semibold text-emerald-800 leading-relaxed">
+                {currentConfig.guardrail}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Simplified Pills Category Selection */}
         <div className="flex flex-col gap-2 shrink-0 mt-1">
           <div className="flex flex-col gap-0.5">
-            <span className="text-[10.5px] font-black text-zinc-800 tracking-tight">Why would you like to change? (Select all that apply)</span>
+            <span className="text-[10.5px] font-black text-zinc-800 tracking-tight">Select preference filter:</span>
             <span className="text-[8.5px] font-medium text-zinc-400 leading-normal">
-              Please choose one or more reasons. Your options will dynamically filter and update below as you make selections.
+              Tap a category pill below to filter alternatives based on your defensive preference.
             </span>
           </div>
           <div className="flex flex-wrap gap-1.5 py-1">
@@ -432,10 +684,10 @@ const PlanChangeOptionPage = () => {
                 <button
                   key={chip.label}
                   onClick={() => handleToggleReason(chip.label)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-bold border transition-all duration-150 cursor-pointer select-none shrink-0 ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9.5px] font-bold border transition-all duration-150 cursor-pointer select-none shrink-0 ${
                     isActive
-                      ? 'bg-brand-primary/5 text-brand-primary border-brand-primary shadow-[0_2px_10px_rgba(225,29,72,0.08)] font-extrabold'
-                      : 'bg-white text-zinc-500 border-zinc-200/80 hover:border-zinc-300 hover:text-zinc-700'
+                      ? 'bg-brand-primary/10 text-brand-primary border-brand-primary shadow-[0_2px_10px_rgba(225,29,72,0.12)] font-black scale-102'
+                      : 'bg-white text-zinc-600 border-zinc-200/80 hover:border-zinc-300 hover:text-zinc-800'
                   }`}
                 >
                   <IconComponent className="w-3.5 h-3.5" />
@@ -446,25 +698,16 @@ const PlanChangeOptionPage = () => {
           </div>
         </div>
 
+        {/* Options List */}
         <div className="flex flex-col gap-2.5 mt-1">
           <div className="flex flex-col gap-3">
-            {selectedReasons.length === 0 ? (
-              <div className="bg-white/80 border border-zinc-200/50 rounded-[24px] p-6 text-center flex flex-col items-center justify-center gap-3 shadow-[0_2px_12px_rgba(0,0,0,0.01)] backdrop-blur-md">
-                <Sparkles className="w-7 h-7 text-brand-primary animate-pulse" />
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-xs font-black text-zinc-800">Select reasons above to view alternative options</span>
-                  <p className="text-[9.5px] text-zinc-500 font-semibold leading-relaxed max-w-[250px] mx-auto">
-                    Select one or more criteria chips above to filter specific alternative options.
-                  </p>
-                </div>
-              </div>
-            ) : filteredAlts.length === 0 ? (
-              <div className="bg-white/80 border border-zinc-200/50 rounded-[24px] p-6 text-center flex flex-col items-center justify-center gap-3 shadow-[0_2px_12px_rgba(0,0,0,0.01)] backdrop-blur-md">
+            {filteredAlts.length === 0 ? (
+              <div className="bg-white/80 border border-zinc-200/50 rounded-[24px] p-6 text-center flex flex-col items-center justify-center gap-3 shadow-xs backdrop-blur-md">
                 <Info className="w-7 h-7 text-zinc-400" />
                 <div className="flex flex-col gap-1.5">
                   <span className="text-xs font-black text-zinc-800">No exact matches found</span>
                   <p className="text-[9.5px] text-zinc-500 font-semibold leading-relaxed max-w-[250px] mx-auto">
-                    Try choosing a different combination of reasons or deselecting some filters to display related options.
+                    Try choosing a different combination of reasons or deselecting filters to view all options.
                   </p>
                 </div>
               </div>
@@ -472,14 +715,12 @@ const PlanChangeOptionPage = () => {
               filteredAlts.map((alt, idx) => {
                 const isChosen = selectedAlt?.id === alt.id;
                 const isAiRecommended = idx === 0;
-                const impact = getPlanImpact(changingAction, alt, activePlan);
-                const fitDescription = generateFitDescription(alt, activePlan, selectedReasons, riskProfile);
                 
                 return (
                   <div
                     key={alt.id}
                     onClick={() => setSelectedAltId(alt.id)}
-                    className={`p-4 rounded-[24px] border text-left flex flex-col gap-3.5 transition-all duration-200 bg-white cursor-pointer shadow-[0_2px_12px_rgba(0,0,0,0.02)] ${
+                    className={`p-4 rounded-[24px] border text-left flex flex-col gap-3 transition-all duration-200 bg-white cursor-pointer shadow-[0_2px_12px_rgba(0,0,0,0.02)] ${
                       isChosen
                         ? 'border-brand-primary ring-1 ring-brand-primary/20 shadow-md shadow-brand-primary/5'
                         : 'border-zinc-200/60 hover:border-zinc-300'
@@ -499,92 +740,70 @@ const PlanChangeOptionPage = () => {
                           )}
                         </div>
                         <div className="flex flex-col gap-0.5">
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5 flex-wrap">
                             {isAiRecommended && (
                               <span className="text-[8px] font-black px-1.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/60 rounded flex items-center gap-1">
                                 <Sparkles className="w-2.5 h-2.5 text-emerald-600 animate-pulse" />
-                                AI Recommended
+                                Recommended
+                              </span>
+                            )}
+                            {alt.riskBand && (
+                              <span className={`text-[8px] font-extrabold px-1.5 py-0.5 rounded border uppercase tracking-wider ${
+                                alt.riskBand === 'Capital Safety' ? 'bg-teal-50 text-teal-800 border-teal-200/60' :
+                                alt.riskBand === 'Balanced' ? 'bg-amber-50 text-amber-800 border-amber-200/60' :
+                                alt.riskBand === 'Growth' ? 'bg-purple-50 text-purple-800 border-purple-200/60' :
+                                'bg-rose-50 text-rose-800 border-rose-200/60'
+                              }`}>
+                                {alt.riskBand}
+                              </span>
+                            )}
+                            {alt.riskBand === riskProfile && (
+                              <span className="text-[8px] font-black px-1.5 py-0.5 bg-indigo-50 text-indigo-800 border border-indigo-200/80 rounded flex items-center gap-1">
+                                <ShieldCheck className="w-2.5 h-2.5 text-indigo-600" />
+                                Fits {riskProfile}
                               </span>
                             )}
                             <span className="text-[8px] font-black px-1.5 py-0.5 bg-zinc-100 text-zinc-500 rounded uppercase tracking-wider">
-                              {changingCategory?.name ? (changingCategory.name.endsWith('s') ? changingCategory.name.slice(0, -1) : changingCategory.name) : 'PRODUCT'}
+                              {alt.type || 'Option'}
                             </span>
                           </div>
                           <span className="text-xs font-black text-zinc-900 tracking-tight mt-1">{alt.name}</span>
                         </div>
                       </div>
 
-                      {/* Rate Display */}
-                      <div className="text-right flex flex-col items-end shrink-0">
-                        <span className="text-[7.5px] font-black text-zinc-400 uppercase tracking-widest leading-none">Up to</span>
-                        <span className="text-xs font-black text-emerald-600 tracking-tight mt-0.5">
-                          {alt.rate === 0 ? 'N/A' : `${(alt.rate * 100).toFixed(2)}%`}
-                        </span>
-                        <span className="text-[7.5px] font-black text-zinc-400 uppercase tracking-widest leading-none mt-0.5">p.a.</span>
-                      </div>
+                      {/* Yield/Rate Display if applicable */}
+                      {(alt.rate !== undefined && alt.rate > 0) && (
+                        <div className="text-right flex flex-col items-end shrink-0">
+                          <span className="text-[7.5px] font-black text-zinc-400 uppercase tracking-widest leading-none">Up to</span>
+                          <span className="text-xs font-black text-emerald-600 tracking-tight mt-0.5">
+                            {(alt.rate * 100).toFixed(2)}%
+                          </span>
+                          <span className="text-[7.5px] font-black text-zinc-400 uppercase tracking-widest leading-none mt-0.5">p.a.</span>
+                        </div>
+                      )}
+                      {alt.rateText && (
+                        <div className="text-right flex flex-col items-end shrink-0">
+                          <span className="text-[7.5px] font-black text-zinc-400 uppercase tracking-widest leading-none">Yield</span>
+                          <span className="text-[10px] font-black text-emerald-700 tracking-tight mt-0.5">
+                            {alt.rateText}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Card Body */}
-                    <div className="pl-7 flex flex-col">
+                    <div className="pl-7 flex flex-col gap-2">
                       <p className="text-[9.5px] text-zinc-500 font-medium leading-relaxed">
                         {alt.desc}
                       </p>
 
                       {/* Spark fits label */}
-                      <div className="mt-2.5 flex items-start gap-1.5 text-[8.5px] font-semibold text-zinc-600 bg-zinc-50/50 rounded-lg p-2 border border-zinc-100/50 self-start">
-                        <Sparkles className="w-2.5 h-2.5 text-brand-primary/80 shrink-0 mt-0.5" />
+                      <div className="flex items-start gap-1.5 text-[8.5px] font-semibold text-zinc-700 bg-zinc-50 rounded-xl p-2 border border-zinc-100">
+                        <Sparkles className="w-3 h-3 text-brand-primary shrink-0 mt-0.5" />
                         <span>
-                          <strong>Personalized Fit:</strong> {fitDescription}
+                          <strong>Personalized Fit:</strong> {alt.fitText || "Aligned with your target schedule and risk criteria."}
                         </span>
                       </div>
-
-                      {/* Table Plan Impact */}
-                      {impact && (
-                        <div className="mt-3.5 border border-zinc-200/40 rounded-2xl overflow-hidden bg-zinc-50/50">
-                          <div className="grid grid-cols-3 divide-x divide-zinc-200/40 text-center py-2 bg-zinc-50/20">
-                            <div className="flex flex-col gap-0.5 px-1.5">
-                              <span className="text-[7.5px] font-bold text-zinc-400 uppercase tracking-wider leading-none">Funding probability</span>
-                              <span className="text-[10px] font-extrabold text-zinc-800 mt-1 leading-none">
-                                {impact.fundingProbability.before} &rarr; {impact.fundingProbability.after}
-                              </span>
-                              <span className={`text-[8.5px] font-black mt-1 leading-none ${impact.fundingProbability.isPositive ? 'text-emerald-600' : 'text-rose-500'}`}>
-                                ({impact.fundingProbability.diff})
-                              </span>
-                            </div>
-                            <div className="flex flex-col gap-0.5 px-1.5">
-                              <span className="text-[7.5px] font-bold text-zinc-400 uppercase tracking-wider leading-none">Target timeline</span>
-                              <span className="text-[10px] font-extrabold text-zinc-800 mt-1 leading-none">
-                                {impact.targetTimeline.before} &rarr; {impact.targetTimeline.after}
-                              </span>
-                              <span className={`text-[8.5px] font-black mt-1 leading-none ${
-                                impact.targetTimeline.diff === "No change"
-                                  ? 'text-zinc-400'
-                                  : impact.targetTimeline.isPositive
-                                    ? 'text-emerald-600'
-                                    : 'text-rose-500'
-                              }`}>
-                                {impact.targetTimeline.diff === "No change" ? "No change" : `(${impact.targetTimeline.diff})`}
-                              </span>
-                            </div>
-                            <div className="flex flex-col gap-0.5 px-1.5">
-                              <span className="text-[7.5px] font-bold text-zinc-400 uppercase tracking-wider leading-none">Monthly saving</span>
-                              <span className="text-[10px] font-extrabold text-zinc-800 mt-1 leading-none">
-                                {impact.monthlySaving.before} &rarr; {impact.monthlySaving.after}
-                              </span>
-                              <span className={`text-[8.5px] font-black mt-1 leading-none ${
-                                impact.monthlySaving.diff === "No change"
-                                  ? 'text-zinc-400'
-                                  : impact.monthlySaving.isPositive
-                                    ? 'text-emerald-600'
-                                    : 'text-rose-500'
-                              }`}>
-                                {impact.monthlySaving.diff === "No change" ? "No change" : `(${impact.monthlySaving.diff})`}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
                     </div>
                   </div>
                 );
@@ -597,7 +816,7 @@ const PlanChangeOptionPage = () => {
         <div className="bg-blue-50/50 border border-blue-200/40 rounded-[20px] p-3 flex gap-2.5 items-center mt-2 shrink-0">
           <Info className="w-4 h-4 text-blue-500 shrink-0" />
           <span className="text-[9.5px] font-bold text-blue-700 leading-normal">
-            Your other plan components remain unchanged. Only this {changingCategory?.name ? changingCategory.name.toLowerCase() : 'product'} option will be updated.
+            Your other plan components remain unchanged. Target timeline and contribution rules are preserved.
           </span>
         </div>
 
@@ -617,7 +836,7 @@ const PlanChangeOptionPage = () => {
               : 'bg-zinc-300 cursor-not-allowed shadow-none text-zinc-500'
           }`}
         >
-          Select This Option
+          {currentConfig.buttonLabel}
         </button>
         <button
           onClick={handleCancel}

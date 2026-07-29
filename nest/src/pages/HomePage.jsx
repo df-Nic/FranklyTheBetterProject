@@ -161,7 +161,7 @@ const HomePage = () => {
             </motion.div>
           </motion.div>
         )}
-        {showOpportunityPopup && !pendingHealers.length && createdPlans.length > 0 && !opportunityHandled && !opportunityDismissed && (
+        {showOpportunityPopup && opportunitySourceAmount > 0 && !pendingHealers.length && createdPlans.length > 0 && !opportunityHandled && !opportunityDismissed && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-[70] flex items-center justify-center bg-zinc-950/55 px-5">
             <motion.div initial={{ y: 22, scale: 0.95 }} animate={{ y: 0, scale: 1 }} className="relative w-full rounded-[26px] bg-white p-5 shadow-2xl">
               <Sparkles className="absolute -right-4 -top-4 h-20 w-20 text-amber-50" />

@@ -15,14 +15,14 @@ export const PLAN_OPPORTUNITIES = {
     benefitCaption: "Potential additional interest",
     benefitContext: "Without changing your monthly contribution or goal date.",
     relevance: [
-      "Your plan keeps S$20,000 in low-risk savings for a March 2028 purchase.",
+      "Your plan keeps S$20,000 in low-risk savings for an August 2030 purchase.",
       "You prioritised flexibility, so the option preserves access with no fixed lock-in period.",
     ],
     comparisons: [
       { label: "Monthly contribution", current: "S$2,500", proposed: "S$2,500" },
       { label: "Accessible savings rate", current: "2.15% p.a.", proposed: "3.20% p.a." },
       { label: "Estimated interest", current: "S$860", proposed: "S$1,280" },
-      { label: "Goal date", current: "Mar 2028", proposed: "Mar 2028" },
+      { label: "Goal date", current: "Aug 2030", proposed: "Aug 2030" },
     ],
     assumptions: ["S$20,000 remains in the account for 20 months.", "The promotional rate remains available under the stated conditions."],
     tradeoffs: ["The bonus rate requires a minimum S$500 monthly credit.", "Rates may change after the promotional period."],
