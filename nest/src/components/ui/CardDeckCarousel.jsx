@@ -195,7 +195,7 @@ export default function CardDeckCarousel({ cards, activeIndex, onChangeIndex, ty
                     <div className="flex flex-col">
                       <span className="text-[7.5px] uppercase font-bold text-white/60 tracking-widest">CARDHOLDER</span>
                       <span className="text-[10.5px] font-mono font-bold tracking-wider uppercase text-white">
-                        OLIVIA TAN
+                        DANIEL TAN
                       </span>
                     </div>
                     <div className="flex flex-col items-end">

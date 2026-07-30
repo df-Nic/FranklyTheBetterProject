@@ -110,7 +110,7 @@ Triggered automatically when the user creates their first plan. Uses a swipeable
 The advisory hub, accessible via the **Plan** tab in the bottom nav.
 
 - Displays all accepted plans as illustrated cards with category badge, goal name, target amount, target date, and status indicators (*Needs Review*, *Plan Adjusted*).
-- **OCBC Smart Advisor banner** — One-tap entry into the Expense Optimizer.
+- **OCBC Expense Optimiser banner** — One-tap entry into the Expense Optimizer.
 - **Opportunity allocation card** — Surfaces when a deposit has been made and no deviation is pending, directing the user to allocate funds across their plans.
 - **New Plan button** — Opens Agent Owl in plan-creation mode.
 

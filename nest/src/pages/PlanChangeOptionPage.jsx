@@ -122,7 +122,7 @@ const CONTEXT_CONFIG = {
       { label: "Easier access", icon: Droplet },
       { label: "Fewer conditions", icon: Unlock }
     ],
-    guardrail: "OCBC 360’s interest depends on activities such as salary crediting, saving and card spending, so 'fewer conditions' is a defensible preference.",
+    guardrail: "OCBC 360 interest depends on monthly activities such as salary crediting, continuous saving, and card spending.",
     alternatives: [
       {
         id: "alt_ocbc360",
@@ -184,7 +184,7 @@ const CONTEXT_CONFIG = {
       { label: "Split into two transfers", icon: Scissors },
       { label: "Use another account", icon: CreditCard }
     ],
-    guardrail: "Monthly amount and target date remain unchanged. Do not show other bank products here; these are execution preferences, not product alternatives.",
+    guardrail: "Your target monthly amount and goal completion date remain unchanged when customizing transfer schedules.",
     isExecutionOnly: true,
     alternatives: [
       {
@@ -224,7 +224,7 @@ const CONTEXT_CONFIG = {
       { label: "Longer maturity", icon: Lock },
       { label: "More flexible access", icon: Unlock }
     ],
-    guardrail: "Only display options that mature or can be redeemed before the relevant goal payment. Singapore T-bills are issued with six-month and one-year original maturities, while Savings Bonds can be submitted for redemption in a chosen month. Avoid hardcoding yield because it changes by issue.",
+    guardrail: "Only display options that mature or can be redeemed before the relevant goal payment. Singapore T-bills feature six-month and one-year maturities, while Savings Bonds allow flexible monthly redemptions.",
     alternatives: [
       {
         id: "alt_tbill_6m",
@@ -276,7 +276,7 @@ const CONTEXT_CONFIG = {
       { label: "Split across categories", icon: Sparkles },
       { label: "Use a savings transfer", icon: ArrowLeft }
     ],
-    guardrail: "Required monthly contribution and target date remain unchanged. Do not show OCBC 360 or another financial product as the alternative result here.",
+    guardrail: "Your required monthly contribution and target date remain unchanged when adjusting spending strategy allocations.",
     isExecutionOnly: true,
     alternatives: [
       {

@@ -443,12 +443,12 @@ export const AppProvider = ({ children }) => {
   };
 
   const investmentsData = {
-    totalBalance: 1800000.00,
+    totalBalance: 320000.00,
     currency: 'SGD',
     ytdGrowth: '+12.4%',
     portfolio: [
-      { id: 'inv-1', name: 'Cash Equities', balance: 950000.00, return: '+8.2%' },
-      { id: 'inv-2', name: 'Fixed Deposits', balance: 850000.00, return: '+4.5%' },
+      { id: 'inv-1', name: 'Cash Equities', balance: 180000.00, return: '+8.2%' },
+      { id: 'inv-2', name: 'Fixed Deposits', balance: 140000.00, return: '+4.5%' },
     ],
     insights: [
       {
