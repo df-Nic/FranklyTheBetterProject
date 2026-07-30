@@ -202,7 +202,7 @@ const PlanDashboardPage = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-md border border-white/25 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider text-white">
               <Sparkles className="w-3 h-3 fill-white text-white" />
-              <span>OCBC Smart Advisor</span>
+              <span>OCBC Expense Advisor</span>
             </div>
             <span className="text-[10px] font-bold text-red-100/90 group-hover:text-white transition-colors flex items-center gap-1">
               <span>Explore Options</span>

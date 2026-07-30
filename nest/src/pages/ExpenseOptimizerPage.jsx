@@ -125,7 +125,7 @@ export default function ExpenseOptimizerPage() {
         </button>
 
         <div className="flex flex-col items-center">
-          <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none">OCBC SMART ADVISOR</span>
+          <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none">OCBC EXPENSE OPTIMISER</span>
           <span className="text-xs font-black text-zinc-900 tracking-tight mt-0.5">Recommendations Hub</span>
         </div>
 
