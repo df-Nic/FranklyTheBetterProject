@@ -181,26 +181,37 @@ export default function PlanHealerPage() {
                   <p className="text-[9px] leading-relaxed text-[#756A63]">Allocate the bonus across any plans. Fully covered gaps resolve; partial gaps remain for another recovery.</p>
                   <div className="mt-3 space-y-2">
                     {pendingPlans.map((plan) => (
-                      <label key={`bonus-${plan.planId}`} className="flex items-center justify-between rounded-xl border border-[#E8DED5] bg-white p-3">
+                      <div key={`bonus-${plan.planId}`} className="flex items-center justify-between rounded-xl border border-[#E8DED5] bg-white p-3">
                         <span>
                           <strong className="block text-[10px]">{plan.planName}</strong>
                           <span className="text-[8px] text-[#756A63]">Gap {money(plan.gap)}</span>
                         </span>
-                        <span className="flex items-center rounded-lg border px-2 py-1">
+                        <span className="flex items-center rounded-lg border border-[#D9CEC5] px-2 py-1 focus-within:ring-2 focus-within:ring-[#9A641E]">
                           <span className="text-[9px]">S$</span>
                           <input
                             type="number"
                             min="0"
-                            max={plan.gap}
-                            value={bonusAllocations[plan.planId] || 0}
-                            onChange={(inputEvent) => setBonusAllocations((current) => ({
-                              ...current,
-                              [plan.planId]: Math.min(plan.gap, Math.max(0, Math.floor(Number(inputEvent.target.value) || 0))),
-                            }))}
+                            max={opportunity.sourceAmount}
+                            value={bonusAllocations[plan.planId] ?? ''}
+                            onChange={(inputEvent) => {
+                              const valStr = inputEvent.target.value;
+                              if (valStr === '') {
+                                setBonusAllocations((current) => ({
+                                  ...current,
+                                  [plan.planId]: '',
+                                }));
+                                return;
+                              }
+                              const val = Math.min(opportunity.sourceAmount, Math.max(0, Math.floor(Number(valStr))));
+                              setBonusAllocations((current) => ({
+                                ...current,
+                                [plan.planId]: Number.isNaN(val) ? '' : val,
+                              }));
+                            }}
                             className="w-16 bg-transparent text-right text-[10px] font-black outline-none"
                           />
                         </span>
-                      </label>
+                      </div>
                     ))}
                   </div>
                   <div className={`mt-2 text-right text-[9px] font-black ${totalBonus <= opportunity.sourceAmount ? "text-[#2E7D4F]" : "text-[#B14A3F]"}`}>
@@ -210,7 +221,7 @@ export default function PlanHealerPage() {
                     disabled={!totalBonus || totalBonus > opportunity.sourceAmount}
                     onClick={() => applyOpportunityRecovery(
                       event.id,
-                      Object.entries(bonusAllocations).map(([planId, amount]) => ({ planId, amount: Number(amount) })),
+                      Object.entries(bonusAllocations).map(([planId, amount]) => ({ planId, amount: Number(amount) || 0 })),
                     )}
                     className="mt-3 w-full rounded-xl bg-[#9A641E] py-3 text-[10px] font-black text-white disabled:opacity-40"
                   >
