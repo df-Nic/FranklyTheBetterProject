@@ -187,7 +187,7 @@ const PlanDashboardPage = () => {
       </header>
 
       {/* Cards area */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-4 py-5 pb-28 flex flex-col gap-4 z-10">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-4 py-5 pb-safe-nav flex flex-col gap-4 z-10">
         {/* OCBC Expense Optimiser Banner */}
         <button
           type="button"
