@@ -127,8 +127,8 @@ function AppContent() {
             <RiskProfilingPage />
           </motion.div>
         )}
-        {/* plan-dashboard: visible on plan-dashboard page, or as background when plan-details was accepted */}
-        {(page === 'plan-dashboard' || (page === 'plan-details' && detailsOrigin === 'plan-dashboard')) && (
+        {/* plan-dashboard: visible on plan-dashboard page, or as background when plan-details was opened from plan-dashboard */}
+        {(page === 'plan-dashboard' || (page === 'plan-details' && (detailsOrigin === 'plan-dashboard' || !detailsOrigin))) && (
           <motion.div
             key="plan-dashboard"
             initial={{ opacity: 0, x: 60 }}
@@ -222,7 +222,7 @@ function AppContent() {
         {page === 'risk-profiling' && (
           <RiskProfilingIrisWrapper key="risk-profiling-iris" />
         )}
-        {page === 'plan-milestones' && (
+        {(page === 'plan-milestones' || (page === 'plan-details' && detailsOrigin === 'plan-milestones')) && (
           <motion.div
             key="plan-milestones"
             initial={{ opacity: 0, x: 40 }}

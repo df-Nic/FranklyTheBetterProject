@@ -70,7 +70,7 @@ const HomePage = () => {
   } = useApp();
   const pendingHealers = transactionDeviations.filter((event) => event.status === 'pending');
   const visibleHealer = [...pendingHealers].reverse().find((event) => !event.notificationDismissed);
-  const opportunity = getPlanOpportunity();
+  const opportunity = getPlanOpportunity(opportunitySourceAmount);
   const opportunityHandled = Object.values(opportunityDecisions).some((decision) => decision.opportunityId === opportunity.id);
   const recommendedPlan = getRecommendedPlan(createdPlans.map((id) => getMilestonePlan(id, planAdjustments)));
 
@@ -79,8 +79,8 @@ const HomePage = () => {
   const [opportunityDismissed, setOpportunityDismissed] = useState(false);
 
   useEffect(() => {
-    if (page === 'home') setOpportunityDismissed(false);
-  }, [page]);
+    if (page === 'home' || showOpportunityPopup) setOpportunityDismissed(false);
+  }, [page, showOpportunityPopup]);
 
   const handleNavTabSelect = (tabId) => {
     setActiveNavTab(tabId);

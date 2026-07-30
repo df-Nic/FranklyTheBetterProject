@@ -270,7 +270,8 @@ export function formatSGD(amount) {
 }
 
 // Derive the on-track headline from expected vs saved.
-export function deriveOnTrack({ expected, saved }) {
+export function deriveOnTrack(onTrackObj = {}) {
+  const { expected = 0, saved = 0 } = onTrackObj || {};
   const diff = saved - expected;
   const isNew = expected === 0 && saved === 0;
   const ahead = !isNew && diff > 0;

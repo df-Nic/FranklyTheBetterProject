@@ -158,6 +158,9 @@ export const AppProvider = ({ children }) => {
       )
     );
     setOpportunitySourceAmount(numAmount);
+    setOpportunityDecisions({});
+    setOpportunityNotice(null);
+    setOpportunityReveal(null);
     setShowOpportunityPopup(true);
     setPage('home');
     return true;

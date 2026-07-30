@@ -19,13 +19,15 @@ const offsetDate = (value, days) => {
 };
 
 export function buildSeededPlanActivity(plan, opportunity, decision) {
-  const savings = getSavingsBreakdown(plan.id);
-  const createdMilestone = plan.milestones.find((item) => item.id === "created");
+  if (!plan || !plan.id) return [];
+  const milestones = plan.milestones || [];
+  const savings = getSavingsBreakdown(plan.id) || { items: [], asOf: "22 Jul 2026" };
+  const createdMilestone = milestones.find((item) => item.id === "created");
   const createdDate = dateValue(createdMilestone?.date);
   const savingsAsOf = dateValue(savings.asOf);
   const savingsWindow = Math.max(savingsAsOf - createdDate, 86_400_000);
   const events = [];
-  if (!plan.isUserCreated) savings.items.forEach((item, index) => {
+  if (!plan.isUserCreated && savings.items) (savings.items || []).forEach((item, index) => {
     const segmentStart = createdDate + (savingsWindow * index) / savings.items.length;
     const segmentEnd = createdDate + (savingsWindow * (index + 1)) / savings.items.length;
     const identifiedAt = createdDate
@@ -63,12 +65,12 @@ export function buildSeededPlanActivity(plan, opportunity, decision) {
     actor: "user",
     type: "created",
     title: "Plan created",
-    description: `${plan.goalName} was created and added to your plan journey.`,
+    description: `${plan.goalName || 'Plan'} was created and added to your plan journey.`,
     timestamp: createdMilestone.date,
     status: "completed",
   });
 
-  plan.milestones
+  milestones
     .filter((item) => {
       const completedAt = dateValue(item.completedAt ?? item.date);
       return item.state === "completed"
@@ -80,7 +82,7 @@ export function buildSeededPlanActivity(plan, opportunity, decision) {
     id: `milestone-${item.id}`, planId: plan.id, actor: "user", type: "milestone",
     title: item.completionSource === "opportunity" ? `${item.name} reached` : item.name,
     description: item.completionSource === "opportunity"
-      ? `Your confirmed S$${item.completionAmount.toLocaleString("en-SG")} opportunity allocation brought this plan to S$${item.savedAtCompletion.toLocaleString("en-SG")} saved and completed this milestone.`
+      ? `Your confirmed S$${(item.completionAmount || 0).toLocaleString("en-SG")} opportunity allocation brought this plan to S$${(item.savedAtCompletion || 0).toLocaleString("en-SG")} saved and completed this milestone.`
       : "You completed this step in your plan journey.",
     timestamp: item.completedAt ?? item.date,
     sortTimestamp: item.completionSource === "opportunity" ? item.completedAt : undefined,
@@ -125,7 +127,7 @@ export function buildSeededPlanActivity(plan, opportunity, decision) {
     type: "completion",
     title: "Opportunity applied to plan",
     description: decision.returnedAmount > 0
-      ? `S$${(decision.allocations.find((allocation) => allocation.planId === plan.id)?.amount ?? 0).toLocaleString("en-SG")} was applied to ${plan.goalName} and S$${decision.returnedAmount.toLocaleString("en-SG")} was returned to your ${decision.sourceAccount}.`
+      ? `S$${(decision.allocations?.find((allocation) => allocation.planId === plan.id)?.amount ?? 0).toLocaleString("en-SG")} was applied to ${plan.goalName || 'Plan'} and S$${decision.returnedAmount.toLocaleString("en-SG")} was returned to your ${decision.sourceAccount}.`
       : `${opportunity.title} has been applied successfully.`,
     timestamp: decision.decidedAt,
     sortTimestamp: decision.decidedAt,
@@ -137,9 +139,10 @@ export function buildSeededPlanActivity(plan, opportunity, decision) {
 }
 
 export function getPlanActivity({ plan, opportunity, decision, runtimeEvents = [] }) {
+  if (!plan || !plan.id) return [];
   const byId = new Map();
-  [...buildSeededPlanActivity(plan, opportunity, decision), ...runtimeEvents]
-    .filter((event) => event.planId === plan.id)
+  [...buildSeededPlanActivity(plan, opportunity, decision), ...(runtimeEvents || [])]
+    .filter((event) => event && event.planId === plan.id)
     .forEach((event) => {
       const existing = byId.get(event.id);
       byId.set(event.id, {

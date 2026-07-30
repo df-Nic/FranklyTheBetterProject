@@ -49,11 +49,11 @@ export default function PlanMilestonesPage() {
   } = useApp();
   const basePlan = getMilestonePlan(activePlanId, planAdjustments);
   const opportunity = getPlanOpportunity(opportunitySourceAmount);
-  const decision = Object.values(opportunityDecisions).find((item) =>
-    item.status === "accepted" && item.allocations?.some((allocation) => allocation.planId === basePlan.id));
-  const updatedPlan = applyOpportunityChanges(basePlan, opportunity, decision);
+  const decision = Object.values(opportunityDecisions || {}).find((item) =>
+    item?.status === "accepted" && item?.allocations?.some((allocation) => allocation.planId === basePlan?.id));
+  const updatedPlan = applyOpportunityChanges(basePlan, opportunity, decision) || basePlan;
   const revealUpdate = opportunityReveal?.opportunityId === decision?.opportunityId
-    ? opportunityReveal.updates.find((item) => item.planId === activePlanId)
+    ? opportunityReveal?.updates?.find((item) => item.planId === activePlanId)
     : null;
   const revealViewed = Boolean(opportunityReveal?.viewedPlanIds?.includes(activePlanId));
   const reduceMotion = useReducedMotion();
@@ -79,51 +79,51 @@ export default function PlanMilestonesPage() {
   const plan = showingBeforeState
     ? basePlan
     : showingMovingState
-      ? { ...basePlan, onTrack: updatedPlan.onTrack }
+      ? { ...basePlan, onTrack: updatedPlan?.onTrack }
       : updatedPlan;
-  const onTrack = deriveOnTrack(plan.onTrack);
+  const onTrack = deriveOnTrack(plan?.onTrack);
   const activities = getPlanActivity({ plan, opportunity, decision, runtimeEvents: planActivity });
   const wasHealed = Boolean(planAdjustments?.[activePlanId]?.healed);
   const personalCopy = buildPersonalizedPlanCopy({
     plan, userName: user?.name, onTrack, recentActivity: activities[0], decision, wasHealed,
   });
-  const count = plan.milestones.length;
+  const count = (plan?.milestones || []).length;
   const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [titleDraft, setTitleDraft] = useState(plan.goalName);
+  const [titleDraft, setTitleDraft] = useState(plan?.goalName || "");
   const showReveal = Boolean(revealUpdate && visibleRevealPlanId === activePlanId);
   const revealFundingPercentBefore = revealUpdate
-    ? Math.min(1, revealUpdate.before.saved / Math.max(revealUpdate.before.targetAmount, 1))
+    ? Math.min(1, (revealUpdate.before?.saved || 0) / Math.max(revealUpdate.before?.targetAmount || 1, 1))
     : 0;
   const revealFundingPercentAfter = revealUpdate
-    ? Math.min(1, revealUpdate.after.saved / Math.max(revealUpdate.after.targetAmount, 1))
+    ? Math.min(1, (revealUpdate.after?.saved || 0) / Math.max(revealUpdate.after?.targetAmount || 1, 1))
     : 0;
   const revealJourneyProgressBefore = revealUpdate
     ? getFundingJourneyProgress(
-      revealUpdate.before.milestones,
-      revealUpdate.before.saved,
-      revealUpdate.before.targetAmount,
+      revealUpdate.before?.milestones || [],
+      revealUpdate.before?.saved || 0,
+      revealUpdate.before?.targetAmount || 0,
     )
     : 0;
   const newlyCompletedMilestoneIndex = revealUpdate
-    ? revealUpdate.after.milestones.findIndex((milestone, index) =>
-      milestone.state === "completed"
-      && revealUpdate.before.milestones[index]?.state !== "completed")
+    ? (revealUpdate.after?.milestones || []).findIndex((milestone, index) =>
+      milestone?.state === "completed"
+      && revealUpdate.before?.milestones?.[index]?.state !== "completed")
     : -1;
   const calculatedRevealJourneyProgressAfter = revealUpdate
     ? getFundingJourneyProgress(
-      revealUpdate.after.milestones,
-      revealUpdate.after.saved,
-      revealUpdate.after.targetAmount,
+      revealUpdate.after?.milestones || [],
+      revealUpdate.after?.saved || 0,
+      revealUpdate.after?.targetAmount || 0,
     )
     : 0;
   const revealJourneyProgressAfter = newlyCompletedMilestoneIndex >= 0
-    ? newlyCompletedMilestoneIndex / Math.max(revealUpdate.after.milestones.length - 1, 1)
+    ? newlyCompletedMilestoneIndex / Math.max((revealUpdate.after?.milestones || []).length - 1, 1)
     : calculatedRevealJourneyProgressAfter;
   const journeyProgress = showReveal
     ? showingBeforeState
       ? revealJourneyProgressBefore
       : revealJourneyProgressAfter
-    : getFundingJourneyProgress(plan.milestones, plan.onTrack.saved, plan.targetAmount);
+    : getFundingJourneyProgress(plan?.milestones || [], plan?.onTrack?.saved || 0, plan?.targetAmount || 0);
 
   useEffect(() => {
     if (!revealUpdate) return undefined;
