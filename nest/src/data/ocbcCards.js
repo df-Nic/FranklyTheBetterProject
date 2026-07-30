@@ -330,15 +330,15 @@ export const OCBC_CARDS = [
 ];
 
 // Helper: Calculate custom optimization metrics based on user active plan context
-export function getOptimizedCardsForPlan(planId, planData) {
+export function getOptimizedCardsForPlan(planId, planData, limit = 2) {
   const selectedPlanId = planId || 'housing';
-  
-  return OCBC_CARDS.map(card => {
+
+  const sortedCards = OCBC_CARDS.map(card => {
     const match = card.planMatches[selectedPlanId] || card.planMatches.default;
-    
+
     // Estimate target completion date impact
     const targetDate = planData?.timelineAll || '2028';
-    
+
     return {
       ...card,
       matchScore: match.score,
@@ -349,4 +349,6 @@ export function getOptimizedCardsForPlan(planId, planData) {
       targetDateContext: targetDate
     };
   }).sort((a, b) => b.matchScore - a.matchScore);
+
+  return limit ? sortedCards.slice(0, limit) : sortedCards;
 }

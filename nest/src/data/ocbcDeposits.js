@@ -484,10 +484,10 @@ export const OCBC_DEPOSITS = [
 ];
 
 // Helper: Calculate custom deposit optimization metrics based on user active plan context
-export function getOptimizedDepositsForPlan(planId, planData) {
+export function getOptimizedDepositsForPlan(planId, planData, limit = 3) {
   const selectedPlanId = planId || 'housing';
   
-  return OCBC_DEPOSITS.map(deposit => {
+  const sortedDeposits = OCBC_DEPOSITS.map(deposit => {
     const match = deposit.planMatches[selectedPlanId] || deposit.planMatches.default;
     
     // Estimate target completion date impact
@@ -503,4 +503,6 @@ export function getOptimizedDepositsForPlan(planId, planData) {
       targetDateContext: targetDate
     };
   }).sort((a, b) => b.matchScore - a.matchScore);
+
+  return limit ? sortedDeposits.slice(0, limit) : sortedDeposits;
 }
