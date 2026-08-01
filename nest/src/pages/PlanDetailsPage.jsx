@@ -16,7 +16,8 @@ import {
   CheckCircle2,
   Coins,
   ShieldCheck,
-  ChevronRight
+  ChevronRight,
+  Mic
 } from 'lucide-react';
 import GlassCard from '../components/ui/GlassCard';
 import BackgroundOrb from '../components/ui/BackgroundOrb';
@@ -1027,13 +1028,22 @@ const PlanDetailsPage = () => {
                 </span>
               </div>
               {!isConfirmedBreakdown && (
-                <button
-                  onClick={handleAddSubgoal}
-                  className="px-2.5 py-1 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary text-[10px] font-extrabold rounded-lg flex items-center gap-1 transition-all active:scale-95 cursor-pointer"
-                >
-                  <Plus className="w-3 h-3 stroke-[2.5]" />
-                  <span>Add Subgoal</span>
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    title="Voice input for subgoals"
+                    className="p-1.5 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary rounded-lg flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                  >
+                    <Mic className="w-3.5 h-3.5 stroke-[2.2]" />
+                  </button>
+                  <button
+                    onClick={handleAddSubgoal}
+                    className="px-2.5 py-1 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary text-[10px] font-extrabold rounded-lg flex items-center gap-1 transition-all active:scale-95 cursor-pointer"
+                  >
+                    <Plus className="w-3 h-3 stroke-[2.5]" />
+                    <span>Add Subgoal</span>
+                  </button>
+                </div>
               )}
             </div>
 
@@ -1053,12 +1063,21 @@ const PlanDetailsPage = () => {
                     <tr key={sub.id || idx} className="hover:bg-zinc-50/50 transition-colors group">
                       <td className="py-2 px-1.5 align-middle">
                         {editingId === sub.id ? (
-                          <input
-                            type="text"
-                            value={editForm.name}
-                            onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                            className="w-full bg-white border border-brand-primary/40 rounded px-1.5 py-1 text-xs text-zinc-900 font-medium focus:outline-none focus:ring-1 focus:ring-brand-primary"
-                          />
+                          <div className="relative flex items-center w-full">
+                            <input
+                              type="text"
+                              value={editForm.name}
+                              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                              className="w-full bg-white border border-brand-primary/40 rounded px-1.5 pr-6 py-1 text-xs text-zinc-900 font-medium focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                            />
+                            <button
+                              type="button"
+                              title="Voice input"
+                              className="absolute right-1 text-zinc-400 hover:text-brand-primary p-0.5 cursor-pointer"
+                            >
+                              <Mic className="w-3 h-3" />
+                            </button>
+                          </div>
                         ) : (
                           <span className="font-semibold text-zinc-800 text-[11px] leading-tight block">
                             {sub.name}
