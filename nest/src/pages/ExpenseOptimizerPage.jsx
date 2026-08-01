@@ -125,20 +125,22 @@ export default function ExpenseOptimizerPage() {
         </button>
 
         <div className="flex flex-col items-center">
-          <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none">OCBC Expense Advisor</span>
-          <span className="text-xs font-black text-zinc-900 tracking-tight mt-0.5">Recommendations Hub</span>
+          <span className="text-[11px] font-black text-zinc-400 uppercase tracking-widest leading-none">OCBC Expense Advisor</span>
+          <span className="text-sm font-black text-zinc-900 tracking-tight mt-0.5">Recommendations Hub</span>
         </div>
 
         <div className="w-9" />
       </header>
 
       {/* Main Scrollable Area */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden touch-pan-y no-scrollbar px-4 py-4 pb-44 flex flex-col gap-4 min-h-0">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden touch-pan-y no-scrollbar px-4 py-4 pb-30 flex flex-col gap-4 min-h-0">
+
+
 
         {/* Highlight Banner */}
         <div className="w-full shrink-0 bg-gradient-to-r from-[#E1251B] via-[#C62828] to-[#8E0000] rounded-2xl p-4 text-white shadow-lg relative overflow-hidden flex flex-col gap-1.5 border border-red-400/30">
           <div className="absolute right-[-10px] top-[-10px] w-28 h-28 bg-white/20 rounded-full blur-2xl pointer-events-none" />
-          <div className="flex items-center gap-1.5 w-fit bg-white/15 backdrop-blur-md border border-white/25 px-2.5 py-1 rounded-full text-[9.5px] font-black text-white tracking-wider uppercase">
+          <div className="flex items-center gap-1.5 w-fit bg-white/15 backdrop-blur-md border border-white/25 px-2.5 py-1 rounded-full text-[11px] font-black text-white tracking-wider uppercase">
             <Sparkles className="w-3.5 h-3.5 fill-white text-white" />
             <span>Personalized Goal Match</span>
           </div>
@@ -174,7 +176,7 @@ export default function ExpenseOptimizerPage() {
           {/* Header Row & Curtain Scope Toggle Pill */}
           <div className="flex items-center justify-between px-1 pt-1">
             <div className="flex flex-col">
-              <span className="text-[10.5px] font-black text-zinc-400 uppercase tracking-wider">
+              <span className="text-xs font-black text-zinc-400 uppercase tracking-wider">
                 {viewMode === 'cards' ? 'Card Recommendations' : 'Deposit Recommendations'}
               </span>
             </div>
@@ -183,22 +185,22 @@ export default function ExpenseOptimizerPage() {
             <div className="bg-zinc-100 p-0.5 rounded-full flex items-center border border-zinc-200/80 shadow-inner z-10">
               <button
                 onClick={() => handleSwitchMode('cards')}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-extrabold transition-all duration-300 cursor-pointer ${viewMode === 'cards'
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-extrabold transition-all duration-300 cursor-pointer ${viewMode === 'cards'
                   ? 'bg-red-600 text-white shadow-sm'
                   : 'text-zinc-500 hover:text-zinc-800'
                   }`}
               >
-                <CreditCard className="w-3 h-3" />
+                <CreditCard className="w-3.5 h-3.5" />
                 <span>Credit Cards</span>
               </button>
               <button
                 onClick={() => handleSwitchMode('deposits')}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-extrabold transition-all duration-300 cursor-pointer ${viewMode === 'deposits'
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-extrabold transition-all duration-300 cursor-pointer ${viewMode === 'deposits'
                   ? 'bg-red-600 text-white shadow-sm'
                   : 'text-zinc-500 hover:text-zinc-800'
                   }`}
               >
-                <Landmark className="w-3 h-3" />
+                <Landmark className="w-3.5 h-3.5" />
                 <span>Deposit Accounts</span>
               </button>
             </div>
@@ -234,10 +236,10 @@ export default function ExpenseOptimizerPage() {
               {/* Info Header */}
               <div className="flex items-start justify-between pb-1 gap-2">
                 <div className="flex flex-col min-w-0">
-                  <h3 className="text-sm font-black text-zinc-900 leading-tight">{activeItem.name}</h3>
-                  <p className="text-[11px] font-medium text-zinc-500 mt-0.5">{activeItem.tagline}</p>
+                  <h3 className="text-base font-black text-zinc-900 leading-tight">{activeItem.name}</h3>
+                  <p className="text-xs font-medium text-zinc-500 mt-0.5">{activeItem.tagline}</p>
                 </div>
-                <div className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold border shrink-0 ${activeItem.badgeBg}`}>
+                <div className={`px-2.5 py-1 rounded-full text-xs font-extrabold border shrink-0 ${activeItem.badgeBg}`}>
                   {activeItem.category}
                 </div>
               </div>
@@ -245,20 +247,20 @@ export default function ExpenseOptimizerPage() {
               {/* Key Rates Row */}
               <div className="grid grid-cols-2 gap-2.5">
                 <div className="bg-zinc-50 rounded-2xl p-3 border border-zinc-100 flex flex-col justify-between">
-                  <span className="text-[9.5px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                  <span className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-wider">
                     {viewMode === 'cards' ? 'Reward Structure' : 'Interest Rate Yield'}
                   </span>
-                  <span className="text-sm font-black text-red-600 mt-1">{activeItem.headlineRate}</span>
-                  <span className="text-[9.5px] font-medium text-zinc-500 mt-0.5">{activeItem.subText}</span>
+                  <span className="text-base font-black text-red-600 mt-1">{activeItem.headlineRate}</span>
+                  <span className="text-xs font-medium text-zinc-500 mt-0.5">{activeItem.subText}</span>
                 </div>
                 <div className="bg-zinc-50 rounded-2xl p-3 border border-zinc-100 flex flex-col justify-between">
-                  <span className="text-[9.5px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                  <span className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-wider">
                     {viewMode === 'cards' ? 'Annual Fee Waiver' : 'Monthly Fee Waiver'}
                   </span>
-                  <span className="text-sm font-black text-zinc-900 mt-1">
+                  <span className="text-base font-black text-zinc-900 mt-1">
                     {viewMode === 'cards' ? activeItem.annualFeeWaiver : activeItem.monthlyFeeWaiver}
                   </span>
-                  <span className="text-[9.5px] font-medium text-zinc-500 mt-0.5">
+                  <span className="text-xs font-medium text-zinc-500 mt-0.5">
                     {viewMode === 'cards' ? `Min Spend: ${activeItem.minSpend}` : `Min Deposit: ${activeItem.minDeposit}`}
                   </span>
                 </div>
@@ -276,10 +278,10 @@ export default function ExpenseOptimizerPage() {
                 <div className="flex flex-col gap-2">
                   {activeItem.specificReasons && activeItem.specificReasons.map((reason, idx) => (
                     <div key={idx} className="flex items-start gap-2.5 bg-red-50/40 p-2.5 rounded-xl border border-red-100/60">
-                      <div className="w-4 h-4 rounded-full bg-red-100 text-red-700 border border-red-200 flex items-center justify-center shrink-0 mt-0.5 text-[9px] font-black">
+                      <div className="w-4.5 h-4.5 rounded-full bg-red-100 text-red-700 border border-red-200 flex items-center justify-center shrink-0 mt-0.5 text-[11px] font-black">
                         {idx + 1}
                       </div>
-                      <p className="text-[11px] font-medium text-zinc-800 leading-relaxed">
+                      <p className="text-xs font-medium text-zinc-800 leading-relaxed">
                         {reason}
                       </p>
                     </div>
@@ -293,7 +295,7 @@ export default function ExpenseOptimizerPage() {
                   <div className="flex items-center gap-1.5">
                     <Sliders className="w-4 h-4 text-red-600" />
                     <span className="text-xs font-black text-zinc-900">
-                      {viewMode === 'cards' ? 'Est. Monthly Spend Simulator' : 'Avg. Monthly Balance Yield Simulator'}
+                      {viewMode === 'cards' ? 'Monthly Spend Simulator' : 'Monthly Balance Simulator'}
                     </span>
                   </div>
                   <span className="text-xs font-black text-red-700 bg-red-50 px-2.5 py-0.5 rounded-full border border-red-200 shadow-2xs">
@@ -323,7 +325,7 @@ export default function ExpenseOptimizerPage() {
                   />
                 )}
 
-                <div className="flex items-center justify-between text-[10px] text-zinc-400 font-bold px-0.5">
+                <div className="flex items-center justify-between text-xs text-zinc-400 font-bold px-0.5">
                   <span>{viewMode === 'cards' ? 'S$800/mo' : 'S$5,000'}</span>
                   <span>{viewMode === 'cards' ? 'S$2,400/mo' : 'S$50,000'}</span>
                   <span>{viewMode === 'cards' ? 'S$4,000/mo' : 'S$100,000'}</span>
@@ -331,12 +333,12 @@ export default function ExpenseOptimizerPage() {
 
                 <div className="bg-white rounded-xl p-3 border border-red-100 flex items-center justify-between shadow-2xs mt-1">
                   <div className="flex flex-col">
-                    <span className="text-[9.5px] font-bold text-zinc-400 uppercase">
+                    <span className="text-[11px] font-bold text-zinc-400 uppercase">
                       {viewMode === 'cards' ? 'Projected Annual Return' : 'Projected Annual Interest'}
                     </span>
                     <span className="text-xs font-black text-emerald-600 mt-0.5">{projectedReturnText}</span>
                   </div>
-                  <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-1 rounded-lg border border-red-100">
+                  <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded-lg border border-red-100">
                     Personalized Estimate
                   </span>
                 </div>
@@ -344,12 +346,12 @@ export default function ExpenseOptimizerPage() {
 
               {/* Full Privileges List */}
               <div className="flex flex-col gap-2">
-                <span className="text-[10.5px] font-black uppercase text-zinc-400 tracking-wider">
+                <span className="text-xs font-black uppercase text-zinc-400 tracking-wider">
                   {viewMode === 'cards' ? 'All Card Privileges' : 'Account Features & Privileges'}
                 </span>
                 <div className="flex flex-col gap-1.5">
                   {activeItem.privileges && activeItem.privileges.map((priv, pIdx) => (
-                    <div key={pIdx} className="flex items-start gap-2 text-[11px] text-zinc-600">
+                    <div key={pIdx} className="flex items-start gap-2 text-xs text-zinc-600">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
                       <span>{priv}</span>
                     </div>
@@ -374,5 +376,6 @@ export default function ExpenseOptimizerPage() {
         </div>
       </div>
     </div>
+
   );
 }

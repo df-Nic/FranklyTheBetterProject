@@ -238,7 +238,6 @@ const HomePage = () => {
               </>
             ) : (
               <>
-                <div className="pointer-events-none absolute -left-24 top-0 h-full w-28 rounded-r-[100%] bg-brand-primary" />
                 <div className="pointer-events-none absolute right-4 top-10 flex h-28 w-28 items-center justify-center opacity-10">
                   {banners[activeBannerIndex].bgType === 'globe' ? (
                     <Globe className="h-24 w-24 text-brand-secondary stroke-[1.1]" />
@@ -246,7 +245,7 @@ const HomePage = () => {
                     <Coins className="h-24 w-24 text-brand-primary stroke-[1.1]" />
                   )}
                 </div>
-                <div className="relative z-10 max-w-[60%] pb-2 pl-12 pr-0 pt-7">
+                <div className="relative z-10 max-w-[60%] pb-2 px-6 pt-7">
                   <p className="text-[22px] font-black leading-none tracking-tight text-zinc-950">
                     Hello, {user.name}!
                   </p>

@@ -183,7 +183,7 @@ const PlanTabbedDeck = ({ categories = [], pendingExcluded = new Set(), toggleAc
         {categories.map((cat) => {
           const isActive = cat.id === currentCategory.id;
           const totalActions = cat.actions ? cat.actions.length : 0;
-          const activeActionsCount = cat.actions ? cat.actions.filter(a => !pendingExcluded.has(a.id)).length : 0;
+          const activeActionsCount = cat.actions ? cat.actions.filter(a => !pendingExcluded.has(a.id) || chosenAlternatives[a.id] || PLAN_ALTERNATIVES[a.id]).length : 0;
 
           return (
             <button
@@ -200,14 +200,15 @@ const PlanTabbedDeck = ({ categories = [], pendingExcluded = new Set(), toggleAc
               </div>
               <span className="whitespace-nowrap tracking-tight">{cat.name}</span>
 
-              <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-black ${isActive
+              <span className={`px-1.5 py-0.5 rounded-full text-[11px] font-black ${isActive
                   ? 'bg-brand-primary text-white'
                   : activeActionsCount < totalActions
                     ? 'bg-amber-100 text-amber-700'
                     : 'bg-zinc-100 text-zinc-500'
                 }`}>
-                {activeActionsCount}/{totalActions}
+                {isReadOnly ? activeActionsCount : `${activeActionsCount}/${totalActions}`}
               </span>
+
 
               {isActive && (
                 <motion.div
@@ -237,7 +238,7 @@ const PlanTabbedDeck = ({ categories = [], pendingExcluded = new Set(), toggleAc
                 {renderCategoryIcon(currentCategory.icon)}
               </div>
               <div className="flex flex-col">
-                <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest leading-none">RECOMMENDED PRODUCTS</span>
+                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none">RECOMMENDED PRODUCTS</span>
                 <span className="text-xs font-black text-zinc-900 tracking-tight mt-0.5">{currentCategory.name}</span>
               </div>
             </div>
@@ -246,6 +247,49 @@ const PlanTabbedDeck = ({ categories = [], pendingExcluded = new Set(), toggleAc
           <div className="flex flex-col gap-2.5">
             {currentCategory.actions && currentCategory.actions.map(action => {
               const isExcluded = pendingExcluded.has(action.id);
+              const alternative = chosenAlternatives[action.id] || PLAN_ALTERNATIVES[action.id];
+
+              // In read-only / confirmed mode: render final state cleanly without strikethrough or replan banners
+              if (isReadOnly) {
+                const displayItem = isExcluded ? alternative : action;
+                if (!displayItem) return null;
+
+                return (
+                  <div
+                    key={action.id}
+                    className="p-3 rounded-2xl border border-zinc-200/60 text-left flex gap-3 items-start bg-white"
+                  >
+                    <div className="w-9 h-9 rounded-full bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center shrink-0 mt-0.5 text-brand-primary">
+                      <CheckCircle2 className="w-4 h-4 fill-current stroke-[2.5]" />
+                    </div>
+
+                    <div className="flex flex-col flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-extrabold text-zinc-900 tracking-tight">
+                          {displayItem.name}
+                        </span>
+                        {displayItem.type && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 uppercase tracking-wider">
+                            {displayItem.type}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-zinc-500 font-medium leading-relaxed mt-1">
+                        {displayItem.desc}
+                      </p>
+
+                      <div className="mt-1.5 flex items-start gap-1 text-[10.5px] font-semibold text-zinc-500 bg-zinc-50/50 rounded-lg p-1 border border-zinc-100/50">
+                        <Sparkles className="w-2.5 h-2.5 text-brand-primary/80 shrink-0 mt-0.5" />
+                        <span>
+                          <strong>Why it fits:</strong> {generateFitDescription(displayItem, activePlan)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              // Draft mode (editable before accepting plan)
               return (
                 <div
                   key={action.id}
@@ -290,22 +334,22 @@ const PlanTabbedDeck = ({ categories = [], pendingExcluded = new Set(), toggleAc
                   <div className="flex flex-col flex-1">
                     <div className={`flex flex-col transition-all duration-200 ${isExcluded ? 'opacity-50 grayscale' : 'opacity-100'}`}>
                       <div className="flex items-center justify-between gap-2">
-                        <span className={`text-[11px] font-extrabold tracking-tight ${isExcluded ? 'text-zinc-400 line-through' : 'text-zinc-900'}`}>
+                        <span className={`text-xs font-extrabold tracking-tight ${isExcluded ? 'text-zinc-400 line-through' : 'text-zinc-900'}`}>
                           {action.name}
                         </span>
                         {action.type && (
-                          <span className={`text-[8.5px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${isExcluded ? 'bg-zinc-200 text-zinc-400' : 'bg-zinc-100 text-zinc-600'
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${isExcluded ? 'bg-zinc-200 text-zinc-400' : 'bg-zinc-100 text-zinc-600'
                             }`}>
                             {action.type}
                           </span>
                         )}
                       </div>
-                      <p className="text-[9.5px] text-zinc-500 font-medium leading-relaxed mt-1">
+                      <p className="text-xs text-zinc-500 font-medium leading-relaxed mt-1">
                         {action.desc}
                       </p>
 
                       {/* Elaboration of suggestion */}
-                      <div className="mt-1.5 flex items-start gap-1 text-[8.5px] font-semibold text-zinc-500 bg-zinc-50/50 rounded-lg p-1 border border-zinc-100/50">
+                      <div className="mt-1.5 flex items-start gap-1 text-[10.5px] font-semibold text-zinc-500 bg-zinc-50/50 rounded-lg p-1 border border-zinc-100/50">
                         <Sparkles className="w-2.5 h-2.5 text-brand-primary/80 shrink-0 mt-0.5" />
                         <span>
                           <strong>Why it fits:</strong> {generateFitDescription(action, activePlan)}
@@ -331,28 +375,28 @@ const PlanTabbedDeck = ({ categories = [], pendingExcluded = new Set(), toggleAc
                               <div className="flex items-center justify-between gap-1.5 text-amber-700">
                                 <div className="flex items-center gap-1">
                                   <Sparkles className="w-3 h-3 fill-current text-amber-600 animate-pulse" />
-                                  <span className="text-[8.5px] font-black uppercase tracking-wider">AI Proposed Replacement</span>
+                                  <span className="text-[10.5px] font-black uppercase tracking-wider">AI Proposed Replacement</span>
                                 </div>
-                                <span className="text-[7.5px] font-extrabold px-1.5 py-0.5 bg-amber-100 rounded-full text-amber-800 uppercase tracking-widest leading-none">
+                                <span className="text-[9.5px] font-extrabold px-1.5 py-0.5 bg-amber-100 rounded-full text-amber-800 uppercase tracking-widest leading-none">
                                   Pending Replan
                                 </span>
                               </div>
                               <div className="flex flex-col">
                                 <div className="flex items-center justify-between gap-2">
-                                  <span className="text-[10.5px] font-extrabold text-zinc-800 tracking-tight">
+                                  <span className="text-xs font-extrabold text-zinc-800 tracking-tight">
                                     {alternative.name}
                                   </span>
                                   {alternative.type && (
-                                    <span className="text-[7.5px] font-bold px-1.5 py-0.5 rounded-full bg-zinc-100 text-zinc-600 uppercase tracking-wider">
+                                    <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-zinc-100 text-zinc-600 uppercase tracking-wider">
                                       {alternative.type}
                                     </span>
                                   )}
                                 </div>
-                                <p className="text-[9px] text-zinc-500 font-semibold leading-relaxed mt-1">
+                                <p className="text-[11px] text-zinc-500 font-semibold leading-relaxed mt-1">
                                   {alternative.desc}
                                 </p>
                                 {/* Elaboration of suggestion for alternative */}
-                                <div className="mt-1.5 flex items-start gap-1 text-[8px] font-semibold text-amber-800 bg-amber-100/40 rounded-lg p-1 border border-amber-200/40">
+                                <div className="mt-1.5 flex items-start gap-1 text-[10px] font-semibold text-amber-800 bg-amber-100/40 rounded-lg p-1 border border-amber-200/40">
                                   <Sparkles className="w-2.5 h-2.5 text-amber-600 shrink-0 mt-0.5" />
                                   <span>
                                     <strong>Why it fits:</strong> {generateFitDescription(alternative, activePlan)}
@@ -367,7 +411,7 @@ const PlanTabbedDeck = ({ categories = [], pendingExcluded = new Set(), toggleAc
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="text-[9px] font-medium text-zinc-400 italic"
+                            className="text-[11px] font-medium text-zinc-400 italic"
                           >
                             Will be removed from plan. No direct alternative available.
                           </motion.div>

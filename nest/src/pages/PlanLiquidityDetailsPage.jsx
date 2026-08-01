@@ -204,10 +204,10 @@ const PlanLiquidityDetailsPage = () => {
           <ArrowLeft className="w-[18px] h-[18px] stroke-[2.2]" />
         </button>
         <div className="flex flex-col">
-          <span className="text-[9px] font-bold text-red-600 uppercase tracking-widest leading-none">
+          <span className="text-[11px] font-bold text-red-600 uppercase tracking-widest leading-none">
             STAGGERED PLAN EDUCATION
           </span>
-          <h1 className="text-sm font-black text-zinc-900 tracking-tight mt-0.5">
+          <h1 className="text-base font-black text-zinc-900 tracking-tight mt-0.5">
             Liquidity & Subgoal Alignment
           </h1>
         </div>
@@ -228,38 +228,39 @@ const PlanLiquidityDetailsPage = () => {
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <span className="text-[9.5px] font-black text-red-600 uppercase tracking-wider">Payment Flexibility</span>
-                <span className="px-2 py-0.5 rounded-full text-[8.5px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/70">
+                <span className="text-[11px] font-black text-red-600 uppercase tracking-wider">Payment Flexibility</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/70">
                   Zero Exit Penalty
                 </span>
               </div>
-              <h2 className="text-xs font-black text-zinc-900 mt-0.5">Why Liquidity Aligns With Your Subgoals</h2>
-              <p className="text-[10.5px] text-zinc-600 leading-relaxed mt-1 font-normal">
-                In a <strong>Staggered Payment Plan</strong>, cash is required on specific milestone dates rather than upfront. Recommended <strong>Deposits</strong> and <strong>Investments</strong> are specifically chosen to match these subgoals without lock-in friction or exit penalties.
+              <h2 className="text-sm font-black text-zinc-900 mt-0.5">Why Liquidity Fits Your Goals</h2>
+              <p className="text-xs text-zinc-600 leading-relaxed mt-1 font-medium">
+                Savings unlock on milestone dates with zero exit fees or penalties.
               </p>
             </div>
           </div>
 
-          <div className="pt-2.5 border-t border-zinc-100 grid grid-cols-2 gap-2 text-[10px]">
+          <div className="pt-2.5 border-t border-zinc-100 grid grid-cols-2 gap-2 text-xs">
             <div className="p-2.5 rounded-2xl bg-zinc-50 border border-zinc-200/60">
               <div className="flex items-center gap-1.5 text-zinc-700 font-extrabold mb-1">
-                <Lock className="w-3 h-3 text-red-500" />
-                <span>Standard Fixed Lock-Ins</span>
+                <Lock className="w-3.5 h-3.5 text-red-500" />
+                <span>Standard Lock-Ins</span>
               </div>
-              <p className="text-[9px] text-zinc-500 leading-tight">
-                Products like fixed lock-in deposits can forfeit interest or charge exit penalties if money is pulled early.
+              <p className="text-[11px] text-zinc-500 leading-tight">
+                Early withdrawals forfeit interest or charge exit fees.
               </p>
             </div>
             <div className="p-2.5 rounded-2xl bg-emerald-50/50 border border-emerald-100">
               <div className="flex items-center gap-1.5 text-emerald-900 font-extrabold mb-1">
-                <Unlock className="w-3 h-3 text-emerald-600" />
-                <span>Nest Staggered Strategy</span>
+                <Unlock className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Nest Strategy</span>
               </div>
-              <p className="text-[9px] text-emerald-800 leading-tight">
-                Products mature right at your subgoal dates or offer daily liquid access with zero early withdrawal fee.
+              <p className="text-[11px] text-emerald-800 leading-tight">
+                Funds mature right on goal dates with zero penalty.
               </p>
             </div>
           </div>
+
         </motion.div>
 
         {/* Subgoals Timeline Card */}
@@ -272,9 +273,9 @@ const PlanLiquidityDetailsPage = () => {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-red-600" />
-              <h3 className="text-xs font-black text-zinc-900 uppercase tracking-wider">Your Subgoal Timeline</h3>
+              <h3 className="text-sm font-black text-zinc-900 uppercase tracking-wider">Your Subgoal Timeline</h3>
             </div>
-            <span className="text-[9.5px] font-bold text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded-full border border-zinc-200/60">
+            <span className="text-xs font-bold text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded-full border border-zinc-200/60">
               {subgoals.length} Milestones
             </span>
           </div>
@@ -286,21 +287,21 @@ const PlanLiquidityDetailsPage = () => {
                 className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50/80 border border-zinc-200/50"
               >
                 <div className="flex items-center gap-2.5">
-                  <div className="w-6 h-6 rounded-full bg-red-50 text-red-700 text-[10px] font-black flex items-center justify-center border border-red-200">
+                  <div className="w-6 h-6 rounded-full bg-red-50 text-red-700 text-[11px] font-black flex items-center justify-center border border-red-200">
                     {idx + 1}
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[11.5px] font-extrabold text-zinc-900">{sub.name}</span>
-                    <span className="text-[9.5px] text-zinc-500 font-medium flex items-center gap-1">
+                    <span className="text-xs font-extrabold text-zinc-900">{sub.name}</span>
+                    <span className="text-[11px] text-zinc-500 font-medium flex items-center gap-1">
                       <Clock className="w-3 h-3 text-zinc-400" /> Target: {sub.date}
                     </span>
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="text-xs font-black text-red-950">
+                  <span className="text-sm font-black text-red-950">
                     S${Number(sub.amount || 0).toLocaleString('en-SG')}
                   </span>
-                  <span className="block text-[8.5px] font-bold text-emerald-700 uppercase tracking-wider">
+                  <span className="block text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
                     Liquidity Date
                   </span>
                 </div>
@@ -313,9 +314,9 @@ const PlanLiquidityDetailsPage = () => {
         <div className="flex items-center justify-between pt-1 px-1">
           <div className="flex items-center gap-2">
             <Layers className="w-4 h-4 text-zinc-700" />
-            <h3 className="text-xs font-black text-zinc-900 uppercase tracking-wider">Recommended Deposits & Investments</h3>
+            <h3 className="text-sm font-black text-zinc-900 uppercase tracking-wider">Recommended Deposits & Investments</h3>
           </div>
-          <span className="text-[9px] font-bold text-zinc-500 bg-white px-2 py-0.5 rounded-full border border-zinc-200/60 shadow-2xs">
+          <span className="text-[11px] font-bold text-zinc-500 bg-white px-2 py-0.5 rounded-full border border-zinc-200/60 shadow-2xs">
             {depositAndInvestmentActions.length} Products
           </span>
         </div>
@@ -342,7 +343,7 @@ const PlanLiquidityDetailsPage = () => {
                 >
                   {/* Replanned Badge */}
                   {isReplanned && (
-                    <div className="absolute top-0 right-0 bg-[#E1251B] text-white text-[8px] font-black uppercase px-2.5 py-0.5 rounded-bl-xl tracking-wider flex items-center gap-1 shadow-xs">
+                    <div className="absolute top-0 right-0 bg-[#E1251B] text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-bl-xl tracking-wider flex items-center gap-1 shadow-xs">
                       <RefreshCw className="w-2.5 h-2.5" /> Replanned Option
                     </div>
                   )}
@@ -361,10 +362,10 @@ const PlanLiquidityDetailsPage = () => {
 
                     <div className="flex-1 pr-12">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[9px] font-black uppercase tracking-wider text-zinc-400">
+                        <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400">
                           {categoryName}
                         </span>
-                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${
+                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${
                           isDeposit
                             ? 'bg-red-50 text-red-800 border-red-200/70'
                             : 'bg-emerald-50 text-emerald-800 border-emerald-200/70'
@@ -372,49 +373,50 @@ const PlanLiquidityDetailsPage = () => {
                           {explanation.badge || (isDeposit ? 'Deposit' : 'Investment')}
                         </span>
                       </div>
-                      <h4 className="text-xs font-black text-zinc-900 mt-0.5 leading-snug">{action.name}</h4>
+                      <h4 className="text-sm font-black text-zinc-900 mt-0.5 leading-snug">{action.name}</h4>
                     </div>
                   </div>
 
                   {/* Product Description */}
-                  <p className="text-[10.5px] text-zinc-600 leading-relaxed font-normal">
+                  <p className="text-xs text-zinc-600 leading-relaxed font-normal">
                     {action.desc}
                   </p>
 
                   {/* Metrics grid */}
-                  <div className="grid grid-cols-2 gap-2 text-[10px]">
+                  <div className="grid grid-cols-2 gap-2 text-xs">
                     <div className="p-2.5 rounded-2xl bg-zinc-50 border border-zinc-200/50">
-                      <span className="text-zinc-400 text-[9px] font-semibold block">Expected Return</span>
-                      <span className="text-xs font-black text-emerald-700">
+                      <span className="text-zinc-400 text-[11px] font-semibold block">Expected Return</span>
+                      <span className="text-sm font-black text-emerald-700">
                         {action.rate ? `${(action.rate * 100).toFixed(2)}% p.a.` : 'Capital Preservation'}
                       </span>
                     </div>
 
                     <div className="p-2.5 rounded-2xl bg-zinc-50 border border-zinc-200/50">
-                      <span className="text-zinc-400 text-[9px] font-semibold block">Liquidity Access</span>
-                      <span className="text-xs font-extrabold text-red-950 truncate block">
+                      <span className="text-zinc-400 text-[11px] font-semibold block">Liquidity Access</span>
+                      <span className="text-xs font-extrabold text-red-950 block leading-tight">
                         {explanation.liquidity}
                       </span>
                     </div>
+
                   </div>
 
                   {/* Exit Cost & Subgoal Breakdown Card */}
                   <div className="p-3 rounded-2xl bg-red-50/70 border border-red-100/90 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-[9.5px] font-black text-red-950 uppercase tracking-wider flex items-center gap-1.5">
+                      <span className="text-xs font-black text-red-950 uppercase tracking-wider flex items-center gap-1.5">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Exit Penalty & Cost Analysis
                       </span>
-                      <span className="text-[8.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-100/80 text-emerald-900 border border-emerald-200">
+                      <span className="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-100/80 text-emerald-900 border border-emerald-200">
                         {explanation.exitPenalty}
                       </span>
                     </div>
 
-                    <p className="text-[10px] text-red-950 leading-relaxed font-medium">
+                    <p className="text-xs text-red-950 leading-relaxed font-medium">
                       {explanation.explanation}
                     </p>
 
-                    <div className="pt-2 border-t border-red-200/50 flex items-start gap-1.5 text-[9.5px] text-red-900">
-                      <Info className="w-3 h-3 text-red-600 shrink-0 mt-0.5" />
+                    <div className="pt-2 border-t border-red-200/50 flex items-start gap-1.5 text-xs text-red-900">
+                      <Info className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
                       <span>
                         <strong className="text-red-950 font-bold">Subgoal Connection:</strong> {explanation.subgoalAlignment}
                       </span>
@@ -436,7 +438,7 @@ const PlanLiquidityDetailsPage = () => {
       >
         <button
           onClick={() => setPage('plan-details')}
-          className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white font-extrabold rounded-2xl text-[11px] uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-md cursor-pointer flex items-center justify-center gap-2"
+          className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white font-extrabold rounded-2xl text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-md cursor-pointer flex items-center justify-center gap-2"
         >
           <span>Return to Plan Review</span>
           <ChevronRight className="w-4 h-4" />
