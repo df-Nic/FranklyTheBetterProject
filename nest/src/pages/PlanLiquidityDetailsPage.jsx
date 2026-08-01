@@ -250,12 +250,12 @@ const PlanLiquidityDetailsPage = () => {
                 Early withdrawals forfeit interest or charge exit fees.
               </p>
             </div>
-            <div className="p-2.5 rounded-2xl bg-emerald-50/50 border border-emerald-100">
-              <div className="flex items-center gap-1.5 text-emerald-900 font-extrabold mb-1">
-                <Unlock className="w-3.5 h-3.5 text-emerald-600" />
+            <div className="p-2.5 rounded-2xl bg-zinc-50 border border-zinc-200/60">
+              <div className="flex items-center gap-1.5 text-zinc-900 font-extrabold mb-1">
+                <Unlock className="w-3.5 h-3.5 text-zinc-700" />
                 <span>Nest Strategy</span>
               </div>
-              <p className="text-[11px] text-emerald-800 leading-tight">
+              <p className="text-[11px] text-zinc-600 leading-tight">
                 Funds mature right on goal dates with zero penalty.
               </p>
             </div>
@@ -270,12 +270,12 @@ const PlanLiquidityDetailsPage = () => {
           transition={{ delay: 0.08 }}
           className="p-4 rounded-3xl bg-white border border-zinc-200/60 shadow-xs"
         >
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-red-600" />
+          <div className="flex items-center justify-between mb-3 gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <Calendar className="w-4 h-4 text-red-600 shrink-0" />
               <h3 className="text-sm font-black text-zinc-900 uppercase tracking-wider">Your Subgoal Timeline</h3>
             </div>
-            <span className="text-xs font-bold text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded-full border border-zinc-200/60">
+            <span className="text-xs font-bold text-zinc-600 bg-zinc-100 px-2.5 py-1 rounded-full border border-zinc-200/70 shrink-0 whitespace-nowrap">
               {subgoals.length} Milestones
             </span>
           </div>
@@ -301,9 +301,6 @@ const PlanLiquidityDetailsPage = () => {
                   <span className="text-sm font-black text-red-950">
                     S${Number(sub.amount || 0).toLocaleString('en-SG')}
                   </span>
-                  <span className="block text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
-                    Liquidity Date
-                  </span>
                 </div>
               </div>
             ))}
@@ -311,12 +308,12 @@ const PlanLiquidityDetailsPage = () => {
         </motion.div>
 
         {/* Section Title */}
-        <div className="flex items-center justify-between pt-1 px-1">
-          <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-zinc-700" />
-            <h3 className="text-sm font-black text-zinc-900 uppercase tracking-wider">Recommended Deposits & Investments</h3>
+        <div className="flex items-center justify-between pt-1 px-1 gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <Layers className="w-4 h-4 text-zinc-700 shrink-0" />
+            <h3 className="text-sm font-black text-zinc-900 uppercase tracking-wider leading-snug">Recommended Deposits & Investments</h3>
           </div>
-          <span className="text-[11px] font-bold text-zinc-500 bg-white px-2 py-0.5 rounded-full border border-zinc-200/60 shadow-2xs">
+          <span className="text-xs font-bold text-zinc-600 bg-white px-2.5 py-1 rounded-full border border-zinc-200/70 shadow-2xs shrink-0 whitespace-nowrap">
             {depositAndInvestmentActions.length} Products
           </span>
         </div>
@@ -350,13 +347,12 @@ const PlanLiquidityDetailsPage = () => {
 
                   {/* Header info */}
                   <div className="flex items-start gap-3">
-                    <div className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 border ${
-                      isDeposit
+                    <div className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 border ${isDeposit
                         ? 'bg-red-50 text-red-600 border-red-100'
                         : isYield
-                        ? 'bg-amber-50 text-amber-600 border-amber-100'
-                        : 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                    }`}>
+                          ? 'bg-amber-50 text-amber-600 border-amber-100'
+                          : 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                      }`}>
                       {isDeposit ? <Coins className="w-4.5 h-4.5 stroke-[2.2]" /> : <TrendingUp className="w-4.5 h-4.5 stroke-[2.2]" />}
                     </div>
 
@@ -365,11 +361,10 @@ const PlanLiquidityDetailsPage = () => {
                         <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400">
                           {categoryName}
                         </span>
-                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${
-                          isDeposit
+                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${isDeposit
                             ? 'bg-red-50 text-red-800 border-red-200/70'
-                            : 'bg-emerald-50 text-emerald-800 border-emerald-200/70'
-                        }`}>
+                            : 'bg-zinc-100 text-zinc-800 border-zinc-200/70'
+                          }`}>
                           {explanation.badge || (isDeposit ? 'Deposit' : 'Investment')}
                         </span>
                       </div>
@@ -401,24 +396,24 @@ const PlanLiquidityDetailsPage = () => {
                   </div>
 
                   {/* Exit Cost & Subgoal Breakdown Card */}
-                  <div className="p-3 rounded-2xl bg-red-50/70 border border-red-100/90 space-y-2">
+                  <div className="p-3 rounded-2xl bg-zinc-50 border border-zinc-200/60 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-black text-red-950 uppercase tracking-wider flex items-center gap-1.5">
+                      <span className="text-xs font-black text-zinc-900 uppercase tracking-wider flex items-center gap-1.5">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Exit Penalty & Cost Analysis
                       </span>
-                      <span className="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-100/80 text-emerald-900 border border-emerald-200">
+                      <span className="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/70">
                         {explanation.exitPenalty}
                       </span>
                     </div>
 
-                    <p className="text-xs text-red-950 leading-relaxed font-medium">
+                    <p className="text-xs text-zinc-700 leading-relaxed font-medium">
                       {explanation.explanation}
                     </p>
 
-                    <div className="pt-2 border-t border-red-200/50 flex items-start gap-1.5 text-xs text-red-900">
-                      <Info className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
+                    <div className="pt-2 border-t border-zinc-200/60 flex items-start gap-1.5 text-xs text-zinc-600">
+                      <Info className="w-3.5 h-3.5 text-zinc-500 shrink-0 mt-0.5" />
                       <span>
-                        <strong className="text-red-950 font-bold">Subgoal Connection:</strong> {explanation.subgoalAlignment}
+                        <strong className="text-zinc-900 font-bold">Subgoal Connection:</strong> {explanation.subgoalAlignment}
                       </span>
                     </div>
                   </div>
