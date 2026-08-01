@@ -125,7 +125,7 @@ export default function ExpenseOptimizerPage() {
         </button>
 
         <div className="flex flex-col items-center">
-          <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none">OCBC EXPENSE OPTIMISER</span>
+          <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none">OCBC Expense Advisor</span>
           <span className="text-xs font-black text-zinc-900 tracking-tight mt-0.5">Recommendations Hub</span>
         </div>
 
@@ -134,7 +134,7 @@ export default function ExpenseOptimizerPage() {
 
       {/* Main Scrollable Area */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden touch-pan-y no-scrollbar px-4 py-4 pb-44 flex flex-col gap-4 min-h-0">
-        
+
         {/* Highlight Banner */}
         <div className="w-full shrink-0 bg-gradient-to-r from-[#E1251B] via-[#C62828] to-[#8E0000] rounded-2xl p-4 text-white shadow-lg relative overflow-hidden flex flex-col gap-1.5 border border-red-400/30">
           <div className="absolute right-[-10px] top-[-10px] w-28 h-28 bg-white/20 rounded-full blur-2xl pointer-events-none" />
@@ -153,7 +153,7 @@ export default function ExpenseOptimizerPage() {
           style={lockedHeight ? { minHeight: `${lockedHeight}px` } : {}}
           className={`w-full bg-white rounded-3xl p-4 shadow-sm border border-zinc-200/60 flex flex-col gap-4 relative transition-[min-height] duration-300 ease-out ${curtainPhase !== 'idle' ? 'overflow-hidden' : 'overflow-visible'}`}
         >
-          
+
           {/* Horizontal Curtain Scope Transition Overlay */}
           <AnimatePresence>
             {curtainPhase !== 'idle' && (
@@ -183,22 +183,20 @@ export default function ExpenseOptimizerPage() {
             <div className="bg-zinc-100 p-0.5 rounded-full flex items-center border border-zinc-200/80 shadow-inner z-10">
               <button
                 onClick={() => handleSwitchMode('cards')}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-extrabold transition-all duration-300 cursor-pointer ${
-                  viewMode === 'cards'
-                    ? 'bg-red-600 text-white shadow-sm'
-                    : 'text-zinc-500 hover:text-zinc-800'
-                }`}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-extrabold transition-all duration-300 cursor-pointer ${viewMode === 'cards'
+                  ? 'bg-red-600 text-white shadow-sm'
+                  : 'text-zinc-500 hover:text-zinc-800'
+                  }`}
               >
                 <CreditCard className="w-3 h-3" />
                 <span>Credit Cards</span>
               </button>
               <button
                 onClick={() => handleSwitchMode('deposits')}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-extrabold transition-all duration-300 cursor-pointer ${
-                  viewMode === 'deposits'
-                    ? 'bg-red-600 text-white shadow-sm'
-                    : 'text-zinc-500 hover:text-zinc-800'
-                }`}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-extrabold transition-all duration-300 cursor-pointer ${viewMode === 'deposits'
+                  ? 'bg-red-600 text-white shadow-sm'
+                  : 'text-zinc-500 hover:text-zinc-800'
+                  }`}
               >
                 <Landmark className="w-3 h-3" />
                 <span>Deposit Accounts</span>

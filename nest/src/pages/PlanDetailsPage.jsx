@@ -15,7 +15,8 @@ import {
   AlertTriangle,
   CheckCircle2,
   Coins,
-  ShieldCheck
+  ShieldCheck,
+  ChevronRight
 } from 'lucide-react';
 import GlassCard from '../components/ui/GlassCard';
 import BackgroundOrb from '../components/ui/BackgroundOrb';
@@ -1218,20 +1219,29 @@ const PlanDetailsPage = () => {
           />
 
           {/* Staggered Payments Callout Notice */}
-          {userPlanMeta.paymentStrategy?.toLowerCase() === 'staggered' && (
+          {isStaggered && (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="p-4 bg-blue-50 border border-blue-100 rounded-[24px] flex gap-3.5 items-start mt-2 shrink-0 shadow-sm"
+              onClick={() => setPage('plan-liquidity-details')}
+              className="p-3.5 bg-white hover:bg-zinc-50/80 border border-zinc-200/80 rounded-[24px] flex gap-3 items-start mt-2 shrink-0 shadow-2xs cursor-pointer transition-all active:scale-[0.99] group relative"
             >
-              <div className="w-8 h-8 rounded-full bg-blue-100/50 flex items-center justify-center text-blue-600 shrink-0 shadow-inner">
+              <div className="w-8 h-8 rounded-2xl bg-red-50 border border-red-100/80 flex items-center justify-center text-red-600 shrink-0 group-hover:scale-105 transition-transform">
                 <AlertCircle className="w-4.5 h-4.5 stroke-[2.2]" />
               </div>
-              <div className="flex flex-col gap-0.5 text-left">
-                <span className="text-[10px] font-black text-blue-900 uppercase tracking-wider">Payment Flexibility Activated</span>
-                <p className="text-[9.5px] font-semibold text-blue-800 leading-relaxed mt-0.5">
-                  Based on your choice of <strong>Staggered Payments</strong> and your target timeline, these recommendations are structured to prioritize products with flexible exits and zero penalty fees. You retain the freedom to redirect cash without lock-in constraints.
+              <div className="flex flex-col gap-0.5 text-left flex-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black text-zinc-900 uppercase tracking-wider">Payment Flexibility</span>
+                  <span className="text-[9.5px] font-bold text-red-600 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+                    Click here <ChevronRight className="w-3 h-3 stroke-[2.5]" />
+                  </span>
+                </div>
+                <p className="text-[9.5px] font-medium text-zinc-700 leading-snug">
+                  Recommended deposits and investments are selected with zero exit penalties to match your staggered subgoal dates.
                 </p>
+                <span className="text-[9px] font-bold text-red-600/90 underline mt-0.5">
+                  Click anywhere to see how liquidity is attached with your subgoals in mind →
+                </span>
               </div>
             </motion.div>
           )}
