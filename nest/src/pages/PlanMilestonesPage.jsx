@@ -21,6 +21,7 @@ import JourneyOverlay from "../components/milestones/JourneyOverlay";
 import {
   AgentOwlImpactCard,
 } from "../components/milestones/ImpactCards";
+import ReasoningLogCard from "../features/planSimulation/components/ReasoningLogCard";
 
 /**
  * Per-goal milestones page. Pass a `plan` (see milestonePlans.js for the shape);
@@ -46,6 +47,7 @@ export default function PlanMilestonesPage() {
     opportunityReveal,
     markOpportunityRevealViewed,
     opportunitySourceAmount,
+    pendingPlan,
   } = useApp();
   const basePlan = getMilestonePlan(activePlanId, planAdjustments);
   const opportunity = getPlanOpportunity(opportunitySourceAmount);
@@ -369,6 +371,13 @@ export default function PlanMilestonesPage() {
           latestActivity={activities[0]}
           eventCount={activities.length}
           onSeeBreakdown={() => setPage("savings-breakdown")}
+        />
+
+        <ReasoningLogCard
+          scriptId={pendingPlan?.script?.planId === activePlanId ? pendingPlan.script.id : null}
+          planId={activePlanId}
+          plan={plan}
+          onOpen={() => setPage("reasoning-log")}
         />
 
         <button

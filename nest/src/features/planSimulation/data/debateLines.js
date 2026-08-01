@@ -1,0 +1,42 @@
+export const DEBATE_EXCHANGES = {
+  home_deposit: [
+    { agentId: 'cashflow', shortText: 'Protect the cash buffer.', text: 'Locking too much away would push the emergency cushion below 3 months.' },
+    { agentId: 'yield', shortText: 'Cash still loses to inflation.', text: 'A short-term yield sleeve can beat inflation without moving the {goal} date.' },
+    { agentId: 'sequencing', shortText: 'Stage both priorities.', text: 'Keep 3 months liquid, then direct each new contribution into the deposit fund.' },
+    { agentId: 'cashflow', shortText: 'Stress-test that buffer.', text: 'That works only if the liquid sleeve survives an income interruption.' },
+    { agentId: 'yield', shortText: 'I can lower the risk.', text: 'I will use cash-like yield products rather than volatile assets for this horizon.' },
+    { agentId: 'sequencing', shortText: 'Compromise locked in.', text: 'Then we protect liquidity first and add yield without delaying the purchase.' },
+  ],
+  retirement: [
+    { agentId: 'yield', shortText: 'Compounding needs time.', text: 'The long horizon rewards early diversified growth and consistent contributions.' },
+    { agentId: 'cashflow', shortText: 'Debt can erase that gain.', text: 'High-interest debt may cost more than the portfolio is expected to return.' },
+    { agentId: 'sequencing', shortText: 'Run both tracks.', text: 'Keep a base contribution while directing extra cash toward expensive debt.' },
+    { agentId: 'yield', shortText: 'Do not pause completely.', text: 'Agreed, but a full 6-month pause would sacrifice valuable compounding time.' },
+    { agentId: 'cashflow', shortText: 'Preserve resilience too.', text: 'The plan also needs enough liquid cash to avoid selling during a downturn.' },
+    { agentId: 'sequencing', shortText: 'Phase risk over time.', text: 'We will grow early, clear costly debt, and reduce volatility near retirement.' },
+  ],
+  education: [
+    { agentId: 'yield', shortText: 'Use the long runway.', text: 'At {horizon} months out, measured equity exposure can support stronger growth.' },
+    { agentId: 'cashflow', shortText: 'The deadline cannot move.', text: 'School fees are fixed-date expenses, so late volatility carries real risk.' },
+    { agentId: 'sequencing', shortText: 'Add a glide path.', text: 'Start growth-oriented, then shift each milestone into safer assets over time.' },
+    { agentId: 'yield', shortText: 'Keep growth early.', text: 'That preserves return potential while the goal still has time to recover.' },
+    { agentId: 'cashflow', shortText: 'Ring-fence year one.', text: 'The first year of fees should be fully protected before enrolment begins.' },
+    { agentId: 'sequencing', shortText: 'Milestones de-risked.', text: 'Each fee milestone will move to capital protection before it becomes due.' },
+  ],
+  emergency_fund: [
+    { agentId: 'cashflow', shortText: 'Access comes first.', text: 'Liquidity is the purpose of this goal; locked funds would defeat it.' },
+    { agentId: 'yield', shortText: 'Accessible cash can earn.', text: 'A high-yield savings sleeve adds return without sacrificing access.' },
+    { agentId: 'sequencing', shortText: 'Build it in layers.', text: 'Fund one month immediately, then grow toward the full reserve in stages.' },
+    { agentId: 'cashflow', shortText: 'No withdrawal penalties.', text: 'Every layer must remain available instantly and without exit charges.' },
+    { agentId: 'yield', shortText: 'I will stay liquid.', text: 'Agreed; I will exclude term deposits and market-linked products.' },
+    { agentId: 'sequencing', shortText: 'Liquidity plan agreed.', text: 'We will prioritise access, add safe yield, and automate each funding step.' },
+  ],
+  general: [
+    { agentId: 'cashflow', shortText: 'Keep room for surprises.', text: 'The strategy needs a cash buffer before it commits money to growth.' },
+    { agentId: 'yield', shortText: 'Idle cash has a cost.', text: 'Too much cash can lose purchasing power and slow progress toward {goal}.' },
+    { agentId: 'sequencing', shortText: 'Separate the time horizons.', text: 'Use liquid cash for near-term needs and growth assets for later milestones.' },
+    { agentId: 'cashflow', shortText: 'Test the near-term layer.', text: 'The liquid allocation must cover a setback without selling investments.' },
+    { agentId: 'yield', shortText: 'Then invest the surplus.', text: 'Once that buffer is secure, the remaining contribution can pursue returns.' },
+    { agentId: 'sequencing', shortText: 'Balanced path selected.', text: 'The final plan will sequence safety first, then add growth by milestone.' },
+  ],
+};

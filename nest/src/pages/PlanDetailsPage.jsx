@@ -1309,7 +1309,7 @@ const PlanDetailsPage = () => {
                 subgoals,
                 categories: categoriesList,
               });
-              if (confirmed) setPage('plan-dashboard');
+              if (confirmed) setPage('plan-milestones');
             }}
             className={`w-full py-3.5 font-extrabold rounded-2xl text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2 ${
               isPlanInvalid

@@ -88,7 +88,7 @@ const EDUCATION_STAGE_SUBGOALS = {
 };
 
 const ChatWidget = () => {
-  const { setPage, setClickPos, setActivePlanTitle, setActivePlanId, setPlanDetailOrigin, hasCreatedFirstPlan, setHasCreatedFirstPlan, updatePlanDraft, discardPlanDraft, planChatRequest, consumePlanChatRequest, housingPropertyType, setHousingPropertyType } = useApp();
+  const { setPage, setClickPos, setActivePlanTitle, setActivePlanId, setPlanDetailOrigin, hasCreatedFirstPlan, setHasCreatedFirstPlan, updatePlanDraft, discardPlanDraft, planChatRequest, consumePlanChatRequest, housingPropertyType, setHousingPropertyType, riskProfile, startPlanSimulation } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -127,6 +127,29 @@ const ChatWidget = () => {
     };
     const [amount, date, monthly] = defaults[planId] || defaults.default;
     return { amount, date, monthly, strategy: 'staggered' };
+  };
+
+  const getSimulationGoalType = (planId) => ({
+    housing: 'home_deposit',
+    retirement: 'retirement',
+    'parents-retirement': 'retirement',
+    'children-education': 'education',
+    emergency: 'emergency_fund',
+    savings: 'general',
+  })[planId] || 'general';
+
+  const getSimulationHorizon = (date) => {
+    const parsed = new Date(date);
+    if (Number.isNaN(parsed.getTime())) return 12;
+    const now = new Date();
+    return Math.max(1, (parsed.getFullYear() - now.getFullYear()) * 12 + parsed.getMonth() - now.getMonth());
+  };
+
+  const getSimulationRiskProfile = () => {
+    const normalized = (riskProfile || '').toLowerCase();
+    if (normalized.includes('safety') || normalized.includes('conservative')) return 'conservative';
+    if (normalized.includes('balanced')) return 'balanced';
+    return 'aggressive';
   };
 
   const confirmInferredPlan = () => {
@@ -685,8 +708,51 @@ const ChatWidget = () => {
     return resolvedId;
   };
 
+  const launchPlanSimulation = (selectedPlanTitle, selectedSubgoals = []) => {
+    const planId = resolvePlanId(selectedPlanTitle);
+
+    // Save custom user parameters to AppContext
+    if (targetAmount > 0 || targetDate) {
+      updatePlanDraft(planId, {
+        targetAmount: targetAmount,
+        targetDate: targetDate,
+        subgoals: selectedSubgoals,
+        paymentStrategy: paymentStrategy
+      });
+    }
+
+    setActivePlanTitle(selectedPlanTitle);
+    setActivePlanId(planId);
+    setPlanDetailOrigin('home'); // back button returns to home
+    setIsOpen(false);
+    const defaults = inferDefaults(planId);
+    const resolvedTargetDate = targetDate || defaults.date;
+    const horizonMonths = getSimulationHorizon(resolvedTargetDate);
+    const monthlyContribution = paymentStrategy === 'lump-sum'
+      ? 0
+      : targetAmount > 0
+        ? Math.ceil(Number(targetAmount) / horizonMonths / 10) * 10
+        : defaults.monthly;
+    const request = {
+      goalType: getSimulationGoalType(planId),
+      goalLabel: selectedPlanTitle || 'Your Goal',
+      horizonMonths,
+      monthlyContribution: Number(monthlyContribution || 0),
+      riskProfile: getSimulationRiskProfile(),
+      planId,
+    };
+
+    setTimeout(() => {
+      startPlanSimulation(request, {
+        planId,
+        planTitle: selectedPlanTitle || 'Your Goal',
+        returnPage: 'home',
+      });
+    }, 50);
+  };
+
   // Preview only — does NOT save to dashboard
-  const handleReviewPlanClick = (e, planTitle, generatedSubgoals = []) => {
+  const handleReviewPlanClick = (e, selectedPlanTitle, selectedSubgoals = []) => {
     e.stopPropagation();
     if (containerRef.current) {
       const parentRect = containerRef.current.getBoundingClientRect();
@@ -694,23 +760,7 @@ const ChatWidget = () => {
     } else {
       setClickPos({ x: 195, y: 422 });
     }
-    const planId = resolvePlanId(planTitle);
-
-    // Save custom user parameters to AppContext
-    if (targetAmount > 0 || targetDate) {
-      updatePlanDraft(planId, {
-        targetAmount: targetAmount,
-        targetDate: targetDate,
-        subgoals: generatedSubgoals,
-        paymentStrategy: paymentStrategy
-      });
-    }
-
-    setActivePlanTitle(planTitle);
-    setActivePlanId(planId);
-    setPlanDetailOrigin('home'); // back button returns to home
-    setIsOpen(false);
-    setTimeout(() => { setPage('plan-details'); }, 50);
+    launchPlanSimulation(selectedPlanTitle, selectedSubgoals);
   };
   const handleRiskPromptSelect = (agree, e) => {
     const sessionId = flowSessionRef.current;
@@ -734,30 +784,10 @@ const ChatWidget = () => {
       return;
     }
 
-    // For No (user does not redo), show "No" message and bot typing, then display plan review
+    // Keep the existing profile and launch the simulation immediately.
     setMessages(prev => [...prev, { id: Date.now(), sender: 'user', text: 'No' }]);
     setHasCreatedFirstPlan(true);
-    setMessages(prev => [...prev, { id: 'typing', sender: 'bot', isTyping: true }]);
-
-    setTimeout(() => {
-      if (sessionId !== flowSessionRef.current) return;
-      setMessages(prev => prev.filter(m => m.id !== 'typing'));
-      setMessages(prev => [
-        ...prev,
-        {
-          id: Date.now(),
-          sender: 'bot',
-          isFirstPlanReview: true,
-          planTitle: planTitle,
-          text: (
-            <span>
-              No problem! Your custom wealth plan is ready. <span className="text-brand-primary font-black">Tap below to review your plan details and activate it.</span>
-            </span>
-          ),
-        },
-      ]);
-      setFlowState('idle');
-    }, 1500);
+    if (sessionId === flowSessionRef.current) launchPlanSimulation(planTitle, generatedSubgoals);
   };
 
 

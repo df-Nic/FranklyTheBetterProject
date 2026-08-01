@@ -38,6 +38,39 @@ const SCENARIOS = [
   }
 ];
 
+const GOAL_TYPE_BY_PLAN = {
+  housing: 'home_deposit',
+  retirement: 'retirement',
+  'parents-retirement': 'retirement',
+  'children-education': 'education',
+  emergency: 'emergency_fund',
+  savings: 'general',
+};
+
+const GOAL_LABEL_BY_PLAN = {
+  housing: 'Home Deposit',
+  retirement: 'Retirement',
+  'parents-retirement': "Parents' Retirement",
+  'children-education': 'Education Fund',
+  emergency: 'Emergency Fund',
+  savings: 'Savings Goal',
+  'wedding-fund': 'Wedding Fund',
+  'career-break': 'Career Break Fund',
+};
+
+const getHorizonMonths = (targetDate) => {
+  const parsed = new Date(targetDate);
+  if (Number.isNaN(parsed.getTime())) return 12;
+  const now = new Date();
+  return Math.max(1, (parsed.getFullYear() - now.getFullYear()) * 12 + parsed.getMonth() - now.getMonth());
+};
+
+const normalizeRiskProfile = (badge) => {
+  if (badge === 'Capital Safety') return 'conservative';
+  if (badge === 'Balanced') return 'balanced';
+  return 'aggressive';
+};
+
 const SwipeCardComponent = ({ scenario, stackIndex, isTop, onSwipe, swipeTopCardRef, onSwipeStart }) => {
   const x = useMotionValue(0);
 
@@ -162,7 +195,18 @@ const SwipeCardComponent = ({ scenario, stackIndex, isTop, onSwipe, swipeTopCard
 };
 
 const RiskProfilingPage = () => {
-  const { navigate, setPage, activePlanId, activePlanTitle, setClickPos, setPlanDetailOrigin, setRiskProfile, setHasAssessedRisk } = useApp();
+  const {
+    navigate,
+    activePlanId,
+    activePlanTitle,
+    setClickPos,
+    setPlanDetailOrigin,
+    setRiskProfile,
+    setHasAssessedRisk,
+    planDrafts,
+    planAdjustments,
+    startPlanSimulation,
+  } = useApp();
   const [cards, setCards] = useState(SCENARIOS);
   const [decisions, setDecisions] = useState({});
   const [isComplete, setIsComplete] = useState(false);
@@ -231,7 +275,30 @@ const RiskProfilingPage = () => {
       setClickPos({ x: 195, y: 422 });
     }
     setPlanDetailOrigin('risk-profiling');
-    setPage('plan-details');
+    const draft = planDrafts[activePlanId] || {};
+    const adjustment = planAdjustments[activePlanId] || {};
+    const targetDate = draft.targetDate || adjustment.goalDate;
+    const horizonMonths = getHorizonMonths(targetDate);
+    const monthlyContribution = draft.monthlyContribution
+      ?? adjustment.monthlyContribution
+      ?? (draft.paymentStrategy === 'staggered' && draft.targetAmount
+        ? Math.ceil(Number(draft.targetAmount) / horizonMonths / 10) * 10
+        : 0);
+    const request = {
+      goalType: GOAL_TYPE_BY_PLAN[activePlanId] || 'general',
+      goalLabel: activePlanTitle || GOAL_LABEL_BY_PLAN[activePlanId] || 'Your Goal',
+      horizonMonths,
+      monthlyContribution: Number(monthlyContribution),
+      riskProfile: normalizeRiskProfile(profile.badge),
+      planId: activePlanId || '',
+    };
+
+    startPlanSimulation(request, {
+      planId: activePlanId,
+      planTitle: activePlanTitle || GOAL_LABEL_BY_PLAN[activePlanId] || 'Your Goal',
+      draft,
+      returnPage: 'risk-profiling',
+    });
   };
 // Auto-redirect after risk profiling is complete
 useEffect(() => {

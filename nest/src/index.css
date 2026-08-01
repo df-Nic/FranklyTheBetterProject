@@ -6,6 +6,15 @@
   --color-brand-accent: #0a7ea4;
   --color-brand-bg: #FAFAFA;
   --color-brand-warning: #E5A93C;
+
+  --color-nest-cream: #FBF7F2;
+  --color-nest-maroon: #8B1A22;
+  --color-nest-maroon-deep: #6B0F16;
+  --color-agent-yield: #1F7A4D;
+  --color-agent-seq: #B4632A;
+  --color-takeaway-bg: #FDF6E3;
+  --color-takeaway-border: #F0D080;
+  --radius-card: 1.25rem;
   
   --font-sans: 'Outfit', sans-serif;
 }
