@@ -15,7 +15,9 @@ import {
   AlertTriangle,
   CheckCircle2,
   Coins,
-  ShieldCheck
+  ShieldCheck,
+  ChevronRight,
+  Mic
 } from 'lucide-react';
 import GlassCard from '../components/ui/GlassCard';
 import BackgroundOrb from '../components/ui/BackgroundOrb';
@@ -337,6 +339,9 @@ const PlanDetailsPage = () => {
     }
     return false;
   });
+
+  const isPlanInvalid = !isConfirmedBreakdown && (!isAmountTally || isDateExceeded);
+
 
   // Subgoal CRUD Handlers
   const handleAddSubgoal = () => {
@@ -940,10 +945,10 @@ const PlanDetailsPage = () => {
             <ArrowLeft className="w-[18px] h-[18px] stroke-[2.2]" />
           </button>
           <div className="flex flex-col">
-            <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest leading-none">
+            <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest leading-none">
               {isConfirmedBreakdown ? 'CONFIRMED PLAN BREAKDOWN' : 'NEST ADVISORY BOARD'}
             </span>
-            <span className="text-sm font-black text-zinc-900 tracking-tight mt-0.5">{displayGoalTitle}</span>
+            <span className="text-base font-black text-zinc-900 tracking-tight mt-0.5">{displayGoalTitle}</span>
           </div>
         </header>
 
@@ -952,32 +957,32 @@ const PlanDetailsPage = () => {
 
           {/* Top Section: Goal & Timeline */}
           <GlassCard className="p-4 border-white/70 relative overflow-hidden bg-white/40 shadow-sm flex flex-col gap-3 shrink-0">
-            <span className="text-[8px] font-bold text-brand-primary uppercase tracking-widest leading-none flex items-center gap-1">
-              <Sparkles className="w-3 h-3 animate-pulse" />
+            <span className="text-[10px] font-bold text-brand-primary uppercase tracking-widest leading-none flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5 animate-pulse" />
               {isConfirmedBreakdown ? 'Your confirmed Nest plan' : 'Agentic Wealth Proposal'}
             </span>
-            <h2 className="text-base font-black text-zinc-900 tracking-tight leading-snug">
+            <h2 className="text-lg font-black text-zinc-900 tracking-tight leading-snug">
               {displayGoalTitle}
             </h2>
             <div className="flex flex-wrap items-center gap-2 mt-0.5">
               {displayGoalAmount && (
                 <div className="flex items-center gap-1.5 py-1.5 px-3 bg-indigo-50/90 rounded-full border border-indigo-200/80 text-indigo-900 shadow-2xs">
                   <Coins className="w-3.5 h-3.5 text-indigo-600" />
-                  <span className="text-[10px] font-extrabold tracking-tight">
+                  <span className="text-xs font-extrabold tracking-tight">
                     Target Goal: {displayGoalAmount}
                   </span>
                 </div>
               )}
               {activePlan.id === 'housing' && (
                 <div className="flex items-center gap-1.5 py-1.5 px-3 bg-amber-50/90 rounded-full border border-amber-200/80 text-amber-900 shadow-2xs">
-                  <span className="text-[10px] font-extrabold tracking-tight">
+                  <span className="text-xs font-extrabold tracking-tight">
                     {housingPropertyType === 'condo' ? 'Condominium' : housingPropertyType === 'landed' ? 'Landed Property' : 'HDB (BTO)'}
                   </span>
                 </div>
               )}
               <div className="flex items-center gap-1.5 py-1.5 px-3 bg-brand-primary/5 rounded-full border border-brand-primary/10 text-brand-primary">
                 <Calendar className="w-3.5 h-3.5 text-brand-primary" />
-                <span className="text-[10px] font-bold tracking-tight">
+                <span className="text-xs font-bold tracking-tight">
                   {displayTargetDate ? 'Target Deadline:' : 'Estimated Achievement:'} {displayTargetDate || activeTimeline}
                 </span>
               </div>
@@ -992,11 +997,11 @@ const PlanDetailsPage = () => {
                   <ShieldCheck className="w-4 h-4" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[8.5px] font-black uppercase tracking-wider text-indigo-900/60">YOUR RISK PROFILE</span>
+                  <span className="text-[10.5px] font-black uppercase tracking-wider text-indigo-900/60">YOUR RISK PROFILE</span>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="text-xs font-black text-indigo-950">{riskProfile || 'Balanced'}</span>
+                    <span className="text-sm font-black text-indigo-950">{riskProfile || 'Balanced'}</span>
                     {hasAssessedRisk && (
-                      <span className="text-[8px] font-black px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full border border-emerald-200/60 flex items-center gap-0.5">
+                      <span className="text-[10px] font-black px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full border border-emerald-200/60 flex items-center gap-0.5">
                         <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" /> Assessed
                       </span>
                     )}
@@ -1005,13 +1010,13 @@ const PlanDetailsPage = () => {
               </div>
               <button
                 onClick={() => setPage('risk-profiling')}
-                className="text-[9.5px] font-extrabold text-indigo-700 bg-white hover:bg-indigo-50 border border-indigo-200/80 px-2.5 py-1.5 rounded-lg shadow-2xs transition-all active:scale-95 flex items-center gap-1 cursor-pointer"
+                className="text-xs font-extrabold text-indigo-700 bg-white hover:bg-indigo-50 border border-indigo-200/80 px-2.5 py-1.5 rounded-lg shadow-2xs transition-all active:scale-95 flex items-center gap-1 cursor-pointer"
               >
                 Reassess Risk
               </button>
             </div>
-            <p className="text-[9.5px] text-zinc-600 leading-relaxed font-medium">
-              Your plan suggestions and alternatives are dynamically calibrated to match your <strong className="text-brand-primary font-black">{riskProfile || 'Balanced'}</strong> risk profile.
+            <p className="text-xs text-zinc-600 leading-relaxed font-medium">
+              Plan suggestions and options match your <strong className="text-brand-primary font-black">{riskProfile || 'Balanced'}</strong> risk profile.
             </p>
           </GlassCard>
 
@@ -1019,20 +1024,29 @@ const PlanDetailsPage = () => {
           <GlassCard className="p-4 border-white/60 bg-white/50 backdrop-blur-md shadow-sm flex flex-col gap-3 relative shrink-0">
             <div className="flex items-center justify-between border-b border-zinc-200/40 pb-2.5">
               <div className="flex flex-col">
-                <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Plan Subgoals & Target Allocations</span>
-                <span className="text-xs font-black text-zinc-800 flex items-center gap-1.5">
+                <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Plan Subgoals & Allocations</span>
+                <span className="text-sm font-black text-zinc-800 flex items-center gap-1.5">
                   <Target className="w-3.5 h-3.5 text-brand-primary" />
                   Subgoals Breakdown
                 </span>
               </div>
               {!isConfirmedBreakdown && (
-                <button
-                  onClick={handleAddSubgoal}
-                  className="px-2.5 py-1 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary text-[10px] font-extrabold rounded-lg flex items-center gap-1 transition-all active:scale-95 cursor-pointer"
-                >
-                  <Plus className="w-3 h-3 stroke-[2.5]" />
-                  <span>Add Subgoal</span>
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    title="Voice input for subgoals"
+                    className="p-1.5 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary rounded-lg flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                  >
+                    <Mic className="w-3.5 h-3.5 stroke-[2.2]" />
+                  </button>
+                  <button
+                    onClick={handleAddSubgoal}
+                    className="px-2.5 py-1 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary text-xs font-extrabold rounded-lg flex items-center gap-1 transition-all active:scale-95 cursor-pointer"
+                  >
+                    <Plus className="w-3 h-3 stroke-[2.5]" />
+                    <span>Add Subgoal</span>
+                  </button>
+                </div>
               )}
             </div>
 
@@ -1040,7 +1054,7 @@ const PlanDetailsPage = () => {
             <div className="w-full overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-zinc-200/60 text-[9px] font-bold uppercase tracking-wider text-zinc-500">
+                  <tr className="border-b border-zinc-200/60 text-[11px] font-bold uppercase tracking-wider text-zinc-500">
                     <th className={`py-1.5 px-1.5 ${isStaggered ? 'w-[42%]' : 'w-[64%]'}`}>Subgoal</th>
                     <th className="py-1.5 px-1.5 w-[28%] text-right">Amount (SGD)</th>
                     {isStaggered && <th className="py-1.5 px-1.5 w-[22%] text-center">Target Date</th>}
@@ -1052,14 +1066,23 @@ const PlanDetailsPage = () => {
                     <tr key={sub.id || idx} className="hover:bg-zinc-50/50 transition-colors group">
                       <td className="py-2 px-1.5 align-middle">
                         {editingId === sub.id ? (
-                          <input
-                            type="text"
-                            value={editForm.name}
-                            onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                            className="w-full bg-white border border-brand-primary/40 rounded px-1.5 py-1 text-xs text-zinc-900 font-medium focus:outline-none focus:ring-1 focus:ring-brand-primary"
-                          />
+                          <div className="relative flex items-center w-full">
+                            <input
+                              type="text"
+                              value={editForm.name}
+                              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                              className="w-full bg-white border border-brand-primary/40 rounded px-1.5 pr-6 py-1 text-xs text-zinc-900 font-medium focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                            />
+                            <button
+                              type="button"
+                              title="Voice input"
+                              className="absolute right-1 text-zinc-400 hover:text-brand-primary p-0.5 cursor-pointer"
+                            >
+                              <Mic className="w-3 h-3" />
+                            </button>
+                          </div>
                         ) : (
-                          <span className="font-semibold text-zinc-800 text-[11px] leading-tight block">
+                          <span className="font-semibold text-zinc-800 text-xs leading-tight block">
                             {sub.name}
                           </span>
                         )}
@@ -1073,7 +1096,7 @@ const PlanDetailsPage = () => {
                             className="w-20 bg-white border border-brand-primary/40 rounded px-1.5 py-1 text-xs text-zinc-900 font-semibold text-right focus:outline-none focus:ring-1 focus:ring-brand-primary ml-auto block"
                           />
                         ) : (
-                          <span className="font-extrabold text-zinc-900 text-[11px]">
+                          <span className="font-extrabold text-zinc-900 text-xs">
                             ${Number(sub.amount || 0).toLocaleString()}
                           </span>
                         )}
@@ -1086,10 +1109,10 @@ const PlanDetailsPage = () => {
                               value={editForm.date}
                               onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
                               placeholder="e.g. Dec 2028"
-                              className="w-20 bg-white border border-brand-primary/40 rounded px-1 py-1 text-[11px] text-zinc-900 font-medium text-center focus:outline-none focus:ring-1 focus:ring-brand-primary mx-auto block"
+                              className="w-20 bg-white border border-brand-primary/40 rounded px-1 py-1 text-xs text-zinc-900 font-medium text-center focus:outline-none focus:ring-1 focus:ring-brand-primary mx-auto block"
                             />
                           ) : (
-                            <span className="inline-block px-1.5 py-0.5 bg-zinc-100 text-zinc-600 rounded text-[10px] font-bold">
+                            <span className="inline-block px-1.5 py-0.5 bg-zinc-100 text-zinc-600 rounded text-xs font-bold">
                               {sub.date}
                             </span>
                           )}
@@ -1131,7 +1154,7 @@ const PlanDetailsPage = () => {
 
             {/* Validation Banner */}
             <div className="mt-1 pt-2.5 border-t border-zinc-200/50 flex flex-col gap-2">
-              <div className="flex items-center justify-between text-[11px]">
+              <div className="flex items-center justify-between text-xs">
                 <span className="font-bold text-zinc-500">Subgoals Total Amount:</span>
                 <span className={`font-black ${isAmountTally ? 'text-emerald-600' : 'text-amber-600'}`}>
                   ${totalSubgoalAmount.toLocaleString()} / ${targetPlanAmount.toLocaleString()}
@@ -1141,7 +1164,7 @@ const PlanDetailsPage = () => {
               {!isAmountTally && (
                 <div className="p-2 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-2">
                   <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-                  <span className="text-[10px] font-semibold text-amber-700 leading-snug">
+                  <span className="text-xs font-semibold text-amber-700 leading-snug">
                     Total amount does not tally with overall plan target (${targetPlanAmount.toLocaleString()}). Discrepancy: ${(totalSubgoalAmount - targetPlanAmount > 0 ? '+' : '')}${(totalSubgoalAmount - targetPlanAmount).toLocaleString()}.
                   </span>
                 </div>
@@ -1150,7 +1173,7 @@ const PlanDetailsPage = () => {
               {isStaggered && isDateExceeded && (
                 <div className="p-2 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-2">
                   <AlertTriangle className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
-                  <span className="text-[10px] font-semibold text-red-700 leading-snug">
+                  <span className="text-xs font-semibold text-red-700 leading-snug">
                     One or more subgoal target dates exceed the plan's target timeline ({planHorizonYear}).
                   </span>
                 </div>
@@ -1159,7 +1182,7 @@ const PlanDetailsPage = () => {
               {isAmountTally && (!isStaggered || !isDateExceeded) && (
                 <div className="p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span className="text-[10px] font-bold text-emerald-700">
+                  <span className="text-xs font-bold text-emerald-700">
                     All subgoal amounts tally{!isStaggered ? '!' : ' and dates are within target schedule!'}
                   </span>
                 </div>
@@ -1169,7 +1192,7 @@ const PlanDetailsPage = () => {
 
           {/* Section Indicator & Instructions */}
           <div className="flex flex-col gap-2 shrink-0 mt-1">
-            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+            <span className="text-[11px] font-black text-zinc-400 uppercase tracking-widest">
               {isConfirmedBreakdown ? 'Confirmed strategy' : 'Execution Roadmap'}
             </span>
             <div className="bg-white/50 border border-zinc-200/50 backdrop-blur-md rounded-2xl p-3 flex flex-col gap-2.5 shadow-sm">
@@ -1180,22 +1203,22 @@ const PlanDetailsPage = () => {
                 {isConfirmedBreakdown ? 'Your accepted recommendations' : 'Review your Nest Plan'}
               </span>
               {isConfirmedBreakdown && (
-                <p className="text-[10px] text-zinc-600 font-semibold leading-relaxed">
+                <p className="text-xs text-zinc-600 font-semibold leading-relaxed">
                   These are the milestones, payment preferences, and wealth products confirmed for this plan.
                 </p>
               )}
-              <ul className={`${isConfirmedBreakdown ? 'hidden' : 'flex'} flex-col gap-2 text-[10px] text-zinc-600 font-semibold leading-normal list-none pl-0`}>
+              <ul className={`${isConfirmedBreakdown ? 'hidden' : 'flex'} flex-col gap-2 text-xs text-zinc-600 font-semibold leading-normal list-none pl-0`}>
                 <li className="flex gap-2 items-start">
-                  <span className="w-4 h-4 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0 font-black text-[9px]">1</span>
-                  <span><strong>Inspect Suggestions:</strong> Tap the category tabs below to see recommended wealth products.</span>
+                  <span className="w-4 h-4 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0 font-black text-[11px]">1</span>
+                  <span><strong>Inspect Suggestions:</strong> Click category tabs to view options.</span>
                 </li>
                 <li className="flex gap-2 items-start">
-                  <span className="w-4 h-4 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0 font-black text-[9px]">2</span>
-                  <span><strong>Change Option:</strong> Click on any part of the card to choose alternative options. To undo, click the restore icon (↺).</span>
+                  <span className="w-4 h-4 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0 font-black text-[11px]">2</span>
+                  <span><strong>Change Option:</strong> Click cards to pick alternative options.</span>
                 </li>
                 <li className="flex gap-2 items-start">
-                  <span className="w-4 h-4 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0 font-black text-[9px]">3</span>
-                  <span><strong>Replan with AI:</strong> Tap <strong>Replan with AI</strong> below to calculate new projections. Click <strong>Accept & Save Plan</strong> when satisfied.</span>
+                  <span className="w-4 h-4 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0 font-black text-[11px]">3</span>
+                  <span><strong>Save Plan:</strong> Click <strong>Accept & Save Plan</strong> when satisfied.</span>
                 </li>
               </ul>
             </div>
@@ -1218,20 +1241,29 @@ const PlanDetailsPage = () => {
           />
 
           {/* Staggered Payments Callout Notice */}
-          {userPlanMeta.paymentStrategy?.toLowerCase() === 'staggered' && (
+          {isStaggered && (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="p-4 bg-blue-50 border border-blue-100 rounded-[24px] flex gap-3.5 items-start mt-2 shrink-0 shadow-sm"
+              onClick={() => setPage('plan-liquidity-details')}
+              className="p-3.5 bg-white hover:bg-zinc-50/80 border border-zinc-200/80 rounded-[24px] flex gap-3 items-start mt-2 shrink-0 shadow-2xs cursor-pointer transition-all active:scale-[0.99] group relative"
             >
-              <div className="w-8 h-8 rounded-full bg-blue-100/50 flex items-center justify-center text-blue-600 shrink-0 shadow-inner">
+              <div className="w-8 h-8 rounded-2xl bg-red-50 border border-red-100/80 flex items-center justify-center text-red-600 shrink-0 group-hover:scale-105 transition-transform">
                 <AlertCircle className="w-4.5 h-4.5 stroke-[2.2]" />
               </div>
-              <div className="flex flex-col gap-0.5 text-left">
-                <span className="text-[10px] font-black text-blue-900 uppercase tracking-wider">Payment Flexibility Activated</span>
-                <p className="text-[9.5px] font-semibold text-blue-800 leading-relaxed mt-0.5">
-                  Based on your choice of <strong>Staggered Payments</strong> and your target timeline, these recommendations are structured to prioritize products with flexible exits and zero penalty fees. You retain the freedom to redirect cash without lock-in constraints.
+              <div className="flex flex-col gap-0.5 text-left flex-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-zinc-900 uppercase tracking-wider">Payment Flexibility</span>
+                  <span className="text-xs font-bold text-red-600 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+                    Click here <ChevronRight className="w-3 h-3 stroke-[2.5]" />
+                  </span>
+                </div>
+                <p className="text-xs font-medium text-zinc-700 leading-snug">
+                  Selected options avoid exit penalties to match your goal dates.
                 </p>
+                <span className="text-xs font-bold text-red-600/90 underline mt-0.5">
+                  Click to see liquidity details →
+                </span>
               </div>
             </motion.div>
           )}
@@ -1239,7 +1271,7 @@ const PlanDetailsPage = () => {
           {/* Compliance statement */}
           <div className="bg-zinc-200/30 border border-zinc-200/40 rounded-xl p-2.5 flex gap-2 items-start mt-2 shrink-0">
             <AlertCircle className="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" />
-            <span className="text-[8px] font-semibold text-zinc-400 leading-normal">
+            <span className="text-[10px] font-semibold text-zinc-400 leading-normal">
               Wealth advisor proposals are computed by Nest Planner. Historical simulation indicators are models; consult licensed experts before executing SG investments.
             </span>
           </div>
@@ -1251,12 +1283,24 @@ const PlanDetailsPage = () => {
           className="absolute bottom-0 left-0 right-0 bg-white/85 backdrop-blur-xl border-t border-zinc-200/40 p-4 flex flex-col z-40"
           style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))' }}
         >
+          {isPlanInvalid && (
+            <div className="mb-2 p-2.5 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-900 text-xs font-bold flex items-center gap-2 shadow-2xs">
+              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>
+                {!isAmountTally
+                  ? `Subgoals total ($${totalSubgoalAmount.toLocaleString()}) must match plan target ($${targetPlanAmount.toLocaleString()}) to save.`
+                  : `Subgoal target date exceeds the plan's target timeline (${planHorizonYear}).`}
+              </span>
+            </div>
+          )}
           <button
+            disabled={isPlanInvalid}
             onClick={() => {
               if (isConfirmedBreakdown) {
                 setPage('plan-milestones');
                 return;
               }
+              if (isPlanInvalid) return;
               const confirmed = confirmPlan(activePlan.id, {
                 ...userPlanMeta,
                 targetAmount: canonicalTargetAmount,
@@ -1267,11 +1311,17 @@ const PlanDetailsPage = () => {
               });
               if (confirmed) setPage('plan-dashboard');
             }}
-            className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white font-extrabold rounded-2xl text-[11px] uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-md cursor-pointer flex items-center justify-center gap-2"
+            className={`w-full py-3.5 font-extrabold rounded-2xl text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2 ${
+              isPlanInvalid
+                ? 'bg-zinc-200 text-zinc-400 border border-zinc-300/80 cursor-not-allowed shadow-none active:scale-100'
+                : 'bg-zinc-900 hover:bg-zinc-800 text-white cursor-pointer shadow-md active:scale-95'
+            }`}
           >
             <span>{isConfirmedBreakdown ? 'Back to plan journey' : 'Accept & Save Plan'}</span>
           </button>
         </div>
+
+
 
 
 
