@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { createTransactionDeviation } from '../data/transactionDeviations';
 import { getMilestonePlan } from '../data/milestonePlans';
 import { applyOpportunityChanges, getAllocationImpact, getPlanOpportunity } from '../data/planOpportunities';
+import { buildSimulationScript } from '../features/planSimulation/engine/buildSimulationScript';
 
 const AppContext = createContext();
 
@@ -73,6 +74,7 @@ export const AppProvider = ({ children }) => {
   const [clickPos, setClickPos] = useState(null);
   const [activePlanTitle, setActivePlanTitle] = useState('');
   const [activePlanId, setActivePlanId] = useState(null); // Selected proposal or accepted plan
+  const [pendingPlan, setPendingPlan] = useState(null);
   // Demo seed: Daniel already has one accepted Housing plan.
   const [createdPlans, setCreatedPlans] = useState(['housing']); // Plans are added only after explicit acceptance
 
@@ -177,6 +179,12 @@ export const AppProvider = ({ children }) => {
 
   const navigate = (targetPage) => {
     setPage(targetPage);
+  };
+
+  const startPlanSimulation = (request, result) => {
+    const script = buildSimulationScript(request);
+    setPendingPlan({ request, result, script });
+    setPage('plan-simulation');
   };
 
   // Add a plan to the in-memory list (deduplicated by id)
@@ -573,6 +581,9 @@ export const AppProvider = ({ children }) => {
         setActivePlanTitle,
         activePlanId,
         setActivePlanId,
+        pendingPlan,
+        setPendingPlan,
+        startPlanSimulation,
         createdPlans,
         addCreatedPlan,
         hasCreatedFirstPlan,

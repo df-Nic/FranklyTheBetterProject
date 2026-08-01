@@ -1265,7 +1265,7 @@ const PlanDetailsPage = () => {
                 subgoals,
                 categories: categoriesList,
               });
-              if (confirmed) setPage('plan-dashboard');
+              if (confirmed) setPage('plan-milestones');
             }}
             className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white font-extrabold rounded-2xl text-[11px] uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-md cursor-pointer flex items-center justify-center gap-2"
           >
