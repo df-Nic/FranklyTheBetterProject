@@ -122,57 +122,57 @@ const CONTEXT_CONFIG = {
       { label: "Easier access", icon: Droplet },
       { label: "Fewer conditions", icon: Unlock }
     ],
-    guardrail: "OCBC 360 interest depends on monthly activities such as salary crediting, continuous saving, and card spending.",
+    guardrail: "Requires salary credit, regular monthly savings, and card spend.",
     alternatives: [
       {
         id: "alt_ocbc360",
         name: "OCBC 360 Account",
-        desc: "Credit your salary, save, and spend to earn up to 4.65% p.a. high interest on your primary liquid cash.",
+        desc: "Earn up to 4.65% p.a. interest with salary credit, saving, and card spend.",
         rate: 0.0465,
         type: "deposit product",
         riskBand: "Capital Safety",
         tags: ["Higher interest", "Easier access"],
-        fitText: "Provides high interest yield while maintaining daily liquidity access for your cash."
+        fitText: "High interest rate with daily cash access."
       },
       {
         id: "alt_bonus_plus",
         name: "OCBC Bonus+ Savings Account",
-        desc: "Suited to customers who can avoid withdrawals. Earn high bonus interest rates up to 4.15% p.a. for months with zero withdrawals.",
+        desc: "Earn up to 4.15% p.a. interest when you make zero withdrawals.",
         rate: 0.0415,
         type: "deposit product",
         riskBand: "Capital Safety",
         tags: ["Higher interest", "Fewer conditions"],
-        fitText: "Suited to customers who can avoid withdrawals to maximize bonus yield."
+        fitText: "Best if you don't withdraw funds."
       },
       {
         id: "alt_monthly_savings",
         name: "OCBC Monthly Savings Account",
-        desc: "Suited to regular monthly saving. Earn high baseline interest by committing consistent monthly savings.",
+        desc: "Earn steady high interest with regular monthly savings.",
         rate: 0.0380,
         type: "deposit product",
         riskBand: "Capital Safety",
         tags: ["Higher interest", "Easier access"],
-        fitText: "Suited to regular monthly saving with flexible penalty-free withdrawal access."
+        fitText: "Flexible monthly savings with free access."
       },
       {
         id: "alt_time_deposit",
         name: "OCBC Time Deposit",
-        desc: "Guaranteed capital returns with maturity structured before your next goal payment date.",
+        desc: "Guaranteed returns locked until your target goal date.",
         rate: 0.0335,
         type: "deposit product",
         riskBand: "Capital Safety",
         tags: ["Higher interest", "Fewer conditions"],
-        fitText: "Guarantees principal safety with fixed maturity before your next goal deadline."
+        fitText: "Keeps your money safe with fixed returns."
       },
       {
         id: "alt_premier_div",
         name: "OCBC Premier Dividend Account",
-        desc: "Premier wealth tier account offering up to 3.85% p.a. and seamless multi-currency FX liquidity.",
+        desc: "Earn up to 3.85% p.a. with multi-currency access.",
         rate: 0.0385,
         type: "deposit product",
         riskBand: "Capital Safety",
         tags: ["Higher interest", "Easier access"],
-        fitText: "Provides high interest yield while maintaining daily multi-currency liquidity access."
+        fitText: "High interest yield with daily flexibility."
       }
     ]
   },
@@ -184,35 +184,35 @@ const CONTEXT_CONFIG = {
       { label: "Split into two transfers", icon: Scissors },
       { label: "Use another account", icon: CreditCard }
     ],
-    guardrail: "Your target monthly amount and goal completion date remain unchanged when customizing transfer schedules.",
+    guardrail: "Your target total and completion date stay the same.",
     isExecutionOnly: true,
     alternatives: [
       {
         id: "alt_payday_transfer",
         name: "S$500 once a month after salary credit",
-        desc: "S$500 once a month after salary credit. Scheduled automatically 1 day after payday to secure your goal savings.",
+        desc: "S$500 saved automatically 1 day after payday.",
         rate: 0,
         type: "execution preference",
         tags: ["Transfer after payday"],
-        fitText: "Automates goal contribution immediately following your monthly salary credit."
+        fitText: "Saves right after your salary arrives."
       },
       {
         id: "alt_split_transfer",
         name: "S$250 twice a month",
-        desc: "S$250 twice a month. Split into two recurring transfers on the 1st and 15th to smooth cash flow impact.",
+        desc: "S$250 on the 1st and 15th of each month.",
         rate: 0,
         type: "execution preference",
         tags: ["Split into two transfers"],
-        fitText: "Reduces peak cash-flow strain by dividing contributions across two pay periods."
+        fitText: "Splits transfers to keep monthly cash flow smooth."
       },
       {
         id: "alt_other_account",
         name: "S$500 from another selected OCBC account",
-        desc: "S$500 from another selected OCBC account. Deduct goal transfers from your secondary OCBC deposit account.",
+        desc: "Transfer S$500 monthly from another OCBC account.",
         rate: 0,
         type: "execution preference",
         tags: ["Use another account"],
-        fitText: "Keeps your goal funding separate from your daily operating checking account."
+        fitText: "Keeps goal savings separate from main cash."
       }
     ]
   },
@@ -224,47 +224,47 @@ const CONTEXT_CONFIG = {
       { label: "Longer maturity", icon: Lock },
       { label: "More flexible access", icon: Unlock }
     ],
-    guardrail: "Only display options that mature or can be redeemed before the relevant goal payment. Singapore T-bills feature six-month and one-year maturities, while Savings Bonds allow flexible monthly redemptions.",
+    guardrail: "Only options that mature before your goal date are shown.",
     alternatives: [
       {
         id: "alt_tbill_6m",
         name: "6-month Singapore T-bill",
-        desc: "6-month Singapore T-bill. Short-term Singapore Government Securities backed by sovereign guarantee.",
+        desc: "6-month government-backed savings.",
         rateText: "Auction yield",
         type: "fixed income",
         riskBand: "Capital Safety",
         tags: ["Shorter maturity"],
-        fitText: "Matures in 6 months before your goal payment with zero credit risk."
+        fitText: "Returns cash in 6 months with zero risk."
       },
       {
         id: "alt_tbill_1y",
         name: "1-year Singapore T-bill",
-        desc: "1-year Singapore T-bill. Guaranteed sovereign yield locked over a 12-month original maturity.",
+        desc: "1-year government-backed savings.",
         rateText: "Auction yield",
         type: "fixed income",
         riskBand: "Capital Safety",
         tags: ["Longer maturity"],
-        fitText: "Matures in 1 year, locking in fixed sovereign yield prior to your target deadline."
+        fitText: "Locks in fixed returns for 1 year."
       },
       {
         id: "alt_ssb_bond",
         name: "Singapore Savings Bond (SSB)",
-        desc: "Singapore Savings Bond, where greater redemption flexibility is required. Step-up interest with monthly penalty-free exit.",
+        desc: "Flexible government bond with monthly cash out options.",
         rateText: "Step-up rate",
         type: "fixed income",
         riskBand: "Capital Safety",
         tags: ["More flexible access"],
-        fitText: "Can be submitted for redemption in any chosen month before your relevant goal payment."
+        fitText: "Withdraw anytime in any month before your goal."
       },
       {
         id: "alt_ocbc_mmf",
         name: "Lion-OCBC Money Market Fund",
-        desc: "Allocate funds into low-risk institutional liquidity instruments yielding 3.90% p.a. with instant cash retrieval.",
+        desc: "Low-risk liquid savings returning 3.90% p.a.",
         rate: 0.039,
         type: "fixed income",
         riskBand: "Capital Safety",
         tags: ["More flexible access"],
-        fitText: "Maintains high capital protection with instant liquidity for upcoming goal payments."
+        fitText: "Safe cash growth with instant access."
       }
     ]
   },
@@ -276,35 +276,35 @@ const CONTEXT_CONFIG = {
       { label: "Split across categories", icon: Sparkles },
       { label: "Use a savings transfer", icon: ArrowLeft }
     ],
-    guardrail: "Your required monthly contribution and target date remain unchanged when adjusting spending strategy allocations.",
+    guardrail: "Target total and completion date remain unchanged.",
     isExecutionOnly: true,
     alternatives: [
       {
         id: "alt_dining_redirect",
         name: "Redirect S$150 from dining",
-        desc: "Redirect S$150 from dining. Adjust food delivery and restaurant spending caps to fund your goal.",
+        desc: "Save S$150 monthly by trimming dining out.",
         rate: 0,
         type: "spending strategy",
         tags: ["Choose another category"],
-        fitText: "Targets dining out as a focused category to recover your required monthly contribution."
+        fitText: "Trims dining spend to hit your goal."
       },
       {
         id: "alt_split_categories",
         name: "Redirect S$50 each from dining, shopping and entertainment",
-        desc: "Redirect S$50 each from dining, shopping and entertainment to balance lifestyle changes lightly.",
+        desc: "Trim S$50 each from dining, shopping, and entertainment.",
         rate: 0,
         type: "spending strategy",
         tags: ["Split across categories"],
-        fitText: "Spreads small spending trims across three categories to minimize personal impact."
+        fitText: "Lightly trims three categories to lower impact."
       },
       {
         id: "alt_increase_transfer",
         name: "Keep lifestyle spending unchanged and increase the automatic goal transfer by S$150",
-        desc: "Keep lifestyle spending unchanged and increase the automatic goal transfer by S$150 directly.",
+        desc: "Keep spend unchanged and add S$150 to monthly savings.",
         rate: 0,
         type: "spending strategy",
         tags: ["Use a savings transfer"],
-        fitText: "Preserves your current spending habits while automating goal funding from cash flow."
+        fitText: "Keeps your lifestyle while boosting savings."
       }
     ]
   },
@@ -316,80 +316,81 @@ const CONTEXT_CONFIG = {
       { label: "More diversified", icon: Compass },
       { label: "Easier access", icon: Unlock }
     ],
-    guardrail: "OCBC RoboInvest provides ETF-based portfolios, automated portfolio management and multiple portfolios under one account.",
+    guardrail: "Automated portfolio management aligned with your targets.",
     alternatives: [
       {
         id: "alt_robo_defensive",
         name: "OCBC RoboInvest Defensive Portfolio",
-        desc: "OCBC RoboInvest lower-volatility portfolio focusing on defensive global bonds and capital preservation.",
+        desc: "Low-risk defensive fund focused on steady capital safety.",
         rate: 0.050,
         type: "roboinvest portfolio",
         riskBand: "Capital Safety",
         tags: ["Lower fees", "Easier access"],
-        fitText: "Protects capital from market volatility while maintaining automated portfolio rebalancing."
+        fitText: "Protects money from market drops."
       },
       {
         id: "alt_robo_balanced",
         name: "OCBC RoboInvest Balanced Portfolio",
-        desc: "OCBC RoboInvest balanced portfolio allocated across global equities, tech, and fixed income assets.",
+        desc: "Balanced mix of global stocks and bonds.",
         rate: 0.065,
         type: "roboinvest portfolio",
         riskBand: "Balanced",
         tags: ["More diversified", "Lower fees"],
-        fitText: "Balances equity growth with capital protection across international markets."
+        fitText: "Combines growth with downside protection."
       },
       {
         id: "alt_lion_income",
         name: "Lion-OCBC Global Income Fund",
-        desc: "Allocates capital to high-quality dividend equities and corporate debt returning 5.20% p.a. monthly payouts.",
+        desc: "Dividend fund returning 5.20% p.a. monthly payouts.",
         rate: 0.052,
         type: "unit trust",
         riskBand: "Balanced",
         tags: ["More diversified", "Lower fees"],
-        fitText: "Provides steady monthly income distributions to buffer against equity swings."
+        fitText: "Provides steady monthly cash income."
       },
       {
         id: "alt_robo_growth",
         name: "OCBC RoboInvest Growth Portfolio",
-        desc: "Automated global equity ETF portfolio compounding wealth through broad market appreciation.",
+        desc: "Global stock fund compounding for long-term growth.",
         rate: 0.075,
         type: "roboinvest portfolio",
         riskBand: "Growth",
         tags: ["More diversified", "Easier access"],
-        fitText: "Compounds wealth through global equity upside for long-term target timelines."
+        fitText: "Grows wealth faster over longer timelines."
       },
       {
         id: "alt_us_dividend",
         name: "Lion-Global US Dividend Equity Fund",
-        desc: "Focuses on premier US dividend growth stocks compounding at 7.80% p.a. average historical growth.",
+        desc: "US dividend growth stocks returning 7.80% p.a.",
         rate: 0.078,
         type: "unit trust",
         riskBand: "Growth",
         tags: ["More diversified"],
-        fitText: "Captures US dividend growth to accelerate long-term capital accumulation."
+        fitText: "Captures dividend growth to build capital."
       },
       {
         id: "alt_robo_dynamic",
         name: "OCBC RoboInvest Dynamic Growth Portfolio",
-        desc: "High-conviction portfolio allocated to global innovation, semiconductors, and green energy ETFs.",
+        desc: "Growth fund focused on tech and green energy.",
         rate: 0.085,
         type: "roboinvest portfolio",
         riskBand: "Aggressive Growth",
         tags: ["More diversified"],
-        fitText: "Maximizes capital appreciation via high-conviction global growth themes."
+        fitText: "Higher growth potential in global trends."
       },
       {
         id: "alt_disruptive_innovation",
         name: "Lion Global Disruptive Innovation Fund",
-        desc: "High-growth fund invested in global leaders reshaping AI, cloud computing, and next-gen tech.",
+        desc: "High-growth fund in AI, tech, and innovation leaders.",
         rate: 0.090,
         type: "unit trust",
         riskBand: "Aggressive Growth",
         tags: ["More diversified"],
-        fitText: "Targets maximum long-term upside by participating in global technological transformation."
+        fitText: "Aims for maximum long-term returns."
       }
     ]
   },
+
   blue_chip: {
     title: "Change Investment Option",
     buttonLabel: "Change investment option",
@@ -622,8 +623,8 @@ const PlanChangeOptionPage = () => {
             <ArrowLeft className="w-[18px] h-[18px] stroke-[2.2]" />
           </button>
           <div className="flex flex-col">
-            <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest leading-none">NEST ADVISORY BOARD</span>
-            <span className="text-sm font-black text-zinc-900 tracking-tight mt-0.5">{displayGoalTitle}</span>
+            <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest leading-none">NEST ADVISORY BOARD</span>
+            <span className="text-base font-black text-zinc-900 tracking-tight mt-0.5">{displayGoalTitle}</span>
           </div>
         </div>
         <button
@@ -637,7 +638,7 @@ const PlanChangeOptionPage = () => {
       <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-5 flex flex-col gap-4 z-10 pb-64 touch-pan-y min-h-0">
         
         {/* Sub-header Title */}
-        <h1 className="text-lg font-black text-zinc-900 tracking-tight leading-none mt-1">
+        <h1 className="text-xl font-black text-zinc-900 tracking-tight leading-none mt-1">
           {currentConfig.title}
         </h1>
 
@@ -645,10 +646,10 @@ const PlanChangeOptionPage = () => {
         {changingAction && (
           <div className="bg-white/90 border border-zinc-200/60 p-3.5 rounded-[20px] flex items-center justify-between gap-3 shadow-xs">
             <div className="flex flex-col gap-0.5">
-              <span className="text-[8px] font-black text-zinc-400 uppercase tracking-wider">Currently Selected</span>
-              <span className="text-xs font-black text-zinc-900">{changingAction.name}</span>
+              <span className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">Currently Selected</span>
+              <span className="text-sm font-black text-zinc-900">{changingAction.name}</span>
             </div>
-            <span className="text-[8.5px] font-bold px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 uppercase tracking-wider">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 uppercase tracking-wider">
               {changingCategory?.name || 'Current'}
             </span>
           </div>
@@ -657,10 +658,10 @@ const PlanChangeOptionPage = () => {
         {/* Guardrail & Context Callout */}
         {currentConfig.guardrail && (
           <div className="bg-emerald-50/80 border border-emerald-200/60 p-3.5 rounded-[20px] flex items-start gap-3 shadow-xs">
-            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            <ShieldCheck className="w-4.5 h-4.5 text-emerald-600 shrink-0 mt-0.5" />
             <div className="flex flex-col gap-0.5 text-left">
-              <span className="text-[9px] font-black text-emerald-900 uppercase tracking-wider">Guardrail & Guidelines</span>
-              <p className="text-[9.5px] font-semibold text-emerald-800 leading-relaxed">
+              <span className="text-[11px] font-black text-emerald-900 uppercase tracking-wider">Guardrail & Guidelines</span>
+              <p className="text-xs font-semibold text-emerald-800 leading-relaxed">
                 {currentConfig.guardrail}
               </p>
             </div>
@@ -670,8 +671,8 @@ const PlanChangeOptionPage = () => {
         {/* Simplified Pills Category Selection */}
         <div className="flex flex-col gap-2 shrink-0 mt-1">
           <div className="flex flex-col gap-0.5">
-            <span className="text-[10.5px] font-black text-zinc-800 tracking-tight">Select preference filter:</span>
-            <span className="text-[8.5px] font-medium text-zinc-400 leading-normal">
+            <span className="text-xs font-black text-zinc-800 tracking-tight">Select preference filter:</span>
+            <span className="text-[11px] font-medium text-zinc-500 leading-normal">
               Tap a category pill below to filter alternatives based on your defensive preference.
             </span>
           </div>
@@ -684,7 +685,7 @@ const PlanChangeOptionPage = () => {
                 <button
                   key={chip.label}
                   onClick={() => handleToggleReason(chip.label)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9.5px] font-bold border transition-all duration-150 cursor-pointer select-none shrink-0 ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all duration-150 cursor-pointer select-none shrink-0 ${
                     isActive
                       ? 'bg-brand-primary/10 text-brand-primary border-brand-primary shadow-[0_2px_10px_rgba(225,29,72,0.12)] font-black scale-102'
                       : 'bg-white text-zinc-600 border-zinc-200/80 hover:border-zinc-300 hover:text-zinc-800'
@@ -706,7 +707,7 @@ const PlanChangeOptionPage = () => {
                 <Info className="w-7 h-7 text-zinc-400" />
                 <div className="flex flex-col gap-1.5">
                   <span className="text-xs font-black text-zinc-800">No exact matches found</span>
-                  <p className="text-[9.5px] text-zinc-500 font-semibold leading-relaxed max-w-[250px] mx-auto">
+                  <p className="text-xs text-zinc-500 font-semibold leading-relaxed max-w-[250px] mx-auto">
                     Try choosing a different combination of reasons or deselecting filters to view all options.
                   </p>
                 </div>
@@ -742,13 +743,13 @@ const PlanChangeOptionPage = () => {
                         <div className="flex flex-col gap-0.5">
                           <div className="flex items-center gap-1.5 flex-wrap">
                             {isAiRecommended && (
-                              <span className="text-[8px] font-black px-1.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/60 rounded flex items-center gap-1">
+                              <span className="text-[10px] font-black px-1.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/60 rounded flex items-center gap-1">
                                 <Sparkles className="w-2.5 h-2.5 text-emerald-600 animate-pulse" />
                                 Recommended
                               </span>
                             )}
                             {alt.riskBand && (
-                              <span className={`text-[8px] font-extrabold px-1.5 py-0.5 rounded border uppercase tracking-wider ${
+                              <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded border uppercase tracking-wider ${
                                 alt.riskBand === 'Capital Safety' ? 'bg-teal-50 text-teal-800 border-teal-200/60' :
                                 alt.riskBand === 'Balanced' ? 'bg-amber-50 text-amber-800 border-amber-200/60' :
                                 alt.riskBand === 'Growth' ? 'bg-purple-50 text-purple-800 border-purple-200/60' :
@@ -758,33 +759,33 @@ const PlanChangeOptionPage = () => {
                               </span>
                             )}
                             {alt.riskBand === riskProfile && (
-                              <span className="text-[8px] font-black px-1.5 py-0.5 bg-indigo-50 text-indigo-800 border border-indigo-200/80 rounded flex items-center gap-1">
+                              <span className="text-[10px] font-black px-1.5 py-0.5 bg-indigo-50 text-indigo-800 border border-indigo-200/80 rounded flex items-center gap-1">
                                 <ShieldCheck className="w-2.5 h-2.5 text-indigo-600" />
                                 Fits {riskProfile}
                               </span>
                             )}
-                            <span className="text-[8px] font-black px-1.5 py-0.5 bg-zinc-100 text-zinc-500 rounded uppercase tracking-wider">
+                            <span className="text-[10px] font-black px-1.5 py-0.5 bg-zinc-100 text-zinc-500 rounded uppercase tracking-wider">
                               {alt.type || 'Option'}
                             </span>
                           </div>
-                          <span className="text-xs font-black text-zinc-900 tracking-tight mt-1">{alt.name}</span>
+                          <span className="text-sm font-black text-zinc-900 tracking-tight mt-1">{alt.name}</span>
                         </div>
                       </div>
 
                       {/* Yield/Rate Display if applicable */}
                       {(alt.rate !== undefined && alt.rate > 0) && (
                         <div className="text-right flex flex-col items-end shrink-0">
-                          <span className="text-[7.5px] font-black text-zinc-400 uppercase tracking-widest leading-none">Up to</span>
-                          <span className="text-xs font-black text-emerald-600 tracking-tight mt-0.5">
+                          <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none">Up to</span>
+                          <span className="text-sm font-black text-emerald-600 tracking-tight mt-0.5">
                             {(alt.rate * 100).toFixed(2)}%
                           </span>
-                          <span className="text-[7.5px] font-black text-zinc-400 uppercase tracking-widest leading-none mt-0.5">p.a.</span>
+                          <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none mt-0.5">p.a.</span>
                         </div>
                       )}
                       {alt.rateText && (
                         <div className="text-right flex flex-col items-end shrink-0">
-                          <span className="text-[7.5px] font-black text-zinc-400 uppercase tracking-widest leading-none">Yield</span>
-                          <span className="text-[10px] font-black text-emerald-700 tracking-tight mt-0.5">
+                          <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none">Yield</span>
+                          <span className="text-xs font-black text-emerald-700 tracking-tight mt-0.5">
                             {alt.rateText}
                           </span>
                         </div>
@@ -793,13 +794,13 @@ const PlanChangeOptionPage = () => {
 
                     {/* Card Body */}
                     <div className="pl-7 flex flex-col gap-2">
-                      <p className="text-[9.5px] text-zinc-500 font-medium leading-relaxed">
+                      <p className="text-xs text-zinc-600 font-medium leading-relaxed">
                         {alt.desc}
                       </p>
 
                       {/* Spark fits label */}
-                      <div className="flex items-start gap-1.5 text-[8.5px] font-semibold text-zinc-700 bg-zinc-50 rounded-xl p-2 border border-zinc-100">
-                        <Sparkles className="w-3 h-3 text-brand-primary shrink-0 mt-0.5" />
+                      <div className="flex items-start gap-1.5 text-xs font-semibold text-zinc-700 bg-zinc-50 rounded-xl p-2 border border-zinc-100">
+                        <Sparkles className="w-3.5 h-3.5 text-brand-primary shrink-0 mt-0.5" />
                         <span>
                           <strong>Personalized Fit:</strong> {alt.fitText || "Aligned with your target schedule and risk criteria."}
                         </span>
@@ -815,7 +816,7 @@ const PlanChangeOptionPage = () => {
         {/* Informational callout banner */}
         <div className="bg-blue-50/50 border border-blue-200/40 rounded-[20px] p-3 flex gap-2.5 items-center mt-2 shrink-0">
           <Info className="w-4 h-4 text-blue-500 shrink-0" />
-          <span className="text-[9.5px] font-bold text-blue-700 leading-normal">
+          <span className="text-xs font-bold text-blue-700 leading-normal">
             Your other plan components remain unchanged. Target timeline and contribution rules are preserved.
           </span>
         </div>
@@ -830,7 +831,7 @@ const PlanChangeOptionPage = () => {
         <button
           disabled={!selectedAlt}
           onClick={() => handleSelectOption()}
-          className={`w-full py-3.5 text-white font-extrabold rounded-2xl text-[11px] uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-md cursor-pointer text-center ${
+          className={`w-full py-3.5 text-white font-extrabold rounded-2xl text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-md cursor-pointer text-center ${
             selectedAlt
               ? 'bg-brand-primary hover:bg-brand-primary/95'
               : 'bg-zinc-300 cursor-not-allowed shadow-none text-zinc-500'
@@ -840,7 +841,7 @@ const PlanChangeOptionPage = () => {
         </button>
         <button
           onClick={handleCancel}
-          className="text-center text-[10px] font-bold text-brand-primary hover:underline cursor-pointer py-1"
+          className="text-center text-xs font-bold text-brand-primary hover:underline cursor-pointer py-1"
         >
           Keep current option
         </button>

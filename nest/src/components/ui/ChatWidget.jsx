@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Compass, Coins, TrendingUp, ShieldCheck, Gift, Scissors, ShieldAlert, ArrowRight, RotateCcw } from 'lucide-react';
+import { X, Send, Compass, Coins, TrendingUp, ShieldCheck, Gift, Scissors, ShieldAlert, ArrowRight, RotateCcw, Mic } from 'lucide-react';
 import ocbcOwl from '../../assets/images/OCBC Owl.jpg';
 import { useApp } from '../../context/AppContext';
 import { PLANS_DATA } from '../../data/planTemplates';
@@ -1469,21 +1469,30 @@ const ChatWidget = () => {
                   </button>
                 </div>
               ) : (
-                <input
-                  ref={chatInputRef}
-                  type="text"
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  onKeyDown={handleKeyPress}
-                  placeholder={
-                    flowState === 'asking_amount'
-                      ? "Enter total target amount..."
-                      : flowState === 'asking_date'
-                        ? "Enter target achievement date..."
-                        : "Type any savings/life goals you have"
-                  }
-                  className="flex-1 h-10 px-3.5 bg-zinc-100 border border-zinc-200/50 rounded-xl text-xs font-medium focus:outline-none focus:ring-1 focus:ring-brand-primary focus:border-brand-primary placeholder-zinc-400 transition-all duration-150"
-                />
+                <div className="relative flex-1 flex items-center">
+                  <input
+                    ref={chatInputRef}
+                    type="text"
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    placeholder={
+                      flowState === 'asking_amount'
+                        ? "Enter total target amount..."
+                        : flowState === 'asking_date'
+                          ? "Enter target achievement date..."
+                          : "Type any savings/life goals you have"
+                    }
+                    className="w-full h-10 pl-3.5 pr-10 bg-zinc-100 border border-zinc-200/50 rounded-xl text-xs font-medium focus:outline-none focus:ring-1 focus:ring-brand-primary focus:border-brand-primary placeholder-zinc-400 transition-all duration-150"
+                  />
+                  <button
+                    type="button"
+                    title="Voice input"
+                    className="absolute right-2.5 p-1 text-zinc-400 hover:text-brand-primary active:scale-95 transition-all rounded-lg focus:outline-none cursor-pointer"
+                  >
+                    <Mic className="w-4 h-4" />
+                  </button>
+                </div>
               )}
             </div>
           </motion.div>

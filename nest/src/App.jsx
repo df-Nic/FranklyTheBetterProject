@@ -24,6 +24,7 @@ import PlanHealerPage from './pages/PlanHealerPage';
 import AccountDetailPage from './pages/AccountDetailPage';
 import PlanSimulationScreen from './features/planSimulation/PlanSimulationScreen';
 import ReasoningLogPage from './features/planSimulation/ReasoningLogPage';
+import PlanLiquidityDetailsPage from './pages/PlanLiquidityDetailsPage';
 
 // Iris-animated wrapper for RiskProfilingPage — mirrors how PlanDetailsPage enters/exits
 function RiskProfilingIrisWrapper() {
@@ -62,7 +63,7 @@ function AppContent() {
   const detailsOrigin = planDetailOrigin || 'home';
 
   const isPayNowPage = page === 'paynow-contacts' || page === 'paynow-amount' || page === 'paynow-confirm' || page === 'paynow-success';
-  const isPlanPage = page === 'plan-dashboard' || page === 'plan-view' || page === 'plan-milestones' || page === 'savings-breakdown' || page === 'opportunity-detail' || page === 'plan-change-option' || page === 'expense-optimizer' || page === 'plan-healer' || page === 'reasoning-log';
+  const isPlanPage = page === 'plan-dashboard' || page === 'plan-view' || page === 'plan-milestones' || page === 'savings-breakdown' || page === 'opportunity-detail' || page === 'plan-change-option' || page === 'expense-optimizer' || page === 'plan-healer' || page === 'reasoning-log' || page === 'plan-liquidity-details';
   const isUserLoggedIn = page === 'home' || page === 'plan-details' || isPlanPage || isPayNowPage || page === 'risk-profiling' || page === 'plan-simulation';
   const isRiskProfilingBackground = page === 'plan-details' && detailsOrigin === 'risk-profiling';
   const activeNavTab = isPayNowPage
@@ -207,8 +208,8 @@ function AppContent() {
       {/* Persistent overlay components for logged-in views */}
       {isUserLoggedIn && !isPayNowPage && page !== 'risk-profiling' && page !== 'plan-simulation' && page !== 'reasoning-log' && !isRiskProfilingBackground && (
         <>
-          {page !== 'plan-milestones' && page !== 'savings-breakdown' && page !== 'opportunity-detail' && page !== 'plan-change-option' && page !== 'expense-optimizer' && page !== 'plan-healer' && page !== 'account-detail' && <ChatWidget />}
-          {page !== 'plan-change-option' && page !== 'plan-healer' && page !== 'account-detail' && <BottomNavBar activeTab={activeNavTab} onTabSelect={handleTabSelect} />}
+          {page !== 'plan-milestones' && page !== 'savings-breakdown' && page !== 'opportunity-detail' && page !== 'plan-change-option' && page !== 'expense-optimizer' && page !== 'plan-healer' && page !== 'account-detail' && page !== 'plan-liquidity-details' && <ChatWidget />}
+          {page !== 'plan-change-option' && page !== 'plan-healer' && page !== 'account-detail' && page !== 'plan-liquidity-details' && <BottomNavBar activeTab={activeNavTab} onTabSelect={handleTabSelect} />}
         </>
       )}
 
@@ -322,6 +323,18 @@ function AppContent() {
             className="absolute inset-0 z-30 overflow-hidden"
           >
             <AccountDetailPage />
+          </motion.div>
+        )}
+        {page === 'plan-liquidity-details' && (
+          <motion.div
+            key="plan-liquidity-details"
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -40 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 180 }}
+            className="absolute inset-0 z-30 overflow-hidden"
+          >
+            <PlanLiquidityDetailsPage />
           </motion.div>
         )}
       </AnimatePresence>
