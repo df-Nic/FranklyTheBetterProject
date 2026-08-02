@@ -1254,15 +1254,12 @@ const PlanDetailsPage = () => {
               <div className="flex flex-col gap-0.5 text-left flex-1">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black text-zinc-900 uppercase tracking-wider">Payment Flexibility</span>
-                  <span className="text-xs font-bold text-red-600 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
-                    Click here <ChevronRight className="w-3 h-3 stroke-[2.5]" />
-                  </span>
                 </div>
-                <p className="text-xs font-medium text-zinc-700 leading-snug">
-                  Selected options avoid exit penalties to match your goal dates.
+                <p className="text-xs font-medium text-zinc-700 leading-snug mt-0.5">
+                  NEST makes sure the right amount is available before each payment is due
                 </p>
-                <span className="text-xs font-bold text-red-600/90 underline mt-0.5">
-                  Click to see liquidity details →
+                <span className="text-xs font-bold text-red-600/90 underline mt-1 flex items-center gap-1">
+                  See how your payments are covered <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
                 </span>
               </div>
             </motion.div>
