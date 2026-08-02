@@ -108,8 +108,7 @@ export default function PlanHealerPage() {
             <ArrowLeft size={18} />
           </button>
           <div>
-            <div className="text-[9px] font-black uppercase tracking-widest text-[#8A7F78]">Agent Owl review</div>
-            <h1 className="text-[18px] font-black">Plan Healer</h1>
+            <h1 className="text-[18px] font-black">NEST Restore</h1>
           </div>
         </div>
       </header>
@@ -172,7 +171,7 @@ export default function PlanHealerPage() {
               <button onClick={() => setBonusOpen(!bonusOpen)} className="flex w-full items-center gap-3 p-4 text-left">
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FFE9A8] text-[#9A641E]"><Sparkles size={17} /></span>
                 <span className="flex-1">
-                  <span className="text-[8px] font-black uppercase text-[#9A641E]">Opportunity available</span>
+                  <span className="text-[8px] font-black uppercase text-[#9A641E]">NEST Signal</span>
                   <strong className="block text-[12px]">Use your S${(opportunity.sourceAmount || 8000).toLocaleString("en-SG")} deposit to heal plans</strong>
                 </span>
                 <ChevronDown size={16} className={bonusOpen ? "rotate-180" : ""} />

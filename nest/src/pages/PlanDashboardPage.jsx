@@ -195,7 +195,7 @@ const PlanDashboardPage = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-md border border-white/25 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider text-white">
               <Sparkles className="w-3 h-3 fill-white text-white" />
-              <span>OCBC Expense Advisor</span>
+              <span>NEST Rewards</span>
             </div>
             <span className="text-[10px] font-bold text-red-100/90 group-hover:text-white transition-colors flex items-center gap-1">
               <span>Explore Options</span>
@@ -205,7 +205,7 @@ const PlanDashboardPage = () => {
 
           <div className="mt-2.5">
             <div className="text-base font-black text-white leading-tight drop-shadow-xs">
-              Optimize Spending & Deposit Yields
+              NEST Reward
             </div>
             <p className="text-[11px] text-red-100/90 leading-relaxed mt-1">
               Tailored OCBC Cards & Deposit Accounts matched to your goals and habits.
@@ -214,7 +214,7 @@ const PlanDashboardPage = () => {
 
           <div className="mt-3 flex items-center justify-between pt-2.5 border-t border-white/20">
             <span className="text-[9.5px] font-bold text-red-100/90">
-              Personalized Cards & Savings Perks
+              Cards & Deposit Recommendations
             </span>
 
             <span className="inline-flex items-center gap-1 bg-white text-[#C62828] px-3 py-1.5 rounded-full text-[9.5px] font-black shadow-sm group-hover:bg-red-50 transition-colors">
@@ -233,7 +233,7 @@ const PlanDashboardPage = () => {
             className="relative min-h-[142px] shrink-0 overflow-hidden rounded-[22px] bg-[#7C2230] p-4 text-left text-white shadow-[0_10px_24px_rgba(124,34,48,0.24)]"
           >
             <Sparkles className="absolute -right-3 -top-3 h-20 w-20 text-white/10" />
-            <div className="relative text-[9px] font-black uppercase tracking-[0.15em] text-white/65">Opportunity starts now</div>
+            <div className="relative text-[9px] font-black uppercase tracking-[0.15em] text-white/65">NEST Signal</div>
             <div className="relative mt-1 text-[18px] font-black">Put your S${(opportunitySourceAmount || 8000).toLocaleString('en-SG')} deposit to work</div>
             <p className="relative mt-1 text-[10.5px] leading-relaxed text-white/75">
               Owl compared {createdPlans.length} {createdPlans.length === 1 ? 'plan' : 'plans'} and recommends {recommendedPlan?.goalName}.

@@ -204,11 +204,8 @@ const PlanLiquidityDetailsPage = () => {
           <ArrowLeft className="w-[18px] h-[18px] stroke-[2.2]" />
         </button>
         <div className="flex flex-col">
-          <span className="text-[11px] font-bold text-red-600 uppercase tracking-widest leading-none">
-            STAGGERED PLAN EDUCATION
-          </span>
           <h1 className="text-base font-black text-zinc-900 tracking-tight mt-0.5">
-            How Your Plan Stays Flexible
+            NEST Adapt
           </h1>
         </div>
       </header>
@@ -228,7 +225,7 @@ const PlanLiquidityDetailsPage = () => {
                 <Lock className="w-4.5 h-4.5 stroke-[2.2]" />
               </div>
               <span className="text-xs font-black text-red-600 uppercase tracking-wider">
-                PAYMENT FLEXIBILITY
+                NEST ADAPT
               </span>
             </div>
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/70 shrink-0">
@@ -237,7 +234,7 @@ const PlanLiquidityDetailsPage = () => {
           </div>
 
           <p className="text-xs text-zinc-700 leading-snug font-medium pr-1">
-            NEST plans each {goalDescriptor} payment separately so the right amount is ready when needed.
+            NEST Adapt plans each {goalDescriptor} payment separately so the right amount is ready when needed.
           </p>
         </motion.div>
 

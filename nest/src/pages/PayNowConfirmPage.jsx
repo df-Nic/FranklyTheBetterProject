@@ -160,7 +160,7 @@ const PayNowConfirmPage = () => {
       if (paynowSourceAccount) {
         paynowSourceAccount.balance -= parseFloat(paynowAmount);
       }
-      
+
       navigate('paynow-success');
     } else {
       // Smoothly animate back to start using Framer Motion's spring animate
@@ -187,7 +187,7 @@ const PayNowConfirmPage = () => {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-6 flex flex-col gap-6 z-10 touch-pan-y min-h-0">
-        
+
         {/* Review amount block */}
         <div className="flex flex-col gap-1 px-1">
           <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Review payment of</span>
@@ -199,12 +199,12 @@ const PayNowConfirmPage = () => {
 
         {/* Transaction Cards details */}
         <div className="flex flex-col gap-4">
-          
+
           {/* Target Card: has standard red vertical highlight on left */}
           <div className="flex items-stretch bg-white border border-zinc-200/50 rounded-2xl overflow-hidden shadow-sm shadow-zinc-200/20">
             {/* The vertical red bar on left side matching Screenshot 3! */}
             <div className="w-1.5 bg-brand-primary" />
-            
+
             <div className="p-4 flex flex-col gap-1.5 flex-1 justify-center">
               <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider leading-none">Pay to</span>
               <h4 className="text-sm font-black text-zinc-900 leading-tight tracking-tight mt-0.5">{name}</h4>
@@ -241,13 +241,13 @@ const PayNowConfirmPage = () => {
             className="bg-gradient-to-br from-red-500/10 to-orange-500/5 border border-red-500/30 rounded-2xl p-4 flex flex-col gap-2.5 relative overflow-hidden shadow-md shrink-0 animate-fade-in"
           >
             <div className="absolute -top-10 -right-10 w-24 h-24 bg-red-500/10 rounded-full blur-xl pointer-events-none" />
-            
+
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-full bg-red-500/20 flex items-center justify-center text-brand-primary animate-pulse shrink-0">
                 <Sparkles className="w-4 h-4" />
               </div>
               <div className="flex flex-col">
-                <span className="text-[9px] font-black text-brand-primary uppercase tracking-widest leading-none">Nest AI Healer Alert</span>
+                <span className="text-[9px] font-black text-brand-primary uppercase tracking-widest leading-none">NEST Restore Alert</span>
                 <span className="text-xs font-black text-zinc-900 tracking-tight mt-0.5">Plan Impact Detected</span>
               </div>
             </div>
@@ -303,7 +303,7 @@ const PayNowConfirmPage = () => {
             className="w-full h-[58px] bg-brand-secondary rounded-full relative flex items-center p-1.5 select-none overflow-hidden shadow-md shadow-brand-secondary/20"
           >
             {/* Sliding background progress indicator */}
-            <motion.div 
+            <motion.div
               className="absolute top-0 bottom-0 bg-brand-primary rounded-full pointer-events-none z-0"
               style={{ left: '0px', width: progressWidth }}
             />
@@ -360,7 +360,7 @@ const PayNowConfirmPage = () => {
 
               {/* Replan Status Headers */}
               <h3 className="text-xl font-black text-white tracking-tight leading-snug">
-                AI Healer Replanning
+                NEST Restore Replanning
               </h3>
               <p className="text-xs text-white font-bold tracking-tight mt-2.5 max-w-[280px] leading-relaxed">
                 Recalculating your {planName} to absorb the S$${amountDisplay} transaction impact.
@@ -372,7 +372,7 @@ const PayNowConfirmPage = () => {
               {/* Loading Progress Bar */}
               <div className="w-[240px] mt-8 flex flex-col gap-2">
                 <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden border border-white/5 relative">
-                  <motion.div 
+                  <motion.div
                     initial={{ width: "0%" }}
                     animate={{ width: `${healingProgress}%` }}
                     className="h-full bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.7)]"

@@ -125,8 +125,7 @@ export default function ExpenseOptimizerPage() {
         </button>
 
         <div className="flex flex-col items-center">
-          <span className="text-[11px] font-black text-zinc-400 uppercase tracking-widest leading-none">OCBC Expense Advisor</span>
-          <span className="text-sm font-black text-zinc-900 tracking-tight mt-0.5">Recommendations Hub</span>
+          <span className="text-sm font-black text-zinc-900 tracking-tight mt-0.5">NEST Rewards</span>
         </div>
 
         <div className="w-9" />
@@ -135,14 +134,12 @@ export default function ExpenseOptimizerPage() {
       {/* Main Scrollable Area */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden touch-pan-y no-scrollbar px-4 py-4 pb-30 flex flex-col gap-4 min-h-0">
 
-
-
         {/* Highlight Banner */}
         <div className="w-full shrink-0 bg-gradient-to-r from-[#E1251B] via-[#C62828] to-[#8E0000] rounded-2xl p-4 text-white shadow-lg relative overflow-hidden flex flex-col gap-1.5 border border-red-400/30">
           <div className="absolute right-[-10px] top-[-10px] w-28 h-28 bg-white/20 rounded-full blur-2xl pointer-events-none" />
           <div className="flex items-center gap-1.5 w-fit bg-white/15 backdrop-blur-md border border-white/25 px-2.5 py-1 rounded-full text-[11px] font-black text-white tracking-wider uppercase">
             <Sparkles className="w-3.5 h-3.5 fill-white text-white" />
-            <span>Personalized Goal Match</span>
+            <span>NEST Rewards</span>
           </div>
           <h2 className="text-sm font-extrabold text-white leading-snug drop-shadow-xs">
             {activeItem?.headlineReason || 'Tailored banking solutions for your financial plan'}

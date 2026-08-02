@@ -32,13 +32,13 @@ const PayNowSuccessPage = () => {
 
     // Timestamp
     const now = new Date();
-    const options = { 
-      day: '2-digit', 
-      month: 'short', 
-      year: 'numeric', 
-      hour: '2-digit', 
-      minute: '2-digit', 
-      hour12: true 
+    const options = {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
     };
     setTimestamp(now.toLocaleDateString('en-SG', options));
   }, []);
@@ -74,7 +74,7 @@ const PayNowSuccessPage = () => {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-8 flex flex-col items-center justify-center gap-6 z-10 touch-pan-y min-h-0">
-        
+
         {/* Animated Checkmark Circle */}
         <div className="relative flex items-center justify-center">
           <motion.div
@@ -115,13 +115,13 @@ const PayNowSuccessPage = () => {
             (key) => planAdjustments[key]?.healed
           );
           return null;
-          
+
           const healedPlan = getMilestonePlan(healedPlanId, planAdjustments);
           const healedPlanName = healedPlan?.goalName || 'Active Plan';
           const basePlan = getMilestonePlan(healedPlanId, {});
           const baseContribution = basePlan?.monthlyContribution || 1200;
           const baseDate = basePlan?.goalDate || 'Dec 2027';
-          
+
           const adjustments = planAdjustments[healedPlanId] || {};
           const strategy = adjustments?.strategy || 'deposit';
           const numPaynowAmount = parseFloat(paynowAmount || '0');
@@ -133,14 +133,14 @@ const PayNowSuccessPage = () => {
                   <Sparkles className="w-3.5 h-3.5" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest leading-none">Nest AI Healer Success</span>
+                  <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest leading-none">NEST Restore Success</span>
                   <span className="text-xs font-black text-zinc-900 tracking-tight mt-0.5">Plan Adjusted & Secured</span>
                 </div>
               </div>
               <p className="text-[11px] font-medium text-zinc-600 leading-normal">
                 Your <span className="font-bold text-zinc-950">{healedPlanName}</span> has been automatically adjusted to accommodate the S$${amountDisplay} transaction.
               </p>
-              
+
               {strategy === 'deposit' && (
                 <div className="bg-white/55 border border-emerald-500/10 rounded-xl p-2.5 flex items-center justify-between text-[10px] font-bold">
                   <span className="text-zinc-500">Monthly Contribution:</span>

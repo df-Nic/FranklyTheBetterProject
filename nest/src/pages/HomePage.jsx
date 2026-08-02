@@ -138,7 +138,7 @@ const HomePage = () => {
             <motion.div initial={{ y: 22, scale: 0.95 }} animate={{ y: 0, scale: 1 }} className="relative w-full rounded-[26px] bg-white p-5 shadow-2xl">
               <button onClick={dismissDeviationNotifications} aria-label="Dismiss" className="absolute right-4 top-4 text-zinc-500"><X size={20} /></button>
               <span className="rounded-md bg-red-50 px-2 py-1 text-[9px] font-black uppercase text-brand-primary">
-                {pendingHealers.length > 1 ? `${pendingHealers.length} NEST plan updates` : 'NEST plan update'}
+                {pendingHealers.length > 1 ? `NEST Restore (${pendingHealers.length} plan updates)` : 'NEST Restore'}
               </span>
               <h2 className="mt-4 text-[22px] font-black">Your plans need attention</h2>
               <p className="mt-2 text-[11px] leading-relaxed text-zinc-600">
@@ -167,7 +167,7 @@ const HomePage = () => {
             <motion.div initial={{ y: 22, scale: 0.95 }} animate={{ y: 0, scale: 1 }} className="relative w-full rounded-[26px] bg-white p-5 shadow-2xl">
               <Sparkles className="absolute -right-4 -top-4 h-20 w-20 text-amber-50" />
               <button onClick={() => { setOpportunityDismissed(true); setShowOpportunityPopup(false); }} aria-label="Dismiss" className="absolute right-4 top-4 text-zinc-500"><X size={20} /></button>
-              <span className="rounded-md bg-amber-50 px-2 py-1 text-[9px] font-black uppercase text-amber-700">Opportunity starts now</span>
+              <span className="rounded-md bg-amber-50 px-2 py-1 text-[9px] font-black uppercase text-amber-700">NEST Signal</span>
               <h2 className="mt-4 text-[22px] font-black">Put your S${opportunitySourceAmount.toLocaleString('en-SG')} deposit to work</h2>
               <p className="mt-2 text-[11px] leading-relaxed text-zinc-600">Agent Owl compared all active plans and recommends starting with {recommendedPlan?.goalName}.</p>
               <button onClick={() => { setActivePlanId(recommendedPlan?.id || createdPlans[0]); setShowOpportunityPopup(false); navigate('opportunity-detail'); }} className="mt-5 w-full rounded-xl bg-[#7C2230] py-3 text-[11px] font-black text-white">Compare and allocate</button>
@@ -184,7 +184,7 @@ const HomePage = () => {
             <Scan className="w-[18px] h-[18px] stroke-[2.2]" />
           </button>
         </div>
-        
+
         <div className="flex items-center gap-3">
           {/* Bell Icon with Badge */}
           <button className="w-9 h-9 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-700 active:scale-95 transition-all duration-150 relative cursor-pointer">
@@ -205,14 +205,13 @@ const HomePage = () => {
 
       {/* Main Scrollable Content */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-4 py-4 flex flex-col gap-5 z-10 pb-safe-nav touch-pan-y min-h-0">
-        
+
         {/* Full-bleed masthead with floating quick actions */}
         <div className="relative -mx-4 -mt-4">
-          <div className={`relative min-h-[245px] overflow-hidden ${
-            banners[activeBannerIndex].bgType === 'nest'
-              ? 'bg-[#FFF7F5]'
-              : 'bg-gradient-to-br from-white via-zinc-50 to-red-50/50'
-          }`}>
+          <div className={`relative min-h-[245px] overflow-hidden ${banners[activeBannerIndex].bgType === 'nest'
+            ? 'bg-[#FFF7F5]'
+            : 'bg-gradient-to-br from-white via-zinc-50 to-red-50/50'
+            }`}>
             {banners[activeBannerIndex].bgType === 'nest' ? (
               <>
                 <img
@@ -272,9 +271,8 @@ const HomePage = () => {
                   key={idx}
                   aria-label={`Show banner ${idx + 1}`}
                   onClick={() => setActiveBannerIndex(idx)}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
-                    idx === activeBannerIndex ? 'w-3.5 bg-brand-primary' : 'w-1.5 bg-zinc-300'
-                  }`}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${idx === activeBannerIndex ? 'w-3.5 bg-brand-primary' : 'w-1.5 bg-zinc-300'
+                    }`}
                 />
               ))}
             </div>
@@ -296,11 +294,10 @@ const HomePage = () => {
                       }
                     }}
                   >
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-full text-zinc-800 transition-all duration-150 active:scale-95 ${
-                      pill.label === 'Customise'
-                        ? 'bg-[#EEE8E2] shadow-sm'
-                        : 'bg-zinc-50 group-hover:bg-red-50 group-hover:text-brand-primary'
-                    }`}>
+                    <div className={`flex h-10 w-10 items-center justify-center rounded-full text-zinc-800 transition-all duration-150 active:scale-95 ${pill.label === 'Customise'
+                      ? 'bg-[#EEE8E2] shadow-sm'
+                      : 'bg-zinc-50 group-hover:bg-red-50 group-hover:text-brand-primary'
+                      }`}>
                       {typeof Icon === 'function' ? (
                         <Icon className="h-[19px] w-[19px]" />
                       ) : (
@@ -338,11 +335,10 @@ const HomePage = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-2 rounded-full text-xs font-bold border transition-all duration-200 shrink-0 active:scale-95 cursor-pointer relative ${
-                    isActive
-                      ? 'bg-brand-primary border-brand-primary text-white shadow-sm shadow-brand-primary/20'
-                      : 'bg-white border-brand-primary text-[#111111] hover:bg-red-50/20'
-                  }`}
+                  className={`px-4 py-2 rounded-full text-xs font-bold border transition-all duration-200 shrink-0 active:scale-95 cursor-pointer relative ${isActive
+                    ? 'bg-brand-primary border-brand-primary text-white shadow-sm shadow-brand-primary/20'
+                    : 'bg-white border-brand-primary text-[#111111] hover:bg-red-50/20'
+                    }`}
                 >
                   {tab.label}
                 </button>
@@ -396,7 +392,7 @@ const HomePage = () => {
                           <ChevronRight className="w-4 h-4" />
                         </span>
                       </div>
-                      
+
                       <div className="mt-4 flex justify-between items-end">
                         <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wide">
                           Available Balance
@@ -476,7 +472,7 @@ const HomePage = () => {
                       </div>
                     </div>
                   </GlassCard>
-                  
+
                   <GlassCard className="p-4 border-white/60 flex items-center justify-between" hoverable={true}>
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 bg-zinc-100 rounded-lg flex items-center justify-center text-zinc-600">

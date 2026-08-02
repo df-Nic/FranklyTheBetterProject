@@ -1261,13 +1261,13 @@ const PlanDetailsPage = () => {
               </div>
               <div className="flex flex-col gap-0.5 text-left flex-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-zinc-900 uppercase tracking-wider">Payment Flexibility</span>
+                  <span className="text-xs font-black text-zinc-900 uppercase tracking-wider">NEST Adapt</span>
                 </div>
                 <p className="text-xs font-medium text-zinc-700 leading-snug mt-0.5">
-                  NEST makes sure the right amount is available before each payment is due
+                  NEST Adapt makes sure the right amount is available before each payment is due
                 </p>
                 <span className="text-xs font-bold text-red-600/90 underline mt-1 flex items-center gap-1">
-                  See how your payments are covered <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                  See how NEST Adapt flexes your goals <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
                 </span>
               </div>
             </motion.div>
@@ -1316,11 +1316,10 @@ const PlanDetailsPage = () => {
               });
               if (confirmed) setPage('plan-milestones');
             }}
-            className={`w-full py-3.5 font-extrabold rounded-2xl text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2 ${
-              isPlanInvalid
+            className={`w-full py-3.5 font-extrabold rounded-2xl text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2 ${isPlanInvalid
                 ? 'bg-zinc-200 text-zinc-400 border border-zinc-300/80 cursor-not-allowed shadow-none active:scale-100'
                 : 'bg-zinc-900 hover:bg-zinc-800 text-white cursor-pointer shadow-md active:scale-95'
-            }`}
+              }`}
           >
             <span>{isConfirmedBreakdown ? 'Back to plan journey' : 'Accept & Save Plan'}</span>
           </button>
