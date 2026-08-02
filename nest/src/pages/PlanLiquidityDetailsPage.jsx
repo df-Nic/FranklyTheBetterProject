@@ -3,23 +3,15 @@ import { motion } from 'framer-motion';
 import {
   ArrowLeft,
   Coins,
-  TrendingUp,
-  ShieldCheck,
   Calendar,
   AlertCircle,
-  CheckCircle2,
   Lock,
-  Unlock,
-  Sparkles,
   RefreshCw,
-  Info,
   ChevronRight,
-  Clock,
   Layers
 } from 'lucide-react';
 import { useApp, getHousingSubgoals } from '../context/AppContext';
 import { PLANS_DATA } from '../data/planTemplates';
-import { getMilestonePlan } from '../data/milestonePlans';
 import { getLiquidityExplanation } from '../data/liquidityData';
 import BackgroundOrb from '../components/ui/BackgroundOrb';
 
@@ -40,9 +32,9 @@ const INITIAL_PLAN_SUBGOALS = {
     { id: 3, name: "GE Lifetime Payout Annuity Target", amount: 750000, date: "Oct 2045" }
   ],
   'wedding-fund': [
-    { id: 1, name: "Venue Booking Savings Target", amount: 14000, date: "Dec 2026" },
-    { id: 2, name: "Catering & Banquet Downpayment Goal", amount: 10500, date: "Jun 2027" },
-    { id: 3, name: "Honeymoon & Outfits Savings Goal", amount: 10500, date: "Dec 2027" }
+    { id: 1, name: "Venue Booking", amount: 14000, date: "Dec 2026" },
+    { id: 2, name: "Catering & Banquet", amount: 10500, date: "Jun 2027" },
+    { id: 3, name: "Honeymoon & Outfits", amount: 10500, date: "Dec 2027" }
   ],
   'children-education': [
     { id: 1, name: "CDA Account Savings Target", amount: 12000, date: "Dec 2028" },
@@ -145,7 +137,7 @@ const PlanLiquidityDetailsPage = () => {
     return baseSubgoals;
   }, [activePlan, userPlanMeta, housingPropertyType]);
 
-  // Extract recommended Deposits & Investments (considering chosenAlternatives and appliedExcluded)
+  // Extract recommended Deposits & Investments
   const depositAndInvestmentActions = useMemo(() => {
     if (!activePlan || !activePlan.categories) return [];
 
@@ -164,14 +156,9 @@ const PlanLiquidityDetailsPage = () => {
       if (!isDepositOrInvestCategory) return;
 
       (cat.actions || []).forEach((originalAction) => {
-        // Skip if user excluded this action
         if (appliedExcluded.has(originalAction.id)) return;
-
-        // Check if user selected an alternative product for this action during replanning
         const actionObj = chosenAlternatives[originalAction.id] || originalAction;
-
         const actType = (actionObj.type || '').toLowerCase();
-        // Strict filter: strictly keep deposit, investment, or yield types (excluding loan, defense/insurance, grant, saving)
         if (['deposit', 'investment', 'yield'].includes(actType)) {
           const explanation = getLiquidityExplanation(actionObj);
           result.push({
@@ -188,6 +175,18 @@ const PlanLiquidityDetailsPage = () => {
 
     return result;
   }, [activePlan, chosenAlternatives, appliedExcluded]);
+
+  // Goal name descriptor for dynamic text (e.g. 'wedding', 'housing', etc.)
+  const goalDescriptor = useMemo(() => {
+    if (activePlan?.id === 'wedding-fund') return 'wedding';
+    if (activePlan?.id === 'housing') return 'housing';
+    if (activePlan?.id === 'children-education') return 'education';
+    if (activePlan?.id === 'retirement') return 'retirement';
+    return 'plan';
+  }, [activePlan]);
+
+  const monthlyTransferAmount = userPlanMeta.monthlyContribution || 500;
+  const userName = userPlanMeta.userName || "Daniel";
 
   return (
     <div className="w-full h-full bg-[#F5F5F7] text-zinc-900 flex flex-col overflow-hidden relative select-none font-sans">
@@ -208,127 +207,156 @@ const PlanLiquidityDetailsPage = () => {
             STAGGERED PLAN EDUCATION
           </span>
           <h1 className="text-base font-black text-zinc-900 tracking-tight mt-0.5">
-            Liquidity & Subgoal Alignment
+            How Your Plan Stays Flexible
           </h1>
         </div>
       </header>
 
-      {/* Scrollable Container without visible scrollbar */}
+      {/* Scrollable Container */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3.5 pb-24 z-10 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
 
-        {/* Hero Concept Card - Toned Down Subtle Style */}
+        {/* Card 1: PAYMENT FLEXIBILITY (Hero Concept Card matching Updated Screen 2 mockup) */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="p-4 rounded-3xl bg-white border border-zinc-200/70 shadow-xs relative overflow-hidden space-y-3"
         >
-          <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center text-red-600 shrink-0">
-              <Unlock className="w-4.5 h-4.5 stroke-[2.2]" />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-black text-red-600 uppercase tracking-wider">Payment Flexibility</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/70">
-                  Zero Exit Penalty
-                </span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-2xl bg-red-50 border border-red-100/80 flex items-center justify-center text-red-600 shrink-0">
+                <Lock className="w-4.5 h-4.5 stroke-[2.2]" />
               </div>
-              <h2 className="text-sm font-black text-zinc-900 mt-0.5">Why Liquidity Fits Your Goals</h2>
-              <p className="text-xs text-zinc-600 leading-relaxed mt-1 font-medium">
-                Savings unlock on milestone dates with zero exit fees or penalties.
-              </p>
+              <span className="text-xs font-black text-red-600 uppercase tracking-wider">
+                PAYMENT FLEXIBILITY
+              </span>
             </div>
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/70 shrink-0">
+              {subgoals.length} Payment Milestones
+            </span>
           </div>
 
-          <div className="pt-2.5 border-t border-zinc-100 grid grid-cols-2 gap-2 text-xs">
-            <div className="p-2.5 rounded-2xl bg-zinc-50 border border-zinc-200/60">
-              <div className="flex items-center gap-1.5 text-zinc-700 font-extrabold mb-1">
-                <Lock className="w-3.5 h-3.5 text-red-500" />
-                <span>Standard Lock-Ins</span>
-              </div>
-              <p className="text-[11px] text-zinc-500 leading-tight">
-                Early withdrawals forfeit interest or charge exit fees.
-              </p>
-            </div>
-            <div className="p-2.5 rounded-2xl bg-zinc-50 border border-zinc-200/60">
-              <div className="flex items-center gap-1.5 text-zinc-900 font-extrabold mb-1">
-                <Unlock className="w-3.5 h-3.5 text-zinc-700" />
-                <span>Nest Strategy</span>
-              </div>
-              <p className="text-[11px] text-zinc-600 leading-tight">
-                Funds mature right on goal dates with zero penalty.
-              </p>
-            </div>
-          </div>
-
+          <p className="text-xs text-zinc-700 leading-snug font-medium pr-1">
+            NEST plans each {goalDescriptor} payment separately so the right amount is ready when needed.
+          </p>
         </motion.div>
 
-        {/* Subgoals Timeline Card */}
+        {/* Card 2: YOUR PAYMENT TIMELINE (Subgoals Timeline matching Updated Screen 2 mockup) */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.08 }}
-          className="p-4 rounded-3xl bg-white border border-zinc-200/60 shadow-xs"
+          className="p-4 rounded-3xl bg-white border border-zinc-200/70 shadow-xs space-y-3"
         >
-          <div className="flex items-center justify-between mb-3 gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <Calendar className="w-4 h-4 text-red-600 shrink-0" />
-              <h3 className="text-sm font-black text-zinc-900 uppercase tracking-wider">Your Subgoal Timeline</h3>
-            </div>
-            <span className="text-xs font-bold text-zinc-600 bg-zinc-100 px-2.5 py-1 rounded-full border border-zinc-200/70 shrink-0 whitespace-nowrap">
-              {subgoals.length} Milestones
-            </span>
+          <div className="flex items-center gap-2 mb-1">
+            <Calendar className="w-4 h-4 text-red-600 shrink-0" />
+            <h3 className="text-xs font-black text-zinc-900 uppercase tracking-wider">
+              YOUR PAYMENT TIMELINE
+            </h3>
           </div>
 
-          <div className="space-y-2">
-            {subgoals.map((sub, idx) => (
-              <div
-                key={sub.id || idx}
-                className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50/80 border border-zinc-200/50"
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="w-6 h-6 rounded-full bg-red-50 text-red-700 text-[11px] font-black flex items-center justify-center border border-red-200">
-                    {idx + 1}
+          <div className="space-y-2.5">
+            {subgoals.map((sub, idx) => {
+              const statusTag = idx === 0 ? "Available anytime" : idx === 1 ? "Ready before payment" : "Planned for later";
+              const tagStyle = idx === 0
+                ? "bg-emerald-50 text-emerald-800 border-emerald-200/70"
+                : idx === 1
+                  ? "bg-emerald-50/80 text-emerald-800 border-emerald-200/60"
+                  : "bg-emerald-50/40 text-emerald-800 border-emerald-200/40";
+
+              return (
+                <div
+                  key={sub.id || idx}
+                  className="p-3 rounded-2xl bg-zinc-50/80 border border-zinc-200/50 flex items-center justify-between gap-2"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-6 h-6 rounded-full bg-red-50 text-red-600 text-[11px] font-black flex items-center justify-center border border-red-100 shrink-0">
+                      {idx + 1}
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-xs font-extrabold text-zinc-900 truncate">{sub.name}</span>
+                      <span className="text-[11px] text-zinc-500 font-medium flex items-center gap-1 mt-0.5">
+                        <Calendar className="w-3 h-3 text-zinc-400 shrink-0" /> Target: {sub.date}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex flex-col">
-                    <span className="text-xs font-extrabold text-zinc-900">{sub.name}</span>
-                    <span className="text-[11px] text-zinc-500 font-medium flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-zinc-400" /> Target: {sub.date}
+
+                  <div className="text-right shrink-0 flex flex-col items-end">
+                    <span className="text-sm font-black text-red-950">
+                      S${Number(sub.amount || 0).toLocaleString('en-SG')}
+                    </span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border mt-1 ${tagStyle}`}>
+                      {statusTag}
                     </span>
                   </div>
                 </div>
-                <div className="text-right">
-                  <span className="text-sm font-black text-red-950">
-                    S${Number(sub.amount || 0).toLocaleString('en-SG')}
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </motion.div>
 
-        {/* Section Title */}
+        {/* Card 3: Auto-fund this goal (matching Updated Screen 3 mockup) */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="p-3.5 rounded-3xl bg-white border border-zinc-200/70 shadow-xs flex items-center justify-between gap-3 cursor-pointer hover:bg-zinc-50/80 transition-all group"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-2xl bg-red-50 border border-red-100/80 flex items-center justify-center text-red-600 shrink-0 group-hover:scale-105 transition-transform">
+              <RefreshCw className="w-4.5 h-4.5 stroke-[2.2]" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs font-black text-zinc-900">Auto-fund this goal</span>
+              <span className="text-[11px] text-zinc-600 font-medium truncate mt-0.5">
+                Transfer S${monthlyTransferAmount} monthly into {userName}&apos;s {goalDescriptor} allocation.
+              </span>
+            </div>
+          </div>
+          <ChevronRight className="w-4 h-4 text-zinc-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
+        </motion.div>
+
+        {/* Section Title: RECOMMENDED ALLOCATIONS (matching Updated Screen 3 mockup) */}
         <div className="flex items-center justify-between pt-1 px-1 gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <Layers className="w-4 h-4 text-zinc-700 shrink-0" />
-            <h3 className="text-sm font-black text-zinc-900 uppercase tracking-wider leading-snug">Recommended Deposits & Investments</h3>
+            <h3 className="text-xs font-black text-zinc-900 uppercase tracking-wider leading-snug">
+              RECOMMENDED ALLOCATIONS
+            </h3>
           </div>
           <span className="text-xs font-bold text-zinc-600 bg-white px-2.5 py-1 rounded-full border border-zinc-200/70 shadow-2xs shrink-0 whitespace-nowrap">
-            {depositAndInvestmentActions.length} Products
+            {depositAndInvestmentActions.length || 3} Allocations
           </span>
         </div>
 
-        {/* Product Explanation Cards */}
-        <div className="space-y-3">
+        {/* Product Allocation Cards (matching Updated Screen 3 mockup) */}
+        <div className="space-y-3.5">
           {depositAndInvestmentActions.length === 0 ? (
             <div className="p-6 text-center text-zinc-500 bg-white rounded-3xl border border-zinc-200/60 shadow-xs">
               <AlertCircle className="w-6 h-6 mx-auto mb-2 text-zinc-400" />
               <p className="text-xs font-semibold">No deposit or investment recommendations found in this plan configuration.</p>
             </div>
           ) : (
-            depositAndInvestmentActions.map(({ action, categoryName, isReplanned, explanation }, idx) => {
-              const isDeposit = (action.type || '').toLowerCase() === 'deposit';
-              const isYield = (action.type || '').toLowerCase() === 'yield';
+            depositAndInvestmentActions.map(({ action, categoryName, explanation }, idx) => {
+              const matchedSubgoal = subgoals[idx] || subgoals[subgoals.length - 1] || {};
+              const shortSubgoalName = (matchedSubgoal.name || '')
+                .replace(/Savings|Target|Goal|Downpayment|Buffer/gi, '')
+                .trim() || `Milestone ${idx + 1}`;
+
+              const tagText = idx === 0 ? "Near-term cash" : idx === 1 ? "Maturity matched" : "Later milestone";
+              const whenAvailableText = idx === 0 ? "Daily access" : `Ready before ${matchedSubgoal.date || 'payment'}`;
+              const supportsPaymentText = `${shortSubgoalName} · ${matchedSubgoal.date || ''}`;
+              const termsBadgeText = idx === 0 ? "No early withdrawal needed" : "Held to maturity";
+              const termsSubtext = idx === 0
+                ? "Best for the nearest vendor payment."
+                : idx === 1
+                  ? "Planned to mature before payment is due."
+                  : "Planned to mature before later payment is due.";
+
+              const productDesc = idx === 0
+                ? `Keeps funds for the ${shortSubgoalName.toLowerCase()} payment accessible day to day.`
+                : idx === 1
+                  ? `A fixed deposit scheduled to mature before the next ${goalDescriptor} milestone.`
+                  : `A fixed deposit scheduled for later ${goalDescriptor} milestones.`;
 
               return (
                 <motion.div
@@ -336,88 +364,59 @@ const PlanLiquidityDetailsPage = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.12 + idx * 0.05 }}
-                  className="p-4 rounded-3xl bg-white border border-zinc-200/70 shadow-xs relative overflow-hidden space-y-2.5"
+                  className="p-4 rounded-3xl bg-white border border-zinc-200/70 shadow-xs space-y-3"
                 >
-                  {/* Replanned Badge */}
-                  {isReplanned && (
-                    <div className="absolute top-0 right-0 bg-[#E1251B] text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-bl-xl tracking-wider flex items-center gap-1 shadow-xs">
-                      <RefreshCw className="w-2.5 h-2.5" /> Replanned Option
-                    </div>
-                  )}
-
-                  {/* Header info */}
-                  <div className="flex items-start gap-3">
-                    <div className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 border ${isDeposit
-                        ? 'bg-red-50 text-red-600 border-red-100'
-                        : isYield
-                          ? 'bg-amber-50 text-amber-600 border-amber-100'
-                          : 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                      }`}>
-                      {isDeposit ? <Coins className="w-4.5 h-4.5 stroke-[2.2]" /> : <TrendingUp className="w-4.5 h-4.5 stroke-[2.2]" />}
-                    </div>
-
-                    <div className="flex-1 pr-12">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400">
-                          {categoryName}
-                        </span>
-                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${isDeposit
-                            ? 'bg-red-50 text-red-800 border-red-200/70'
-                            : 'bg-zinc-100 text-zinc-800 border-zinc-200/70'
-                          }`}>
-                          {explanation.badge || (isDeposit ? 'Deposit' : 'Investment')}
-                        </span>
+                  {/* Header row */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-full bg-red-50 text-red-600 border border-red-100 flex items-center justify-center shrink-0">
+                        <Coins className="w-3.5 h-3.5 stroke-[2.2]" />
                       </div>
-                      <h4 className="text-sm font-black text-zinc-900 mt-0.5 leading-snug">{action.name}</h4>
+                      <span className="text-[11px] font-black uppercase tracking-wider text-red-600">
+                        DEPOSITS
+                      </span>
                     </div>
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-100">
+                      {tagText}
+                    </span>
                   </div>
 
-                  {/* Product Description */}
-                  <p className="text-xs text-zinc-600 leading-relaxed font-normal">
-                    {action.desc}
-                  </p>
-
-                  {/* Metrics grid */}
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="p-2.5 rounded-2xl bg-zinc-50 border border-zinc-200/50">
-                      <span className="text-zinc-400 text-[11px] font-semibold block">Expected Return</span>
-                      <span className="text-sm font-black text-emerald-700">
-                        {action.rate ? `${(action.rate * 100).toFixed(2)}% p.a.` : 'Capital Preservation'}
-                      </span>
-                    </div>
-
-                    <div className="p-2.5 rounded-2xl bg-zinc-50 border border-zinc-200/50">
-                      <span className="text-zinc-400 text-[11px] font-semibold block">Liquidity Access</span>
-                      <span className="text-xs font-extrabold text-red-950 block leading-tight">
-                        {explanation.liquidity}
-                      </span>
-                    </div>
-
-                  </div>
-
-                  {/* Exit Cost & Subgoal Breakdown Card */}
-                  <div className="p-3 rounded-2xl bg-zinc-50 border border-zinc-200/60 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-black text-zinc-900 uppercase tracking-wider flex items-center gap-1.5">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Exit Penalty & Cost Analysis
-                      </span>
-                      <span className="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/70">
-                        {explanation.exitPenalty}
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-zinc-700 leading-relaxed font-medium">
-                      {explanation.explanation}
+                  {/* Title and custom description */}
+                  <div>
+                    <h4 className="text-sm font-black text-zinc-900 leading-snug">{action.name}</h4>
+                    <p className="text-xs text-zinc-600 leading-relaxed font-normal mt-0.5">
+                      {productDesc}
                     </p>
+                  </div>
 
-                    <div className="pt-2 border-t border-zinc-200/60 flex items-start gap-1.5 text-xs text-zinc-600">
-                      <Info className="w-3.5 h-3.5 text-zinc-500 shrink-0 mt-0.5" />
-                      <span>
-                        <strong className="text-zinc-900 font-bold">Subgoal Connection:</strong> {explanation.subgoalAlignment}
+                  {/* Box 1: When funds available & Supports payment */}
+                  <div className="p-3 rounded-2xl bg-zinc-50/80 border border-zinc-200/60 grid grid-cols-2 gap-2 text-xs">
+                    <div className="space-y-0.5">
+                      <span className="text-zinc-400 text-[11px] font-semibold block">When funds are available</span>
+                      <span className="text-xs font-black text-emerald-700 block">
+                        {whenAvailableText}
+                      </span>
+                    </div>
+                    <div className="space-y-0.5">
+                      <span className="text-zinc-400 text-[11px] font-semibold block">Supports this payment</span>
+                      <span className="text-xs font-black text-zinc-900 block truncate">
+                        {supportsPaymentText}
                       </span>
                     </div>
                   </div>
 
+                  {/* Box 2: Access and withdrawal terms */}
+                  <div className="p-3 rounded-2xl bg-zinc-50/80 border border-zinc-200/60 space-y-1 text-xs">
+                    <span className="text-zinc-400 text-[11px] font-semibold block">Access and withdrawal terms</span>
+                    <div>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/70 inline-block">
+                        {termsBadgeText}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-zinc-600 font-medium pt-0.5">
+                      {termsSubtext}
+                    </p>
+                  </div>
                 </motion.div>
               );
             })
@@ -435,7 +434,7 @@ const PlanLiquidityDetailsPage = () => {
           onClick={() => setPage('plan-details')}
           className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white font-extrabold rounded-2xl text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-md cursor-pointer flex items-center justify-center gap-2"
         >
-          <span>Return to Plan Review</span>
+          <span>RETURN TO PLAN REVIEW</span>
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>
