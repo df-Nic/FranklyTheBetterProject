@@ -12,9 +12,11 @@ function event(t, type, payload) {
 }
 
 function processDebateLine(line, planRequest) {
+  const existingPlan = planRequest.portfolioSnapshot?.existingPlans?.[0]?.name ?? 'your existing plan';
   return line.text
     .replaceAll('{goal}', planRequest.goalLabel)
-    .replaceAll('{horizon}', String(planRequest.horizonMonths));
+    .replaceAll('{horizon}', String(planRequest.horizonMonths))
+    .replaceAll('{existingPlan}', existingPlan);
 }
 
 export function buildSimulationScript(planRequest) {
@@ -22,9 +24,19 @@ export function buildSimulationScript(planRequest) {
   const goalType = DEBATE_EXCHANGES[planRequest.goalType]
     ? planRequest.goalType
     : 'general';
-  const debateLines = DEBATE_EXCHANGES[goalType];
+  const baseDebateLines = DEBATE_EXCHANGES[goalType];
   const takeaway = TAKEAWAY_BY_GOAL[goalType];
   const strategySnapshot = planRequest.strategySnapshot ?? buildStrategySnapshot(planRequest);
+  const debateLines = strategySnapshot.portfolio?.hasExistingPlans
+    ? baseDebateLines.map((line, index) => index < 3 ? {
+      ...line,
+      text: `${line.text} ${[
+        'I am also checking whether the combined monthly commitment leaves enough breathing room.',
+        'I will avoid duplicating the same exposure already used by {existingPlan}.',
+        'I will stage this goal around {existingPlan} so both timelines remain intact.',
+      ][index]}`,
+    } : line)
+    : baseDebateLines;
   const winner = strategySnapshot.leadAgent;
   const leaderboardPayload = {
     order: [winner, ...['cashflow', 'yield', 'sequencing'].filter((agent) => agent !== winner)],
@@ -63,7 +75,9 @@ export function buildSimulationScript(planRequest) {
     event(7800, ET.TELEMETRY, { agent: 'cashflow', value: confidence.cashflow, status: status.cashflow }),
     event(8400, ET.TELEMETRY, { agent: 'yield', value: confidence.yield, status: status.yield }),
     event(9000, ET.TELEMETRY, { agent: 'sequencing', value: confidence.sequencing, status: status.sequencing }),
-    event(10800, ET.STRESS, { label: `Checking ${strategySnapshot.planTitle} liquidity and deadline resilience`, result: 'OK' }),
+    event(10800, ET.STRESS, { label: strategySnapshot.portfolio?.hasExistingPlans
+      ? `Checking ${strategySnapshot.planTitle} alongside ${strategySnapshot.portfolio.existingPlans.map((plan) => plan.name).join(' and ')}`
+      : `Checking ${strategySnapshot.planTitle} liquidity and deadline resilience`, result: 'OK' }),
     event(11200, ET.TAKEAWAY, { conceptId: takeaway }),
     event(11400, ET.LEADERBOARD, leaderboardPayload),
     event(12500, ET.PHASE, { phase: 'judging' }),

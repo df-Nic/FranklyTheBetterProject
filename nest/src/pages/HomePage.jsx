@@ -69,8 +69,10 @@ const HomePage = () => {
     setSelectedAccountId,
     requestPlanChatOpen
   } = useApp();
-  const pendingHealers = transactionDeviations.filter((event) => event.status === 'pending');
-  const visibleHealer = [...pendingHealers].reverse().find((event) => !event.notificationDismissed);
+  const [snoozedRestoreIds, setSnoozedRestoreIds] = useState(new Set());
+  const pendingHealers = transactionDeviations.filter((event) => ['pending', 'partially-resolved'].includes(event.status));
+  const visibleHealer = [...pendingHealers].reverse().find((event) =>
+    event.notificationState !== 'acknowledged' && !snoozedRestoreIds.has(event.id));
   const opportunity = getPlanOpportunity(opportunitySourceAmount);
   const opportunityHandled = Object.values(opportunityDecisions).some((decision) => decision.opportunityId === opportunity.id);
   const recommendedPlan = getRecommendedPlan(createdPlans.map((id) => getMilestonePlan(id, planAdjustments)));
@@ -78,6 +80,19 @@ const HomePage = () => {
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
   const [activeNavTab, setActiveNavTab] = useState('home');
   const [opportunityDismissed, setOpportunityDismissed] = useState(false);
+
+  const snoozeRestoreForVisit = (eventId) => {
+    dismissDeviationNotifications(eventId);
+    setSnoozedRestoreIds((current) => new Set([...current, eventId]));
+  };
+
+  const restoreUpdateSignature = transactionDeviations
+    .map((event) => `${event.id}:${event.opportunityUpdatedAt || event.timestamp}`)
+    .join('|');
+
+  useEffect(() => {
+    setSnoozedRestoreIds(new Set());
+  }, [restoreUpdateSignature]);
 
   useEffect(() => {
     if (page === 'home' || showOpportunityPopup) setOpportunityDismissed(false);
@@ -136,7 +151,7 @@ const HomePage = () => {
         {visibleHealer && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-[70] flex items-center justify-center bg-zinc-950/55 px-5">
             <motion.div initial={{ y: 22, scale: 0.95 }} animate={{ y: 0, scale: 1 }} className="relative w-full rounded-[26px] bg-white p-5 shadow-2xl">
-              <button onClick={dismissDeviationNotifications} aria-label="Dismiss" className="absolute right-4 top-4 text-zinc-500"><X size={20} /></button>
+              <button onClick={() => snoozeRestoreForVisit(visibleHealer.id)} aria-label="Dismiss" className="absolute right-4 top-4 text-zinc-500"><X size={20} /></button>
               <span className="rounded-md bg-red-50 px-2 py-1 text-[9px] font-black uppercase text-brand-primary">
                 {pendingHealers.length > 1 ? `NEST Restore (${pendingHealers.length} plan updates)` : 'NEST Restore'}
               </span>
@@ -155,10 +170,10 @@ const HomePage = () => {
                   </div>
                 ))}
               </div>
-              <button onClick={() => openDeviation(visibleHealer.id)} className="mt-5 w-full rounded-xl bg-brand-primary py-3 text-[11px] font-black text-white">
+              <button onClick={() => openDeviation(visibleHealer.id, 'home')} className="mt-5 w-full rounded-xl bg-brand-primary py-3 text-[11px] font-black text-white">
                 {pendingHealers.length > 1 ? `Review ${pendingHealers.length} transactions` : 'Review suggested fix'}
               </button>
-              <button onClick={dismissDeviationNotifications} className="mt-2 w-full py-2 text-[10px] font-bold text-brand-primary">Not now</button>
+              <button onClick={() => snoozeRestoreForVisit(visibleHealer.id)} className="mt-2 w-full py-2 text-[10px] font-bold text-brand-primary">Not now</button>
             </motion.div>
           </motion.div>
         )}

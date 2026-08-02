@@ -1,5 +1,5 @@
 // src/pages/PlanMilestonesPage.jsx
-import { Check, CheckCircle2, ChevronLeft, ChevronRight, Pencil, Sparkles, X } from "lucide-react";
+import { Check, CheckCircle2, ChevronLeft, ChevronRight, Pencil, ShieldCheck, Sparkles, X } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useApp } from "../context/AppContext";
@@ -10,8 +10,10 @@ import {
   getFundingJourneyProgress,
   getJourneyPosition,
   getJourneyProgressPosition,
+  getCurrentMilestoneIndex,
   formatSGD,
 } from "../data/milestonePlans";
+import { getPlanHorizonMonths } from "../lib/planDate";
 import { buildPersonalizedPlanCopy } from "../data/personalizedPlanCopy";
 import { applyOpportunityChanges, getPlanOpportunity } from "../data/planOpportunities";
 import { getPlanActivity } from "../data/planActivity";
@@ -49,8 +51,14 @@ export default function PlanMilestonesPage() {
     opportunitySourceAmount,
     opportunityLifecycle,
     pendingPlan,
+    transactionDeviations,
+    openDeviation,
   } = useApp();
   const basePlan = getMilestonePlan(activePlanId, planAdjustments);
+  const restoreImpact = [...transactionDeviations].reverse().map((event) => ({
+    event,
+    plan: event.affectedPlans.find((item) => item.planId === activePlanId && ["pending", "timeline-extended"].includes(item.status)),
+  })).find((item) => item.plan);
   const opportunity = getPlanOpportunity(opportunitySourceAmount);
   const decision = Object.values(opportunityDecisions || {}).find((item) =>
     item?.status === "accepted" && item?.allocations?.some((allocation) => allocation.planId === basePlan?.id));
@@ -63,6 +71,7 @@ export default function PlanMilestonesPage() {
   const [movingRevealPlanId, setMovingRevealPlanId] = useState(null);
   const [completedRevealPlanId, setCompletedRevealPlanId] = useState(null);
   const [visibleRevealPlanId, setVisibleRevealPlanId] = useState(null);
+  const [timelineMotionPlanId, setTimelineMotionPlanId] = useState(null);
   const scrollContainerRef = useRef(null);
   const journeyRef = useRef(null);
   const showingMovingState = Boolean(
@@ -122,11 +131,71 @@ export default function PlanMilestonesPage() {
   const revealJourneyProgressAfter = newlyCompletedMilestoneIndex >= 0
     ? newlyCompletedMilestoneIndex / Math.max((revealUpdate.after?.milestones || []).length - 1, 1)
     : calculatedRevealJourneyProgressAfter;
-  const journeyProgress = showReveal
+  const baseJourneyProgress = showReveal
     ? showingBeforeState
       ? revealJourneyProgressBefore
       : revealJourneyProgressAfter
     : getFundingJourneyProgress(plan?.milestones || [], plan?.onTrack?.saved || 0, plan?.targetAmount || 0);
+  const timelineRevision = planAdjustments?.[activePlanId]?.timelineRevision;
+  const originalHorizon = timelineRevision ? getPlanHorizonMonths(timelineRevision.originalGoalDate) : null;
+  const completedMilestoneFloor = getCurrentMilestoneIndex(plan?.milestones || [])
+    / Math.max((plan?.milestones || []).length - 1, 1);
+  const revisedScheduleProgress = timelineRevision && originalHorizon
+    ? Math.min(
+      baseJourneyProgress,
+      Math.max(
+        completedMilestoneFloor,
+        baseJourneyProgress * (originalHorizon / (originalHorizon + timelineRevision.delayMonths)),
+      ),
+    )
+    : baseJourneyProgress;
+  const timelineMotionReady = timelineMotionPlanId === activePlanId;
+  const shouldAnimateTimeline = Boolean(timelineRevision && !timelineRevision.animationViewed);
+  const journeyProgress = showReveal
+    ? baseJourneyProgress
+    : shouldAnimateTimeline && !timelineMotionReady
+      ? baseJourneyProgress
+      : revisedScheduleProgress;
+
+  useEffect(() => {
+    if (!timelineRevision) {
+      setTimelineMotionPlanId(null);
+      return undefined;
+    }
+    if (timelineRevision.animationViewed) {
+      setTimelineMotionPlanId(activePlanId);
+      return undefined;
+    }
+    setTimelineMotionPlanId(null);
+    const scrollFrame = window.requestAnimationFrame(() => {
+      const container = scrollContainerRef.current;
+      const journey = journeyRef.current;
+      if (!container || !journey) return;
+      const originalPosition = getJourneyProgressPosition(baseJourneyProgress);
+      const owlOffset = journey.offsetTop + journey.clientHeight * (originalPosition.y / 100);
+      container.scrollTo({
+        top: Math.min(
+          Math.max(0, owlOffset - container.clientHeight * 0.55),
+          Math.max(0, container.scrollHeight - container.clientHeight),
+        ),
+        behavior: reduceMotion ? "auto" : "smooth",
+      });
+    });
+    const motionTimer = window.setTimeout(
+      () => setTimelineMotionPlanId(activePlanId),
+      reduceMotion ? 0 : 700,
+    );
+    const viewedTimer = window.setTimeout(() => {
+      adjustPlan(activePlanId, {
+        timelineRevision: { ...timelineRevision, animationViewed: true },
+      });
+    }, reduceMotion ? 0 : 2300);
+    return () => {
+      window.cancelAnimationFrame(scrollFrame);
+      window.clearTimeout(motionTimer);
+      window.clearTimeout(viewedTimer);
+    };
+  }, [activePlanId, timelineRevision?.sourceDeviationId, timelineRevision?.animationViewed, reduceMotion]);
 
   useEffect(() => {
     if (!revealUpdate) return undefined;
@@ -339,7 +408,11 @@ export default function PlanMilestonesPage() {
         <JourneyOverlay
           milestones={plan.milestones}
           fundingProgress={journeyProgress}
-          fromFundingProgress={showingMovingState ? revealJourneyProgressBefore : undefined}
+          fromFundingProgress={showingMovingState
+            ? revealJourneyProgressBefore
+            : shouldAnimateTimeline && timelineMotionReady
+              ? baseJourneyProgress
+              : undefined}
         />
 
         {plan.milestones.map((m, i) => (
@@ -359,6 +432,36 @@ export default function PlanMilestonesPage() {
 
       {/* Cards */}
       <div className="-mt-1 flex flex-col gap-3.5 px-4 pb-28 pt-3.5">
+        {restoreImpact && (
+          <section className="rounded-[18px] border border-[#D9CEC5] bg-white p-4 shadow-[0_7px_18px_rgba(73,45,38,0.06)]">
+            <div className="flex items-start gap-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F8ECEE] text-[#7C2230]"><ShieldCheck size={17} /></span>
+              <div className="min-w-0 flex-1">
+                <div className="text-[8px] font-black uppercase tracking-[0.14em] text-[#7C2230]">
+                  {restoreImpact.plan.status === "timeline-extended" ? "Timeline revised" : "Plan impact"}
+                </div>
+                <strong className="mt-0.5 block text-[12px]">
+                  {restoreImpact.plan.status === "timeline-extended"
+                    ? `Your goal moved to ${restoreImpact.plan.revisedGoalDate}`
+                    : `${formatSGD(restoreImpact.plan.gap)} remains to recover`}
+                </strong>
+                <p className="mt-1 text-[9.5px] leading-relaxed text-[#756A63]">
+                  {restoreImpact.plan.status === "timeline-extended"
+                    ? `Your monthly contribution stayed the same. The incomplete milestones shifted by ${restoreImpact.plan.delayMonths} ${restoreImpact.plan.delayMonths === 1 ? "month" : "months"}, and the red route now reflects your revised schedule.`
+                    : "You can leave this for later without losing access to Agent Owl's recovery options."}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => openDeviation(restoreImpact.event.id, 'plan-milestones', 'alternatives')}
+              className="mt-3 flex w-full items-center justify-between rounded-xl bg-[#F9F4EE] px-3 py-2.5 text-left text-[9.5px] font-black text-[#7C2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C2230]"
+            >
+              <span>{restoreImpact.plan.status === "timeline-extended" ? "Review alternatives" : "Review recovery options"}</span>
+              <ChevronRight size={15} />
+            </button>
+          </section>
+        )}
         {opportunityNotice?.planId === plan.id && !showReveal && (
           <div className="flex items-start gap-2.5 rounded-[16px] border border-[#CFE2D3] bg-[#EDF7EF] p-3.5 text-[#2E523A]">
             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#2E7D4F]" />

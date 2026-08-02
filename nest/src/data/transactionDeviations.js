@@ -116,6 +116,8 @@ export function createTransactionDeviation({
         impactStatus,
         urgencyScore: gap / Math.max(plan.targetAmount, 1),
         status: gap > 0 ? "pending" : "not-required",
+        originalGoalDate: plan.goalDate,
+        originalMilestones: plan.milestones.map((milestone) => ({ ...milestone })),
         recoveryOptions: buildRecoveryOptions(plan, amount),
       };
     })
@@ -137,18 +139,18 @@ export function createTransactionDeviation({
     timestamp,
     sourceAccount,
     status: "pending",
-    notificationDismissed: false,
+    notificationState: "unreviewed",
     recommendedPlanId: recommendedPlan.planId,
     affectedPlans,
   };
 }
 
 export function getPendingDeviationCount(deviations) {
-  return deviations.filter((event) => event.status === "pending").length;
+  return deviations.filter((event) => ["pending", "partially-resolved"].includes(event.status)).length;
 }
 
 export function planNeedsDeviationReview(deviations, planId) {
   return deviations.some((event) =>
-    event.status === "pending"
+    ["pending", "partially-resolved"].includes(event.status)
     && event.affectedPlans.some((plan) => plan.planId === planId && plan.status === "pending"));
 }

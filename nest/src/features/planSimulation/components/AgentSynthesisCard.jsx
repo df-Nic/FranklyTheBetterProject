@@ -14,8 +14,18 @@ export default function AgentSynthesisCard({ snapshot }) {
     <section className="shrink-0 rounded-[18px] border border-[#E4D8CE] bg-white/75 p-4 shadow-sm backdrop-blur-md">
       <div className="text-[9px] font-black uppercase tracking-[0.14em] text-[#7C2230]">How the agents shaped this plan</div>
       <p className="mt-1 text-[11px] font-semibold leading-relaxed text-[#5F5550]">
-        The final strategy combines safety, return potential, and milestone timing.
+        {snapshot.synthesis}
       </p>
+      {snapshot.portfolio?.hasExistingPlans && (
+        <div className="mt-3 rounded-xl border border-[#D9E6DB] bg-[#F2F8F3] px-3 py-2.5">
+          <strong className="block text-[10px] text-[#285C3A]">Coordinated with your existing plans</strong>
+          <span className="mt-0.5 block text-[9px] leading-relaxed text-[#55705E]">
+            Accounted for {snapshot.portfolio.existingPlans.map((plan) => plan.name).join(' and ')} and
+            S${snapshot.portfolio.committedMonthly.toLocaleString('en-SG')} in current monthly commitments.
+            Your accepted plans were not changed.
+          </span>
+        </div>
+      )}
       <div className="mt-3 divide-y divide-[#EEE6DF]">
         {rows.map(({ id, label, Icon, color, copy }) => (
           <div key={id} className="flex items-start gap-2.5 py-2 first:pt-0 last:pb-0">

@@ -48,8 +48,17 @@ export function useSimulationRunner(script, { onComplete, autoStart = true } = {
     return () => cancelAnimationFrame(frameRef.current);
   }, [autoStart, complete, script]);
 
+  const skip = useCallback(() => {
+    if (!script || completedRef.current) return;
+    cancelAnimationFrame(frameRef.current);
+    setElapsed(script.durationMs);
+    setState(deriveStateAt(script, script.durationMs));
+    complete(script);
+  }, [complete, script]);
+
   return {
     state,
     elapsed,
+    skip,
   };
 }
