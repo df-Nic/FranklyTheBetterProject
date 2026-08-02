@@ -19,6 +19,7 @@ export default function PlanHealerPage() {
     user,
     planAdjustments,
     opportunitySourceAmount,
+    opportunityLifecycle,
   } = useApp();
 
   const pendingEvents = transactionDeviations.filter((item) => item.status === "pending");
@@ -166,7 +167,7 @@ export default function PlanHealerPage() {
             </div>
           </section>
 
-          {!opportunityHandled && (
+          {opportunityLifecycle.state === 'healer' && !opportunityHandled && (
             <section className="overflow-hidden rounded-[20px] border border-[#E6D39E] bg-[#FFF9E9]">
               <button onClick={() => setBonusOpen(!bonusOpen)} className="flex w-full items-center gap-3 p-4 text-left">
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FFE9A8] text-[#9A641E]"><Sparkles size={17} /></span>

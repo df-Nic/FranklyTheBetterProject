@@ -50,9 +50,13 @@ export default function ReasoningLogReplay({ script, mode: initialMode = 'static
                 </div>
                 <h2 className="mt-1 text-[15px] font-extrabold">{winnerName} led the final strategy</h2>
                 <p className="mt-0.5 text-[10.5px] leading-relaxed text-[#6D625B]">
-                  {concept?.title ?? 'Trade-off analysis'} {'\u00b7'} {script.request?.goalLabel ?? 'Your goal'}
+                  Combined cashflow safety, return potential, and milestone timing.
                 </p>
               </div>
+            </div>
+            <div className="mt-3 border-t border-[#EEE6DF] pt-2.5 text-[9.5px] text-[#756A63]">
+              <span className="font-black uppercase tracking-[0.1em] text-[#7C2230]">Financial concept</span>
+              <span className="ml-2 font-semibold">{concept?.title ?? 'Trade-off analysis'}</span>
             </div>
           </motion.section>
         ) : state.judge.visible ? (

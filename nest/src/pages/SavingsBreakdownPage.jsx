@@ -91,6 +91,7 @@ export default function SavingsBreakdownPage() {
     planAdjustments,
     planActivity,
     opportunitySourceAmount,
+    opportunityLifecycle,
   } = useApp();
   const basePlan = getMilestonePlan(activePlanId, planAdjustments);
   const opportunity = getPlanOpportunity(opportunitySourceAmount);
@@ -102,6 +103,7 @@ export default function SavingsBreakdownPage() {
     plan,
     opportunity,
     decision,
+    opportunityLifecycle,
     runtimeEvents: planActivity,
   });
   const [expandedId, setExpandedId] = useState(null);

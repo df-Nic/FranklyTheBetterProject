@@ -13,7 +13,7 @@ export default function TournamentCard({ activeAgent, speech = null }) {
   return (
     <div className="bg-white rounded-[--radius-card] shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden">
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
-        <span className="text-[10px] font-semibold text-[#8B1A22] tracking-[0.12em] uppercase">Live Sandbox Tournament</span>
+        <span className="text-[10px] font-semibold text-[#8B1A22] tracking-[0.12em] uppercase">Finding your best-fit strategy</span>
         <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 border border-red-100">
           <span className="w-1.5 h-1.5 rounded-full bg-[#8B1A22]" />
           <span className="text-[10px] font-semibold text-[#8B1A22]">LIVE</span>

@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, CheckCircle2, ShieldAlert, X, Check } from 'luci
 import { useApp } from '../context/AppContext';
 import BackgroundOrb from '../components/ui/BackgroundOrb';
 import GlassCard from '../components/ui/GlassCard';
+import { getPlanHorizonMonths } from '../lib/planDate';
 
 const SCENARIOS = [
   {
@@ -58,12 +59,7 @@ const GOAL_LABEL_BY_PLAN = {
   'career-break': 'Career Break Fund',
 };
 
-const getHorizonMonths = (targetDate) => {
-  const parsed = new Date(targetDate);
-  if (Number.isNaN(parsed.getTime())) return 12;
-  const now = new Date();
-  return Math.max(1, (parsed.getFullYear() - now.getFullYear()) * 12 + parsed.getMonth() - now.getMonth());
-};
+const getHorizonMonths = (targetDate) => getPlanHorizonMonths(targetDate) ?? 12;
 
 const normalizeRiskProfile = (badge) => {
   if (badge === 'Capital Safety') return 'conservative';
@@ -205,6 +201,7 @@ const RiskProfilingPage = () => {
     setHasAssessedRisk,
     planDrafts,
     planAdjustments,
+    housingPropertyType,
     startPlanSimulation,
   } = useApp();
   const [cards, setCards] = useState(SCENARIOS);
@@ -289,6 +286,11 @@ const RiskProfilingPage = () => {
       goalLabel: activePlanTitle || GOAL_LABEL_BY_PLAN[activePlanId] || 'Your Goal',
       horizonMonths,
       monthlyContribution: Number(monthlyContribution),
+      targetAmount: Number(draft.targetAmount ?? adjustment.targetAmount ?? 0),
+      targetDate,
+      paymentStrategy: draft.paymentStrategy ?? adjustment.paymentStrategy ?? 'staggered',
+      propertyType: draft.propertyType ?? housingPropertyType ?? 'hdb',
+      milestones: draft.subgoals ?? adjustment.milestones ?? [],
       riskProfile: normalizeRiskProfile(profile.badge),
       planId: activePlanId || '',
     };
@@ -300,13 +302,6 @@ const RiskProfilingPage = () => {
       returnPage: 'risk-profiling',
     });
   };
-// Auto-redirect after risk profiling is complete
-useEffect(() => {
-  if (isComplete) {
-    handleProceedToPlanDetails();
-  }
-}, [isComplete]);
-
   return (
     <div className="flex-1 w-full bg-[#F5F5F7] flex flex-col relative px-6 py-6 overflow-y-auto no-scrollbar select-none text-zinc-800">
       {/* Background Orb */}
@@ -425,7 +420,7 @@ useEffect(() => {
                 </div>
 
                 <div>
-                  <h2 className="text-2xl font-black text-zinc-900 leading-tight">Profile Analyzed</h2>
+                  <h2 className="text-2xl font-black text-zinc-900 leading-tight">Risk profile ready</h2>
                   <p className="text-xs text-zinc-400 font-semibold mt-1">
                     Based on your scenario decisions, your profile is:
                   </p>
@@ -443,7 +438,7 @@ useEffect(() => {
                   onClick={handleProceedToPlanDetails}
                   className="w-full h-12 mt-2 bg-brand-primary hover:bg-[#c11e15] text-white font-bold rounded-xl transition-all duration-150 active:scale-[0.98] cursor-pointer shadow-md shadow-brand-primary/20 flex items-center justify-center gap-1.5"
                 >
-                  <span>View Plan Details</span>
+                  <span>Generate your plan</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </GlassCard>

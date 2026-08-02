@@ -5,6 +5,7 @@ import ocbcOwl from '../../assets/images/OCBC Owl.jpg';
 import { useApp } from '../../context/AppContext';
 import { PLANS_DATA } from '../../data/planTemplates';
 import { estimateGoalAmount, getGoalEstimationQuestions, supportsGuidedEstimate } from '../../data/goalEstimators';
+import { getPlanHorizonMonths, parsePlanTargetDate } from '../../lib/planDate';
 
 const HOUSING_SUBGOALS_BY_TYPE = {
   hdb: [
@@ -103,6 +104,7 @@ const ChatWidget = () => {
   const [planTitle, setPlanTitle] = useState('');
   const [targetAmount, setTargetAmount] = useState(0);
   const [targetDate, setTargetDate] = useState('');
+  const [pendingTargetYear, setPendingTargetYear] = useState(null);
   const [paymentStrategy, setPaymentStrategy] = useState('');
   const [generatedSubgoals, setGeneratedSubgoals] = useState([]);
   const [inferredDefaults, setInferredDefaults] = useState(null);
@@ -138,12 +140,7 @@ const ChatWidget = () => {
     savings: 'general',
   })[planId] || 'general';
 
-  const getSimulationHorizon = (date) => {
-    const parsed = new Date(date);
-    if (Number.isNaN(parsed.getTime())) return 12;
-    const now = new Date();
-    return Math.max(1, (parsed.getFullYear() - now.getFullYear()) * 12 + parsed.getMonth() - now.getMonth());
-  };
+  const getSimulationHorizon = (date) => getPlanHorizonMonths(date) ?? 12;
 
   const getSimulationRiskProfile = () => {
     const normalized = (riskProfile || '').toLowerCase();
@@ -157,6 +154,7 @@ const ChatWidget = () => {
     if (!proposal) return;
     setTargetAmount(proposal.amount);
     setTargetDate(proposal.date);
+    setPendingTargetYear(null);
     setPaymentStrategy(proposal.strategy);
     updatePlanDraft(planGoal, {
       targetAmount: proposal.amount,
@@ -166,7 +164,7 @@ const ChatWidget = () => {
     });
     setMessages(prev => [...prev, {
       id: Date.now(), sender: 'bot', isReturningUserConfirmation: true, planTitle,
-      text: <span>Your Owl-assisted starting point is ready. Review the full breakdown before accepting it.</span>,
+      text: <span>Your Owl-assisted inputs are ready. Generate the plan to compare the agents’ strategies.</span>,
     }]);
     setFlowState('idle');
   };
@@ -201,49 +199,6 @@ const ChatWidget = () => {
     }
     const num = parseFloat(normalized.replace(/[^0-9.]/g, ''));
     return isNaN(num) ? 0 : num;
-  };
-
-  const parseDateInput = (str) => {
-    const now = new Date();
-    let year = now.getFullYear();
-    let month = now.getMonth();
-    const normalized = str.toLowerCase();
-    const relativeYears = normalized.match(/\b(?:in\s+)?(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s+years?\b/);
-    const relativeMonths = normalized.match(/\b(?:in\s+)?(\d+)\s+months?\b/);
-    const wordNumbers = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 };
-
-    const yearMatch = str.match(/\b(202[6-9]|203[0-9]|204[0-9]|205[0-9])\b/);
-    if (yearMatch) {
-      year = parseInt(yearMatch[1], 10);
-    } else if (relativeYears) {
-      year += Number(relativeYears[1]) || wordNumbers[relativeYears[1]];
-    } else if (relativeMonths) {
-      const date = new Date(now.getFullYear(), now.getMonth() + Number(relativeMonths[1]), 1);
-      return date;
-    } else {
-      year = now.getFullYear() + 2;
-    }
-
-    const months = [
-      ['jan', 'january'], ['feb', 'february'], ['mar', 'march'],
-      ['apr', 'april'], ['may'], ['jun', 'june'],
-      ['jul', 'july'], ['aug', 'august'], ['sep', 'september'],
-      ['oct', 'october'], ['nov', 'november'], ['dec', 'december']
-    ];
-    const s = normalized;
-    let foundMonth = false;
-    for (let i = 0; i < 12; i++) {
-      if (months[i].some(m => s.includes(m))) {
-        month = i;
-        foundMonth = true;
-        break;
-      }
-    }
-    if (!foundMonth && !relativeYears) {
-      month = 11;
-    }
-
-    return new Date(year, month, 1);
   };
 
   const formatDate = (date) => {
@@ -326,6 +281,7 @@ const ChatWidget = () => {
     setPlanTitle('');
     setTargetAmount(0);
     setTargetDate('');
+    setPendingTargetYear(null);
     setPaymentStrategy('');
     setGeneratedSubgoals([]);
     setInferredDefaults(null);
@@ -592,6 +548,7 @@ const ChatWidget = () => {
     setPlanTitle('');
     setTargetAmount(0);
     setTargetDate('');
+    setPendingTargetYear(null);
     setPaymentStrategy('');
     setGeneratedSubgoals([]);
     setUnsureFields([]);
@@ -710,14 +667,16 @@ const ChatWidget = () => {
 
   const launchPlanSimulation = (selectedPlanTitle, selectedSubgoals = []) => {
     const planId = resolvePlanId(selectedPlanTitle);
+    const resolvedSubgoals = selectedSubgoals.length ? selectedSubgoals : generatedSubgoals;
 
     // Save custom user parameters to AppContext
     if (targetAmount > 0 || targetDate) {
       updatePlanDraft(planId, {
         targetAmount: targetAmount,
         targetDate: targetDate,
-        subgoals: selectedSubgoals,
-        paymentStrategy: paymentStrategy
+        subgoals: resolvedSubgoals,
+        paymentStrategy: paymentStrategy,
+        propertyType: selectedPropertyType || housingPropertyType || 'hdb'
       });
     }
 
@@ -738,6 +697,11 @@ const ChatWidget = () => {
       goalLabel: selectedPlanTitle || 'Your Goal',
       horizonMonths,
       monthlyContribution: Number(monthlyContribution || 0),
+      targetAmount: Number(targetAmount || defaults.amount),
+      targetDate: resolvedTargetDate,
+      paymentStrategy,
+      propertyType: selectedPropertyType || housingPropertyType || 'hdb',
+      milestones: resolvedSubgoals,
       riskProfile: getSimulationRiskProfile(),
       planId,
     };
@@ -784,10 +748,19 @@ const ChatWidget = () => {
       return;
     }
 
-    // Keep the existing profile and launch the simulation immediately.
+    // Keep the existing profile and wait for explicit generation confirmation.
     setMessages(prev => [...prev, { id: Date.now(), sender: 'user', text: 'No' }]);
     setHasCreatedFirstPlan(true);
-    if (sessionId === flowSessionRef.current) launchPlanSimulation(planTitle, generatedSubgoals);
+    if (sessionId === flowSessionRef.current) {
+      setMessages(prev => [...prev, {
+        id: Date.now() + 1,
+        sender: 'bot',
+        isReturningUserConfirmation: true,
+        planTitle,
+        text: <span>Your existing risk profile will be used. Your inputs are ready—generate your plan to compare the strategies.</span>,
+      }]);
+      setFlowState('idle');
+    }
   };
 
 
@@ -965,10 +938,30 @@ const ChatWidget = () => {
       } else if (flowState === 'asking_date') {
         if (isUnsure(trimmed)) {
           setUnsureFields(current => [...new Set([...current, 'date'])]);
+          setPendingTargetYear(null);
         } else {
-          const parsedDate = parseDateInput(trimmed);
-          const formattedTargetDate = formatDate(parsedDate);
-          setTargetDate(formattedTargetDate);
+          let parsedTarget = parsePlanTargetDate(trimmed);
+          if (pendingTargetYear && parsedTarget.status === 'error' && parsedTarget.error === 'missing-year') {
+            parsedTarget = parsePlanTargetDate(`${trimmed} ${pendingTargetYear}`);
+          }
+          if (parsedTarget.status === 'needs-month') {
+            setPendingTargetYear(parsedTarget.year);
+            setMessages(prev => [...prev, {
+              id: Date.now(),
+              sender: 'bot',
+              text: `Which month in ${parsedTarget.year} would you like to achieve this goal?`,
+            }]);
+            return;
+          }
+          if (parsedTarget.status !== 'complete') {
+            const errorText = parsedTarget.error === 'past'
+              ? 'That date has already passed. Please choose a target from next month onward, such as Dec 2029.'
+              : 'I could not identify a clear future month and year. Try a date such as Dec 2029 or December 2029.';
+            setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', text: errorText }]);
+            return;
+          }
+          setTargetDate(parsedTarget.formatted);
+          setPendingTargetYear(null);
         }
 
         setMessages(prev => [...prev, {
@@ -1004,8 +997,14 @@ const ChatWidget = () => {
 
         const now = new Date();
         const effectiveDateStr = targetDate || 'Dec 2028';
-        const parsedDate = parseDateInput(effectiveDateStr);
-        const formattedTargetDate = formatDate(parsedDate);
+        const parsedTarget = parsePlanTargetDate(effectiveDateStr);
+        if (parsedTarget.status !== 'complete') {
+          setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', text: 'Please provide a valid future target month before generating your plan.' }]);
+          setFlowState('asking_date');
+          return;
+        }
+        const parsedDate = parsedTarget.date;
+        const formattedTargetDate = parsedTarget.formatted;
         const totalMonths = (parsedDate.getFullYear() - now.getFullYear()) * 12 + (parsedDate.getMonth() - now.getMonth());
         const validMonths = totalMonths > 0 ? totalMonths : 24;
 
@@ -1108,7 +1107,7 @@ const ChatWidget = () => {
                   planTitle: planTitle,
                   text: (
                     <span>
-                      Your plan has been generated successfully! <span className="text-brand-primary font-black">Tap the button below to view and customize your Plan Details.</span>
+                      Your plan inputs are ready. <span className="text-brand-primary font-black">Generate your plan to compare the strategies and assemble the best fit.</span>
                     </span>
                   )
                 }
@@ -1278,7 +1277,7 @@ const ChatWidget = () => {
                           onClick={(e) => handleReviewPlanClick(e, msg.planTitle)}
                           className="mt-2.5 w-full py-2 bg-brand-primary hover:bg-[#c11e15] text-white font-bold rounded-xl text-[10px] tracking-wide uppercase transition-all duration-150 active:scale-95 shadow-md shadow-brand-primary/25 cursor-pointer flex items-center justify-center gap-1"
                         >
-                          <span>Review Plan Details</span>
+                          <span>Generate your plan</span>
                           <ArrowRight className="w-3 h-3 stroke-[2.5]" />
                         </button>
                       </div>
@@ -1291,7 +1290,7 @@ const ChatWidget = () => {
                           onClick={(e) => handleReviewPlanClick(e, msg.planTitle)}
                           className="mt-2.5 w-full py-2 bg-brand-primary hover:bg-[#c11e15] text-white font-bold rounded-xl text-[10px] tracking-wide uppercase transition-all duration-150 active:scale-95 shadow-md shadow-brand-primary/25 cursor-pointer flex items-center justify-center gap-1"
                         >
-                          <span>Review Plan Details</span>
+                          <span>Generate your plan</span>
                           <ArrowRight className="w-3 h-3 stroke-[2.5]" />
                         </button>
                       </div>
@@ -1308,7 +1307,7 @@ const ChatWidget = () => {
                           onClick={(e) => handleReviewPlanClick(e, msg.originalQuery)}
                           className="mt-1.5 w-full py-2 bg-brand-primary hover:bg-[#c11e15] text-white font-bold rounded-xl text-[10px] tracking-wide uppercase transition-all duration-150 active:scale-95 shadow-md shadow-brand-primary/25 cursor-pointer flex items-center justify-center gap-1.5"
                         >
-                          <span>Review Plan</span>
+                          <span>Generate your plan</span>
                         </button>
                       </div>
                     ) : (
