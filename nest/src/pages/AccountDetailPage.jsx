@@ -57,7 +57,7 @@ export default function AccountDetailPage() {
   };
 
   return (
-    <div className="flex-1 w-full bg-[#F5F5F7] flex flex-col relative overflow-hidden select-none">
+    <div className="flex-1 w-full bg-[#F5F5F7] flex flex-col min-h-0 relative overflow-hidden select-none">
       {/* Background Orbs */}
       <BackgroundOrb color="pink" size="360px" className="-top-10 -right-10" />
       <BackgroundOrb color="blue" size="300px" className="bottom-10 -left-10" />
@@ -78,7 +78,7 @@ export default function AccountDetailPage() {
       </header>
 
       {/* Main Content Container */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-4 py-4 flex flex-col gap-4 z-10 pb-safe-nav">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-4 py-4 flex flex-col gap-4 z-10 pb-safe-nav touch-pan-y min-h-0">
 
         {/* Account Info Certificate Card */}
         <GlassCard className="p-5 border-white/70 bg-white/80 shadow-lg flex flex-col gap-4 relative overflow-hidden">

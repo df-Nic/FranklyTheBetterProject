@@ -924,14 +924,14 @@ const PlanDetailsPage = () => {
       animate={{ clipPath: animateClip }}
       exit={{ clipPath: initialClip }}
       transition={{ duration: 0.75, ease: [0.76, 0, 0.24, 1] }}
-      className="absolute inset-0 z-50 bg-brand-primary flex flex-col overflow-hidden select-none"
+      className="absolute inset-0 z-50 bg-brand-primary flex flex-col min-h-0 overflow-hidden select-none"
     >
       <motion.div
         variants={contentVariants}
         initial="hidden"
         animate="visible"
         exit="exit"
-        className="w-full h-full flex flex-col bg-[#F5F5F7] relative overflow-hidden"
+        className="w-full h-full flex flex-col min-h-0 bg-[#F5F5F7] relative overflow-hidden"
       >
         {/* Background Orbs */}
         <BackgroundOrb color="pink" size="300px" className="-top-12 -left-12" />
@@ -954,7 +954,7 @@ const PlanDetailsPage = () => {
         </header>
 
         {/* Main Scroll Area */}
-        <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-5 flex flex-col gap-4 z-10 pb-[130px] [transform:translateZ(0)] isolation-isolate">
+        <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-5 flex flex-col gap-4 z-10 pb-[130px] touch-pan-y min-h-0">
 
           {/* Top Section: Goal & Timeline */}
           <GlassCard className="p-4 border-white/70 relative overflow-hidden bg-white/40 shadow-sm flex flex-col gap-3 shrink-0">

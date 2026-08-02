@@ -167,7 +167,7 @@ const PlanDashboardPage = () => {
   };
 
   return (
-    <div className="flex-1 w-full bg-[#F5F5F7] flex flex-col overflow-hidden select-none">
+    <div className="flex-1 w-full bg-[#F5F5F7] flex flex-col min-h-0 overflow-hidden select-none">
       {/* Header */}
       <header className="pt-6 pb-2 h-auto w-full bg-white/70 backdrop-blur-xl border-b border-white/50 px-4 flex items-center justify-between z-40 shrink-0 sticky top-0">
         <div className="flex items-center gap-3">
@@ -187,7 +187,7 @@ const PlanDashboardPage = () => {
       </header>
 
       {/* Cards area */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-4 py-5 pb-safe-nav flex flex-col gap-4 z-10">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-4 py-5 pb-safe-nav flex flex-col gap-4 z-10 touch-pan-y min-h-0">
         {/* OCBC Expense Optimiser Banner */}
         <button
           type="button"

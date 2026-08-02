@@ -92,7 +92,7 @@ function AppContent() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="absolute inset-0 flex flex-col overflow-hidden"
+            className="absolute inset-0 flex flex-col min-h-0 overflow-hidden"
           >
             <LandingPage />
           </motion.div>
@@ -104,7 +104,7 @@ function AppContent() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -60 }}
             transition={{ type: 'spring', damping: 25, stiffness: 180 }}
-            className="absolute inset-0 flex flex-col overflow-hidden"
+            className="absolute inset-0 flex flex-col min-h-0 overflow-hidden"
           >
             <LoginPage />
           </motion.div>
@@ -116,7 +116,7 @@ function AppContent() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -60 }}
             transition={{ type: 'spring', damping: 25, stiffness: 180 }}
-            className="absolute inset-0 flex flex-col overflow-hidden z-10"
+            className="absolute inset-0 flex flex-col min-h-0 overflow-hidden z-10"
           >
             <HomePage />
           </motion.div>
@@ -126,7 +126,7 @@ function AppContent() {
           <motion.div
             key="risk-profiling-bg"
             animate={{ opacity: 1, x: 0 }}
-            className="absolute inset-0 flex flex-col overflow-hidden z-10"
+            className="absolute inset-0 flex flex-col min-h-0 overflow-hidden z-10"
           >
             <RiskProfilingPage />
           </motion.div>
@@ -139,7 +139,7 @@ function AppContent() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -60 }}
             transition={{ type: 'spring', damping: 25, stiffness: 180 }}
-            className="absolute inset-0 flex flex-col overflow-hidden z-10"
+            className="absolute inset-0 flex flex-col min-h-0 overflow-hidden z-10"
           >
             <PlanDashboardPage />
           </motion.div>
@@ -151,7 +151,7 @@ function AppContent() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -60 }}
             transition={{ type: 'spring', damping: 25, stiffness: 180 }}
-            className="absolute inset-0 flex flex-col overflow-hidden z-10"
+            className="absolute inset-0 flex flex-col min-h-0 overflow-hidden z-10"
           >
             <ExpenseOptimizerPage />
           </motion.div>
@@ -163,7 +163,7 @@ function AppContent() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -60 }}
             transition={{ type: 'spring', damping: 25, stiffness: 180 }}
-            className="absolute inset-0 flex flex-col overflow-hidden z-10"
+            className="absolute inset-0 flex flex-col min-h-0 overflow-hidden z-10"
           >
             <PayNowContactsPage />
           </motion.div>
@@ -175,7 +175,7 @@ function AppContent() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -60 }}
             transition={{ type: 'spring', damping: 25, stiffness: 180 }}
-            className="absolute inset-0 flex flex-col overflow-hidden z-10"
+            className="absolute inset-0 flex flex-col min-h-0 overflow-hidden z-10"
           >
             <PayNowAmountPage />
           </motion.div>
@@ -187,7 +187,7 @@ function AppContent() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -60 }}
             transition={{ type: 'spring', damping: 25, stiffness: 180 }}
-            className="absolute inset-0 flex flex-col overflow-hidden z-10"
+            className="absolute inset-0 flex flex-col min-h-0 overflow-hidden z-10"
           >
             <PayNowConfirmPage />
           </motion.div>
@@ -198,7 +198,7 @@ function AppContent() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="absolute inset-0 flex flex-col overflow-hidden z-20"
+            className="absolute inset-0 flex flex-col min-h-0 overflow-hidden z-20"
           >
             <PayNowSuccessPage />
           </motion.div>

@@ -324,7 +324,7 @@ const RiskProfilingPage = () => {
   }, [isComplete, page]);
 
   return (
-    <div className="flex-1 w-full bg-[#F5F5F7] flex flex-col relative px-6 py-6 overflow-y-auto no-scrollbar select-none text-zinc-800 [transform:translateZ(0)] isolation-isolate">
+    <div className="flex-1 w-full bg-[#F5F5F7] flex flex-col min-h-0 relative px-6 py-6 overflow-y-auto no-scrollbar select-none text-zinc-800 touch-pan-y">
       {/* Background Orb */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <BackgroundOrb color="peach" size="300px" className="-top-12 -right-12" />

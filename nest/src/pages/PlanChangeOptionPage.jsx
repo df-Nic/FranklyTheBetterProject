@@ -609,7 +609,7 @@ const PlanChangeOptionPage = () => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-[#F5F5F7] relative overflow-hidden select-none text-left">
+    <div className="w-full h-full flex flex-col min-h-0 bg-[#F5F5F7] relative overflow-hidden select-none text-left">
       <BackgroundOrb color="pink" size="300px" className="-top-12 -left-12" />
       <BackgroundOrb color="blue" size="250px" className="bottom-20 -right-10" />
 
@@ -629,7 +629,7 @@ const PlanChangeOptionPage = () => {
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-5 flex flex-col gap-4 z-10 pb-64 touch-pan-y min-h-0 [transform:translateZ(0)] isolation-isolate">
+      <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-5 flex flex-col gap-4 z-10 pb-64 touch-pan-y min-h-0">
         
         {/* Sub-header Title */}
         <h1 className="text-xl font-black text-zinc-900 tracking-tight leading-none mt-1">

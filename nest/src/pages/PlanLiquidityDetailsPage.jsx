@@ -190,7 +190,7 @@ const PlanLiquidityDetailsPage = () => {
   const userName = userPlanMeta.userName || "Daniel";
 
   return (
-    <div className="w-full h-full bg-[#F5F5F7] text-zinc-900 flex flex-col overflow-hidden relative select-none font-sans">
+    <div className="w-full h-full bg-[#F5F5F7] text-zinc-900 flex flex-col min-h-0 overflow-hidden relative select-none font-sans">
       {/* Background ambient decorative orbs matching PlanDetailsPage */}
       <BackgroundOrb color="pink" size="300px" className="-top-12 -left-12" />
       <BackgroundOrb color="blue" size="250px" className="bottom-20 -right-10" />
@@ -214,7 +214,7 @@ const PlanLiquidityDetailsPage = () => {
       </header>
 
       {/* Scrollable Container */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3.5 pb-24 z-10 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden [transform:translateZ(0)] isolation-isolate">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3.5 pb-24 z-10 touch-pan-y min-h-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
 
         {/* Card 1: PAYMENT FLEXIBILITY (Hero Concept Card matching Updated Screen 2 mockup) */}
         <motion.div
