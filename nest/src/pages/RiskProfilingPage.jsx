@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, CheckCircle2, ShieldAlert, X, Check } from 'luci
 import { useApp } from '../context/AppContext';
 import BackgroundOrb from '../components/ui/BackgroundOrb';
 import GlassCard from '../components/ui/GlassCard';
+import { getPlanHorizonMonths } from '../lib/planDate';
 
 const SCENARIOS = [
   {
@@ -58,12 +59,7 @@ const GOAL_LABEL_BY_PLAN = {
   'career-break': 'Career Break Fund',
 };
 
-const getHorizonMonths = (targetDate) => {
-  const parsed = new Date(targetDate);
-  if (Number.isNaN(parsed.getTime())) return 12;
-  const now = new Date();
-  return Math.max(1, (parsed.getFullYear() - now.getFullYear()) * 12 + parsed.getMonth() - now.getMonth());
-};
+const getHorizonMonths = (targetDate) => getPlanHorizonMonths(targetDate) ?? 12;
 
 const normalizeRiskProfile = (badge) => {
   if (badge === 'Capital Safety') return 'conservative';
@@ -209,6 +205,7 @@ const RiskProfilingPage = () => {
     setHasAssessedRisk,
     planDrafts,
     planAdjustments,
+    housingPropertyType,
     startPlanSimulation,
   } = useApp();
   const [cards, setCards] = useState(SCENARIOS);
@@ -441,7 +438,7 @@ const RiskProfilingPage = () => {
                 </div>
 
                 <div>
-                  <h2 className="text-2xl font-black text-zinc-900 leading-tight">Profile Analyzed</h2>
+                  <h2 className="text-2xl font-black text-zinc-900 leading-tight">Risk profile ready</h2>
                   <p className="text-xs text-zinc-400 font-semibold mt-1">
                     Based on your scenario decisions, your profile is:
                   </p>
@@ -459,7 +456,7 @@ const RiskProfilingPage = () => {
                   onClick={handleProceedToPlanDetails}
                   className="w-full h-12 mt-2 bg-brand-primary hover:bg-[#c11e15] text-white font-bold rounded-xl transition-all duration-150 active:scale-[0.98] cursor-pointer shadow-md shadow-brand-primary/20 flex items-center justify-center gap-1.5"
                 >
-                  <span>View Plan Details</span>
+                  <span>Generate your plan</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </GlassCard>

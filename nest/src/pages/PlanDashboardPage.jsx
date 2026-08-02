@@ -4,7 +4,6 @@ import { useApp } from '../context/AppContext';
 import { ChevronRight, Plus, CalendarDays, Sparkles, CreditCard, Zap } from 'lucide-react';
 import { getPlanOpportunity, getRecommendedPlan } from '../data/planOpportunities';
 import { getMilestonePlan } from '../data/milestonePlans';
-import { planNeedsDeviationReview } from '../data/transactionDeviations';
 
 // ─── Labeled Plan Illustrations ──────────────────────────────────────────────
 import retirementImg from '../assets/images/Retirement Plan Image.svg';
@@ -69,13 +68,12 @@ const PLAN_META = {
 // ─── Single Plan Card ────────────────────────────────────────────────────────
 
 const PlanCard = ({ planId, index, onClick }) => {
-  const { planAdjustments, transactionDeviations } = useApp();
+  const { planAdjustments } = useApp();
   const displayPlan = getMilestonePlan(planId, planAdjustments);
   const meta = PLAN_META[planId] || PLAN_META.default;
   const goalText = `Accepted target: S$${Number(displayPlan.targetAmount || 0).toLocaleString('en-SG')} by ${displayPlan.goalDate}`;
 
   const isHealed = planAdjustments?.[planId]?.healed;
-  const needsReview = planNeedsDeviationReview(transactionDeviations, planId);
 
   return (
     <motion.div
@@ -98,11 +96,6 @@ const PlanCard = ({ planId, index, onClick }) => {
           {meta.tag}
         </span>
         <div className="absolute right-3 top-2.5 z-10 flex flex-col items-end gap-1.5">
-          {needsReview && (
-            <span className="flex items-center gap-1 rounded-full bg-[#B14A3F] px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-white shadow-sm">
-              Needs review
-            </span>
-          )}
           {isHealed && (
             <span className="flex items-center gap-1 rounded-full bg-emerald-500 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-white shadow-sm animate-pulse">
               <Sparkles className="h-2.5 w-2.5 stroke-[3]" />
@@ -142,7 +135,7 @@ const PlanCard = ({ planId, index, onClick }) => {
 // ─── Plan Dashboard Page ─────────────────────────────────────────────────────
 
 const PlanDashboardPage = () => {
-  const { navigate, createdPlans, setActivePlanId, setClickPos, setPlanDetailOrigin, planAdjustments, opportunityDecisions, requestPlanChatOpen, transactionDeviations, opportunitySourceAmount } = useApp();
+  const { navigate, createdPlans, setActivePlanId, setClickPos, setPlanDetailOrigin, planAdjustments, opportunityDecisions, opportunityLifecycle, requestPlanChatOpen, transactionDeviations, opportunitySourceAmount } = useApp();
   const dashboardPlans = createdPlans.map((id) => getMilestonePlan(id, planAdjustments));
   const recommendedPlan = getRecommendedPlan(dashboardPlans);
   const opportunity = getPlanOpportunity(opportunitySourceAmount);
@@ -231,7 +224,7 @@ const PlanDashboardPage = () => {
           </div>
         </button>
 
-        {createdPlans.length > 0 && opportunitySourceAmount > 0 && !opportunityHandled && !healerPending && (
+        {createdPlans.length > 0 && opportunityLifecycle.state === 'standalone' && opportunitySourceAmount > 0 && !opportunityHandled && !healerPending && (
           <button
             onClick={() => {
               setActivePlanId(recommendedPlan?.id ?? createdPlans[0]);

@@ -11,7 +11,7 @@ export default function StressCheckRow({ stress, completed = false }) {
         <div className="flex items-center gap-1 mt-0.5">
           <span className="w-1.5 h-1.5 shrink-0 rounded-full bg-[#1F7A4D]" />
           <span className="text-[9.5px] leading-snug text-gray-500">
-            {completed ? 'Emergency-buffer resilience passed' : stress.label}
+            {completed ? `${stress.label.replace(/^Checking\s+/i, '')} passed` : stress.label}
           </span>
         </div>
       </div>
