@@ -1,37 +1,44 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { useEffect } from "react";
+import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "framer-motion";
 import owlImage from "../../assets/images/ocbc-owl-transparent.png";
 import fullProgressImage from "../../assets/images/milestone-scene-progress-full.png";
 import {
   getCurrentMilestoneIndex,
-  getJourneyPosition,
   getJourneyProgressPosition,
 } from "../../data/milestonePlans";
 
 export default function JourneyOverlay({ milestones, fundingProgress, fromFundingProgress }) {
   const reduceMotion = useReducedMotion();
   const currentIndex = getCurrentMilestoneIndex(milestones);
-  const currentPosition = Number.isFinite(fundingProgress)
-    ? getJourneyProgressPosition(fundingProgress)
-    : getJourneyPosition(currentIndex, milestones.length);
+  const fallbackProgress = currentIndex / Math.max(milestones.length - 1, 1);
+  const targetProgress = Number.isFinite(fundingProgress) ? fundingProgress : fallbackProgress;
   const isTraveling = !reduceMotion
     && Number.isFinite(fromFundingProgress)
     && Number.isFinite(fundingProgress)
-    && fundingProgress > fromFundingProgress;
-  const travelPositions = isTraveling
-    ? Array.from({ length: 9 }, (_, index) => {
-      const progress = fromFundingProgress + ((fundingProgress - fromFundingProgress) * index) / 8;
-      return getJourneyProgressPosition(progress);
-    })
-    : [currentPosition];
-  const travelTimes = travelPositions.map((_, index) =>
-    travelPositions.length === 1 ? 1 : index / (travelPositions.length - 1));
-  const journeyTransition = reduceMotion
-    ? { duration: 0 }
-    : {
+    && Math.abs(fundingProgress - fromFundingProgress) > 0.001;
+  const sharedProgress = useMotionValue(
+    Number.isFinite(fromFundingProgress) ? fromFundingProgress : targetProgress,
+  );
+  const owlLeft = useTransform(sharedProgress, (value) => `${getJourneyProgressPosition(value).x}%`);
+  const owlTop = useTransform(sharedProgress, (value) => `${getJourneyProgressPosition(value).y}%`);
+  const pathClip = useTransform(sharedProgress, (value) =>
+    `inset(${getJourneyProgressPosition(value).y}% 0 0 0)`);
+
+  useEffect(() => {
+    const startProgress = Number.isFinite(fromFundingProgress)
+      ? fromFundingProgress
+      : sharedProgress.get();
+    sharedProgress.set(startProgress);
+    if (reduceMotion) {
+      sharedProgress.set(targetProgress);
+      return undefined;
+    }
+    const controls = animate(sharedProgress, targetProgress, {
       duration: isTraveling ? 1.5 : 1.25,
       ease: [0.22, 1, 0.36, 1],
-      ...(isTraveling ? { times: travelTimes } : {}),
-    };
+    });
+    return () => controls.stop();
+  }, [fromFundingProgress, targetProgress, reduceMotion, isTraveling, sharedProgress]);
 
   return (
     <>
@@ -40,31 +47,18 @@ export default function JourneyOverlay({ milestones, fundingProgress, fromFundin
         alt=""
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 z-10 h-full w-full object-cover"
+        style={{ clipPath: pathClip }}
         animate={{
-          clipPath: isTraveling
-            ? travelPositions.map((position) => `inset(${position.y}% 0 0 0)`)
-            : `inset(${currentPosition.y}% 0 0 0)`,
           filter: isTraveling
             ? ["brightness(1)", "brightness(1.18) drop-shadow(0 0 7px rgba(200,138,46,0.65))", "brightness(1)"]
             : "brightness(1)",
         }}
-        transition={{
-          clipPath: journeyTransition,
-          filter: reduceMotion ? { duration: 0 } : { duration: 1.5, times: [0, 0.55, 1] },
-        }}
+        transition={{ filter: reduceMotion ? { duration: 0 } : { duration: 1.5, times: [0, 0.55, 1] } }}
       />
 
       <motion.div
         className="pointer-events-none absolute z-30 h-[88px] w-[82px] -translate-x-1/2 -translate-y-[88%]"
-        animate={{
-          left: isTraveling
-            ? travelPositions.map((position) => `${position.x}%`)
-            : `${currentPosition.x}%`,
-          top: isTraveling
-            ? travelPositions.map((position) => `${position.y}%`)
-            : `${currentPosition.y}%`,
-        }}
-        transition={{ left: journeyTransition, top: journeyTransition }}
+        style={{ left: owlLeft, top: owlTop }}
         role="img"
         aria-label="Current milestone"
       >

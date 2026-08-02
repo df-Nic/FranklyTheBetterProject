@@ -1,4 +1,5 @@
 import { PLANS_DATA } from '../../../data/planTemplates.js';
+import { getPortfolioEvidence } from './portfolioSnapshot.js';
 
 const LEAD_BY_GOAL = {
   home_deposit: 'sequencing',
@@ -64,7 +65,10 @@ export function buildStrategySnapshot(request) {
     contributions: { cashflow, yield: yieldActions, sequencing },
     leadAgent,
     confidence,
-    synthesis: 'Cashflow resilience, return potential, and milestone timing were combined into the final plan.',
+    portfolio: request.portfolioSnapshot ?? null,
+    synthesis: request.portfolioSnapshot?.hasExistingPlans
+      ? 'The new goal was coordinated with existing commitments, while keeping accepted plans unchanged.'
+      : 'Cashflow resilience, return potential, and milestone timing were combined into the final plan.',
   };
 }
 
@@ -74,6 +78,8 @@ export function getAgentEvidence(snapshot, agent) {
     yield: 'the plan\u2019s return assumptions',
     sequencing: 'the plan\u2019s milestone schedule',
   };
+  const portfolioEvidence = getPortfolioEvidence(snapshot.portfolio, agent);
+  if (portfolioEvidence) return portfolioEvidence;
   if (agent === 'sequencing' && snapshot.milestones?.[0]?.name) return snapshot.milestones[0].name;
   return snapshot.contributions?.[agent]?.[0]?.name ?? fallback[agent];
 }

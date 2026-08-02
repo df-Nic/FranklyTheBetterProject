@@ -20,9 +20,13 @@ export function deriveStateAt(script, elapsedMs) {
   const events = script.events;
 
   const phaseEvent = latestEvent(events, elapsed, (item) => item.type === ET.PHASE);
-  const leaderboardEvent = latestEvent(events, elapsed, (item) => item.type === ET.LEADERBOARD);
-  const takeawayEvent = latestEvent(events, elapsed, (item) => item.type === ET.TAKEAWAY);
-  const stressEvent = latestEvent(events, elapsed, (item) => item.type === ET.STRESS);
+  const judgingHasStarted = phaseEvent?.payload.phase === 'judging'
+    || phaseEvent?.payload.phase === 'complete';
+  const judgingPhase = events.find((item) => item.type === ET.PHASE && item.payload.phase === 'judging');
+  const evidenceElapsed = judgingHasStarted && judgingPhase ? judgingPhase.t : elapsed;
+  const leaderboardEvent = latestEvent(events, evidenceElapsed, (item) => item.type === ET.LEADERBOARD);
+  const takeawayEvent = latestEvent(events, evidenceElapsed, (item) => item.type === ET.TAKEAWAY);
+  const stressEvent = latestEvent(events, evidenceElapsed, (item) => item.type === ET.STRESS);
   const judgeEvent = latestEvent(events, elapsed, (item) => item.type === ET.JUDGE);
 
   let activeAgent = null;
@@ -31,14 +35,16 @@ export function deriveStateAt(script, elapsedMs) {
 
   for (const agent of AGENT_ORDER) {
     const keyframes = events.filter(
-      (item) => item.type === ET.TELEMETRY && item.payload.agent === agent,
+      (item) => item.type === ET.TELEMETRY
+        && item.payload.agent === agent
+        && (!judgingHasStarted || item.t <= evidenceElapsed),
     );
-    const prev = [...keyframes].reverse().find((item) => item.t <= elapsed);
-    const next = keyframes.find((item) => item.t > elapsed);
+    const prev = [...keyframes].reverse().find((item) => item.t <= evidenceElapsed);
+    const next = keyframes.find((item) => item.t > evidenceElapsed);
     let value = 0;
 
     if (prev && next) {
-      value = lerp(prev.payload.value, next.payload.value, (elapsed - prev.t) / (next.t - prev.t));
+      value = lerp(prev.payload.value, next.payload.value, (evidenceElapsed - prev.t) / (next.t - prev.t));
     } else if (prev) {
       value = prev.payload.value;
     }
@@ -65,11 +71,8 @@ export function deriveStateAt(script, elapsedMs) {
     : [];
 
   const transcript = events
-    .filter((item) => item.type === ET.DEBATE && item.t <= elapsed)
+    .filter((item) => item.type === ET.DEBATE && item.t <= evidenceElapsed)
     .map(({ payload }) => payload);
-
-  const judgingHasStarted = phaseEvent?.payload.phase === 'judging'
-    || phaseEvent?.payload.phase === 'complete';
 
   return {
     phase: phaseEvent?.payload.phase ?? 'idle',

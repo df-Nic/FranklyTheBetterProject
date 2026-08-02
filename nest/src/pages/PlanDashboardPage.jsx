@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
-import { ChevronRight, Plus, CalendarDays, Sparkles, CreditCard, Zap } from 'lucide-react';
+import { ChevronRight, Plus, CalendarDays, Sparkles, CreditCard, Zap, ShieldCheck } from 'lucide-react';
 import { getPlanOpportunity, getRecommendedPlan } from '../data/planOpportunities';
 import { getMilestonePlan } from '../data/milestonePlans';
 
@@ -135,12 +135,13 @@ const PlanCard = ({ planId, index, onClick }) => {
 // ─── Plan Dashboard Page ─────────────────────────────────────────────────────
 
 const PlanDashboardPage = () => {
-  const { navigate, createdPlans, setActivePlanId, setClickPos, setPlanDetailOrigin, planAdjustments, opportunityDecisions, opportunityLifecycle, requestPlanChatOpen, transactionDeviations, opportunitySourceAmount } = useApp();
+  const { navigate, createdPlans, setActivePlanId, setClickPos, setPlanDetailOrigin, planAdjustments, opportunityDecisions, opportunityLifecycle, requestPlanChatOpen, transactionDeviations, opportunitySourceAmount, openDeviation } = useApp();
   const dashboardPlans = createdPlans.map((id) => getMilestonePlan(id, planAdjustments));
   const recommendedPlan = getRecommendedPlan(dashboardPlans);
   const opportunity = getPlanOpportunity(opportunitySourceAmount);
   const opportunityHandled = Object.values(opportunityDecisions).some((item) => item.opportunityId === opportunity.id);
-  const healerPending = transactionDeviations.some((event) => event.status === 'pending');
+  const pendingRestore = [...transactionDeviations].reverse().find((event) => ['pending', 'partially-resolved'].includes(event.status));
+  const healerPending = Boolean(pendingRestore);
   const startNewPlan = () => {
     requestPlanChatOpen();
     navigate('home');
@@ -239,6 +240,21 @@ const PlanDashboardPage = () => {
               Owl compared {createdPlans.length} {createdPlans.length === 1 ? 'plan' : 'plans'} and recommends {recommendedPlan?.goalName}.
             </p>
             <span className="relative mt-3 inline-flex rounded-full bg-white px-3 py-1.5 text-[9px] font-black text-[#7C2230]">Compare and allocate</span>
+          </button>
+        )}
+        {pendingRestore && (
+          <button
+            type="button"
+            onClick={() => { setActivePlanId(pendingRestore.recommendedPlanId); openDeviation(pendingRestore.id, 'plan-dashboard'); }}
+            className="flex w-full shrink-0 items-center gap-3 rounded-[20px] border border-[#D9CEC5] bg-white p-4 text-left shadow-[0_7px_18px_rgba(73,45,38,0.07)]"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F8ECEE] text-[#7C2230]"><ShieldCheck size={19} /></span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[9px] font-black uppercase tracking-[0.14em] text-[#7C2230]">NEST Restore</span>
+              <strong className="mt-0.5 block text-[12px] text-zinc-900">Recovery options are ready</strong>
+              <span className="mt-0.5 block text-[9.5px] leading-relaxed text-zinc-500">Your plans remain available to review, even after choosing Not now.</span>
+            </span>
+            <ChevronRight size={17} className="shrink-0 text-[#7C2230]" />
           </button>
         )}
         {createdPlans.length === 0 ? (

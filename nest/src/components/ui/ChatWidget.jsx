@@ -201,49 +201,6 @@ const ChatWidget = () => {
     return isNaN(num) ? 0 : num;
   };
 
-  const parseDateInput = (str) => {
-    const now = new Date();
-    let year = now.getFullYear();
-    let month = now.getMonth();
-    const normalized = str.toLowerCase();
-    const relativeYears = normalized.match(/\b(?:in\s+)?(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s+years?\b/);
-    const relativeMonths = normalized.match(/\b(?:in\s+)?(\d+)\s+months?\b/);
-    const wordNumbers = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 };
-
-    const yearMatch = str.match(/\b\d{4}\b/);
-    if (yearMatch) {
-      year = parseInt(yearMatch[0], 10);
-    } else if (relativeYears) {
-      year += Number(relativeYears[1]) || wordNumbers[relativeYears[1]];
-    } else if (relativeMonths) {
-      const date = new Date(now.getFullYear(), now.getMonth() + Number(relativeMonths[1]), 1);
-      return date;
-    } else {
-      year = now.getFullYear() + 2;
-    }
-
-    const months = [
-      ['jan', 'january'], ['feb', 'february'], ['mar', 'march'],
-      ['apr', 'april'], ['may'], ['jun', 'june'],
-      ['jul', 'july'], ['aug', 'august'], ['sep', 'september'],
-      ['oct', 'october'], ['nov', 'november'], ['dec', 'december']
-    ];
-    const s = normalized;
-    let foundMonth = false;
-    for (let i = 0; i < 12; i++) {
-      if (months[i].some(m => s.includes(m))) {
-        month = i;
-        foundMonth = true;
-        break;
-      }
-    }
-    if (!foundMonth && !relativeYears) {
-      month = 11;
-    }
-
-    return new Date(year, month, 1);
-  };
-
   const formatDate = (date) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return `${months[date.getMonth()]} ${date.getFullYear()}`;
@@ -1000,45 +957,7 @@ const ChatWidget = () => {
           setUnsureFields(current => [...new Set([...current, 'date'])]);
           setPendingTargetYear(null);
         } else {
-          const parsedDate = parseDateInput(trimmed);
           const now = new Date();
-          const currentYr = now.getFullYear();
-          const currentMo = now.getMonth();
-
-          // 1. Check if date is in the past
-          const isPastDate = parsedDate.getFullYear() < currentYr || (parsedDate.getFullYear() === currentYr && parsedDate.getMonth() < currentMo);
-          if (isPastDate) {
-            setMessages(prev => [...prev, {
-              id: Date.now(),
-              sender: 'bot',
-              text: (
-                <span>
-                  The target date you entered (<span className="text-red-600 font-extrabold">{formatDate(parsedDate)}</span>) is in the past. <span className="text-brand-primary font-black">Please specify a future target date (e.g. Dec 2029 or Dec 2100).</span>
-                </span>
-              ),
-            }]);
-            setFlowState('asking_date');
-            return;
-          }
-
-          // 2. Check 3-year minimum horizon check
-          const totalMonthsDiff = (parsedDate.getFullYear() - currentYr) * 12 + (parsedDate.getMonth() - currentMo);
-          if (totalMonthsDiff < 36) {
-            setMessages(prev => [...prev, {
-              id: Date.now(),
-              sender: 'bot',
-              text: (
-                <span>
-                  Building a strong financial cushion works best with a bit of breathing room! A timeline of less than 3 years (<span className="text-amber-600 font-extrabold">{formatDate(parsedDate)}</span>) might feel a little tight to hit your target comfortably. We recommend giving your strategy at least 3 years to grow smoothly. <span className="text-brand-primary font-black">How about setting a target date of Dec 2029 or later?</span>
-                </span>
-              ),
-            }]);
-            setFlowState('asking_date');
-            return;
-          }
-
-          const formattedTargetDate = formatDate(parsedDate);
-          setTargetDate(formattedTargetDate);
           let parsedTarget = parsePlanTargetDate(trimmed);
           if (pendingTargetYear && parsedTarget.status === 'error' && parsedTarget.error === 'missing-year') {
             parsedTarget = parsePlanTargetDate(`${trimmed} ${pendingTargetYear}`);
@@ -1057,6 +976,21 @@ const ChatWidget = () => {
               ? 'That date has already passed. Please choose a target from next month onward, such as Dec 2029.'
               : 'I could not identify a clear future month and year. Try a date such as Dec 2029 or December 2029.';
             setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', text: errorText }]);
+            return;
+          }
+          const totalMonthsDiff = getPlanHorizonMonths(parsedTarget.formatted, now);
+          if (totalMonthsDiff < 36) {
+            const minimumDate = new Date(now.getFullYear(), now.getMonth() + 36, 1);
+            setMessages(prev => [...prev, {
+              id: Date.now(),
+              sender: 'bot',
+              text: (
+                <span>
+                  Building a strong financial cushion works best with a bit of breathing room. A timeline of less than 3 years (<span className="text-amber-600 font-extrabold">{parsedTarget.formatted}</span>) may feel tight for this target. <span className="text-brand-primary font-black">How about {formatDate(minimumDate)} or later?</span>
+                </span>
+              ),
+            }]);
+            setFlowState('asking_date');
             return;
           }
           setTargetDate(parsedTarget.formatted);

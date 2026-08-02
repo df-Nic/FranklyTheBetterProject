@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Check, ChevronDown, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowLeft, CalendarClock, Check, ChevronDown, ChevronRight, ShieldCheck, Sparkles } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { getMilestonePlan } from "../data/milestonePlans";
 import { getPlanOpportunity } from "../data/planOpportunities";
+import { isDeviationPlanActionable } from "../lib/deviationRecovery";
 
 const money = (value) => `S$${Math.round(value || 0).toLocaleString("en-SG")}`;
 
@@ -11,8 +12,10 @@ export default function PlanHealerPage() {
     transactionDeviations,
     activeDeviationId,
     setActiveDeviationId,
+    setActivePlanId,
+    activePlanId,
     setPage,
-    applyDeviationRecovery,
+    applyDeviationRecoveries,
     declineDeviationRecovery,
     applyOpportunityRecovery,
     opportunityDecisions,
@@ -20,11 +23,14 @@ export default function PlanHealerPage() {
     planAdjustments,
     opportunitySourceAmount,
     opportunityLifecycle,
+    dismissDeviationNotifications,
+    restoreOrigin,
+    restoreIntent,
   } = useApp();
 
-  const pendingEvents = transactionDeviations.filter((item) => item.status === "pending");
+  const pendingEvents = transactionDeviations.filter((item) => ["pending", "partially-resolved"].includes(item.status));
   const selectedEvent = transactionDeviations.find((item) => item.id === activeDeviationId);
-  const event = selectedEvent?.status === "pending"
+  const event = selectedEvent
     ? selectedEvent
     : pendingEvents[0] || selectedEvent || transactionDeviations[transactionDeviations.length - 1];
   const opportunity = getPlanOpportunity(opportunitySourceAmount);
@@ -50,22 +56,27 @@ export default function PlanHealerPage() {
   const [selectedStrategies, setSelectedStrategies] = useState({});
   const [bonusOpen, setBonusOpen] = useState(false);
   const [bonusAllocations, setBonusAllocations] = useState(defaultAllocations);
+  const [reviewingRevisionIds, setReviewingRevisionIds] = useState(new Set());
 
   useEffect(() => {
     if (!event) return;
+    const requestedRevision = restoreIntent === "alternatives"
+      ? event.affectedPlans.find((plan) => plan.planId === activePlanId && plan.status === "timeline-extended")
+      : null;
     const recommendedPending = event.affectedPlans.some(
       (plan) => plan.planId === event.recommendedPlanId && plan.status === "pending",
     );
-    const initialPlanId = recommendedPending
+    const initialPlanId = requestedRevision?.planId || (recommendedPending
       ? event.recommendedPlanId
-      : event.affectedPlans.find((plan) => plan.status === "pending")?.planId;
+      : event.affectedPlans.find((plan) => plan.status === "pending")?.planId);
     setActiveDeviationId(event.id);
     setSelectedPlanIds(new Set(initialPlanId ? [initialPlanId] : []));
     setExpandedPlanId(initialPlanId || null);
     setSelectedStrategies({});
     setBonusOpen(false);
     setBonusAllocations(defaultAllocations);
-  }, [event?.id]);
+    setReviewingRevisionIds(new Set(requestedRevision ? [requestedRevision.planId] : []));
+  }, [event?.id, restoreIntent]);
 
   if (!event) {
     return (
@@ -79,8 +90,14 @@ export default function PlanHealerPage() {
     );
   }
 
-  const pendingPlans = event.affectedPlans.filter((plan) => plan.status === "pending");
-  const checkedPlans = event.affectedPlans.filter((plan) => plan.status !== "pending");
+  const pendingPlans = event.affectedPlans.filter((plan) =>
+    plan.status === "pending" || (plan.status === "timeline-extended" && reviewingRevisionIds.has(plan.planId)));
+  const revisedPlans = event.affectedPlans.filter((plan) =>
+    plan.status === "timeline-extended" && !reviewingRevisionIds.has(plan.planId));
+  const healedPlans = event.affectedPlans.filter((plan) => plan.status === "applied");
+  const continuingPlans = event.affectedPlans.filter((plan) => plan.status === "covered");
+  const checkedPlans = event.affectedPlans.filter((plan) =>
+    !isDeviationPlanActionable(plan) && !["timeline-extended", "applied"].includes(plan.status));
   const recommendedAffected = event.affectedPlans.find((plan) => plan.planId === event.recommendedPlanId);
   const recommendedPlan = getMilestonePlan(event.recommendedPlanId, planAdjustments);
   const firstName = user?.name?.split(/\s+/)[0] || "You";
@@ -89,7 +106,8 @@ export default function PlanHealerPage() {
     (sum, value) => sum + (Number(value) || 0),
     0,
   );
-  const allReviewsComplete = pendingEvents.length === 0;
+  const allReviewsComplete = event.status === "resolved" && pendingPlans.length === 0 && revisedPlans.length === 0;
+  const hasPendingRecovery = event.affectedPlans.some((plan) => plan.status === "pending");
 
   const togglePlan = (planId) => {
     setSelectedPlanIds((current) => {
@@ -100,11 +118,39 @@ export default function PlanHealerPage() {
     });
   };
 
+  const handleNotNow = () => {
+    dismissDeviationNotifications(event.id);
+    setPage(restoreOrigin || "plan-dashboard");
+  };
+
+  const handleBack = () => setPage(restoreOrigin || "plan-dashboard");
+
+  const reviewTimelineAlternatives = (planId) => {
+    setReviewingRevisionIds((current) => new Set([...current, planId]));
+    setSelectedPlanIds(new Set([planId]));
+    setExpandedPlanId(planId);
+  };
+
+  const viewUpdatedMilestones = (planId) => {
+    setActivePlanId(planId);
+    setPage("plan-milestones");
+  };
+
+  const applySelectedRecoveries = () => {
+    const selections = pendingPlans
+      .filter((plan) => selectedPlanIds.has(plan.planId))
+      .map((plan) => ({
+        planId: plan.planId,
+        strategyId: selectedStrategies[plan.planId] || plan.recoveryOptions[0]?.id,
+      }));
+    applyDeviationRecoveries(event.id, selections);
+  };
+
   return (
     <div className="flex h-full flex-col overflow-y-auto bg-[#F9F4EE] text-[#2B2320] no-scrollbar">
       <header className="sticky top-0 z-30 border-b border-[#EAE0D7] bg-[#F9F4EE]/95 px-4 pb-3 pt-5 backdrop-blur-xl">
         <div className="flex items-center gap-3">
-          <button onClick={() => setPage("plan-dashboard")} aria-label="Back to my plans" className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#7C2230] shadow-sm">
+          <button onClick={handleBack} aria-label="Go back" className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#7C2230] shadow-sm">
             <ArrowLeft size={18} />
           </button>
           <div>
@@ -119,9 +165,27 @@ export default function PlanHealerPage() {
             <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#E4F1E7]">
               <ShieldCheck size={32} />
             </span>
-            <h2 className="mt-4 text-xl font-black">Review complete</h2>
-            <p className="mt-2 text-[11px] leading-relaxed text-[#627267]">Every affected plan has been handled. All decisions are saved in Agent Owl history.</p>
-            <button onClick={() => setPage("plan-dashboard")} className="mt-6 rounded-full bg-[#2E7D4F] px-6 py-3 text-[11px] font-black text-white">View My Plans</button>
+            <h2 className="mt-4 text-xl font-black">Recovery applied</h2>
+            <p className="mt-2 text-[11px] leading-relaxed text-[#627267]">Your portfolio decision is complete. Selected plans were adjusted and the others continue normally.</p>
+            {healedPlans.length > 0 && (
+              <div className="mt-5 space-y-2">
+                {healedPlans.map((plan) => (
+                  <button key={`complete-${plan.planId}`} onClick={() => viewUpdatedMilestones(plan.planId)} className="flex w-full items-center justify-between rounded-xl bg-[#2E7D4F] px-4 py-3 text-left text-[10px] font-black text-white">
+                    <span>View {plan.planName}</span>
+                    <ChevronRight size={15} />
+                  </button>
+                ))}
+              </div>
+            )}
+            {continuingPlans.length > 0 && (
+              <div className="mt-4 rounded-xl border border-[#D7E8DB] bg-white p-3 text-left">
+                <div className="text-[8px] font-black uppercase tracking-wider text-[#2E7D4F]">Continuing unchanged</div>
+                <div className="mt-2 space-y-1 text-[9.5px] font-bold text-[#627267]">
+                  {continuingPlans.map((plan) => <div key={`covered-${plan.planId}`}>{plan.planName}</div>)}
+                </div>
+              </div>
+            )}
+            <button onClick={() => setPage("plan-dashboard")} className={`${healedPlans.length ? "mt-2" : "mt-6"} rounded-full px-6 py-3 text-[10px] font-black text-[#2E7D4F]`}>View all plans</button>
           </section>
         </main>
       ) : (
@@ -232,7 +296,59 @@ export default function PlanHealerPage() {
             </section>
           )}
 
-          <section>
+          {revisedPlans.map((plan) => (
+            <section key={`timeline-confirmation-${plan.planId}`} className="overflow-hidden rounded-[22px] border border-[#BCD8C4] bg-[#F2F8F3] shadow-[0_8px_20px_rgba(46,125,79,0.08)]" aria-live="polite">
+              <div className="p-4">
+                <div className="flex items-start gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#DDEEE1] text-[#2E7D4F]"><CalendarClock size={19} /></span>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[8px] font-black uppercase tracking-[0.14em] text-[#2E7D4F]">Timeline extended</div>
+                    <h2 className="mt-0.5 text-[13px] font-black">{plan.planName} has a new path</h2>
+                    <p className="mt-1 text-[9.5px] leading-relaxed text-[#627267]">Your monthly contribution stays unchanged. All unfinished milestones moved together.</p>
+                  </div>
+                </div>
+                <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-[14px] border border-[#D7E8DB] bg-white px-3 py-3">
+                  <div>
+                    <div className="text-[7.5px] font-black uppercase tracking-wider text-[#8A7F78]">Original</div>
+                    <div className="mt-0.5 text-[11px] font-black text-[#6F6560]">{plan.originalGoalDate}</div>
+                  </div>
+                  <ChevronRight size={16} className="text-[#2E7D4F]" />
+                  <div className="text-right">
+                    <div className="text-[7.5px] font-black uppercase tracking-wider text-[#2E7D4F]">Revised</div>
+                    <div className="mt-0.5 text-[11px] font-black text-[#2E523A]">{plan.revisedGoalDate}</div>
+                  </div>
+                </div>
+                <div className="mt-2 text-center text-[8.5px] font-bold text-[#627267]">{plan.delayMonths} {plan.delayMonths === 1 ? "month" : "months"} added</div>
+                <button onClick={() => viewUpdatedMilestones(plan.planId)} className="mt-3 w-full rounded-xl bg-[#2E7D4F] py-3 text-[10px] font-black text-white">View updated milestones</button>
+                <button onClick={() => reviewTimelineAlternatives(plan.planId)} className="mt-2 w-full py-2 text-[9.5px] font-black text-[#7C2230]">Review another recovery option</button>
+              </div>
+            </section>
+          ))}
+
+          {healedPlans.length > 0 && (
+            <section className="rounded-[20px] border border-[#BCD8C4] bg-[#F2F8F3] p-4">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#DDEEE1] text-[#2E7D4F]"><ShieldCheck size={17} /></span>
+                <div>
+                  <div className="text-[8px] font-black uppercase tracking-[0.14em] text-[#2E7D4F]">Recovery applied</div>
+                  <h2 className="text-[12px] font-black">{healedPlans.length === 1 ? "Your plan is back on pace" : `${healedPlans.length} plans are back on pace`}</h2>
+                </div>
+              </div>
+              <div className="mt-3 space-y-2">
+                {healedPlans.map((plan) => (
+                  <button key={`healed-${plan.planId}`} onClick={() => viewUpdatedMilestones(plan.planId)} className="flex w-full items-center justify-between rounded-xl border border-[#D7E8DB] bg-white px-3 py-3 text-left">
+                    <span>
+                      <strong className="block text-[10px]">{plan.planName}</strong>
+                      <span className="text-[8px] text-[#627267]">View updated milestones</span>
+                    </span>
+                    <ChevronRight size={15} className="text-[#2E7D4F]" />
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {pendingPlans.length > 0 && <section>
             <div className="flex items-end justify-between px-1">
               <div>
                 <h2 className="text-[13px] font-black">Choose plans to heal</h2>
@@ -255,7 +371,7 @@ export default function PlanHealerPage() {
                 );
               })}
             </div>
-          </section>
+          </section>}
 
           {pendingPlans.filter((plan) => selectedPlanIds.has(plan.planId)).map((plan) => {
             const selectedStrategy = selectedStrategies[plan.planId] || plan.recoveryOptions[0]?.id;
@@ -281,17 +397,22 @@ export default function PlanHealerPage() {
                         </button>
                       ))}
                     </div>
-                    <button onClick={() => applyDeviationRecovery(event.id, plan.planId, selectedStrategy)} className="mt-3 w-full rounded-xl bg-[#7C2230] py-3 text-[10px] font-black text-white">
-                      Confirm and apply recovery
-                    </button>
-                    <button onClick={() => declineDeviationRecovery(event.id, plan.planId)} className="mt-2 w-full rounded-xl border border-[#D9CEC5] py-2.5 text-[10px] font-black">
-                      Keep current plan
-                    </button>
+                    {plan.status !== "timeline-extended" && (
+                      <button onClick={() => declineDeviationRecovery(event.id, plan.planId)} className="mt-2 w-full rounded-xl border border-[#D9CEC5] py-2.5 text-[10px] font-black">
+                        Keep contribution and extend timeline
+                      </button>
+                    )}
                   </div>
                 )}
               </section>
             );
           })}
+
+          {pendingPlans.some((plan) => selectedPlanIds.has(plan.planId)) && (
+            <button onClick={applySelectedRecoveries} className="w-full rounded-xl bg-[#7C2230] py-3.5 text-[10px] font-black text-white shadow-[0_7px_16px_rgba(124,34,48,0.18)]">
+              Apply {selectedPlanIds.size > 1 ? `recoveries to ${selectedPlanIds.size} plans` : "selected recovery"}
+            </button>
+          )}
 
           {checkedPlans.length > 0 && (
             <section>
@@ -304,7 +425,7 @@ export default function PlanHealerPage() {
                     <span className="flex-1">
                       <strong className="block text-[10px]">{plan.planName}</strong>
                       <span className="text-[8px] text-[#627267]">
-                        {plan.status === "declined" ? "Current plan kept" : plan.status === "applied" ? "Recovery applied" : "No recovery needed"}
+                        {plan.status === "timeline-extended" ? "Timeline revised" : plan.status === "applied" ? "Recovery applied" : "No recovery needed"}
                       </span>
                     </span>
                     <span className="text-[8px] font-black uppercase text-[#2E7D4F]">
@@ -314,6 +435,15 @@ export default function PlanHealerPage() {
                 ))}
               </div>
             </section>
+          )}
+          {hasPendingRecovery && healedPlans.length === 0 && (
+            <button
+              type="button"
+              onClick={handleNotNow}
+              className="w-full rounded-xl border border-[#D9CEC5] bg-white py-3 text-[10px] font-black text-[#7C2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C2230]"
+            >
+              Not now
+            </button>
           )}
         </main>
       )}

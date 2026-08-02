@@ -3,8 +3,10 @@ import { createTransactionDeviation } from '../data/transactionDeviations';
 import { getMilestonePlan } from '../data/milestonePlans';
 import { applyOpportunityChanges, getAllocationImpact, getPlanOpportunity } from '../data/planOpportunities';
 import { buildSimulationScript } from '../features/planSimulation/engine/buildSimulationScript';
+import { buildPortfolioSnapshot } from '../features/planSimulation/data/portfolioSnapshot';
 import { getPlanHorizonMonths, parsePlanTargetDate } from '../lib/planDate';
 import { completeOpportunityLifecycle, createOpportunityLifecycle } from '../lib/opportunityLifecycle';
+import { buildTimelineRevision, getDeviationStatus, isDeviationPlanActionable } from '../lib/deviationRecovery';
 
 const AppContext = createContext();
 
@@ -126,6 +128,8 @@ export const AppProvider = ({ children }) => {
   const [riskProfile, setRiskProfile] = useState('Balanced');
   const [hasAssessedRisk, setHasAssessedRisk] = useState(false);
   const [planDetailOrigin, setPlanDetailOrigin] = useState('home'); // 'home' | 'plan-dashboard'
+  const [restoreOrigin, setRestoreOrigin] = useState('plan-dashboard');
+  const [restoreIntent, setRestoreIntent] = useState('review');
   const [opportunityDecisions, setOpportunityDecisions] = useState({});
   const [opportunityNotice, setOpportunityNotice] = useState(null);
   const [opportunityReveal, setOpportunityReveal] = useState(null);
@@ -193,7 +197,14 @@ export const AppProvider = ({ children }) => {
     setOpportunityDecisions({});
     setOpportunityNotice(null);
     setOpportunityReveal(null);
-    const lifecycle = createOpportunityLifecycle(transactionDeviations.some((event) => event.status === 'pending'));
+    const pendingDeviation = [...transactionDeviations].reverse().find((event) => ['pending', 'partially-resolved'].includes(event.status));
+    const lifecycle = createOpportunityLifecycle(Boolean(pendingDeviation));
+    if (pendingDeviation) {
+      lifecycle.linkedDeviationId = pendingDeviation.id;
+      setTransactionDeviations((current) => current.map((event) => event.id === pendingDeviation.id
+        ? { ...event, notificationState: 'unreviewed', opportunityUpdatedAt: lifecycle.triggeredAt }
+        : event));
+    }
     const route = lifecycle.route;
     setOpportunityLifecycle(lifecycle);
     setShowOpportunityPopup(route === 'standalone');
@@ -215,8 +226,11 @@ export const AppProvider = ({ children }) => {
   };
 
   const startPlanSimulation = (request, result) => {
-    const script = buildSimulationScript(request);
-    setPendingPlan({ request, result, script });
+    const existingPlans = createdPlans.map((planId) => getMilestonePlan(planId, planAdjustments));
+    const portfolioSnapshot = buildPortfolioSnapshot({ request, plans: existingPlans });
+    const coordinatedRequest = { ...request, portfolioSnapshot };
+    const script = buildSimulationScript(coordinatedRequest);
+    setPendingPlan({ request: coordinatedRequest, result, script });
     setPage('plan-simulation');
   };
 
@@ -274,32 +288,41 @@ export const AppProvider = ({ children }) => {
     return deviation.id;
   };
 
-  const dismissDeviationNotifications = () => setTransactionDeviations((current) =>
-    current.map((event) => event.status === 'pending' ? { ...event, notificationDismissed: true } : event));
+  const dismissDeviationNotifications = (eventId) => setTransactionDeviations((current) =>
+    current.map((event) => event.id === eventId ? { ...event, notificationState: 'snoozed' } : event));
 
-  const openDeviation = (id) => {
+  const openDeviation = (id, origin = 'plan-dashboard', intent = 'review') => {
     setActiveDeviationId(id);
+    setRestoreOrigin(origin);
+    setRestoreIntent(intent);
     setPage('plan-healer');
   };
 
   const applyDeviationRecovery = (eventId, planId, strategyId) => {
     const event = transactionDeviations.find((item) => item.id === eventId);
-    const affectedPlan = event?.affectedPlans.find((item) => item.planId === planId && item.status === 'pending');
+    const affectedPlan = event?.affectedPlans.find((item) => item.planId === planId && isDeviationPlanActionable(item));
     const option = affectedPlan?.recoveryOptions?.find((item) => item.id === strategyId);
     if (!event || !affectedPlan || !option) return false;
+    const replacementBase = affectedPlan.status === 'timeline-extended'
+      ? { goalDate: affectedPlan.originalGoalDate, milestones: affectedPlan.originalMilestones, timelineRevision: null }
+      : {};
+    const plan = getMilestonePlan(planId, planAdjustments);
     adjustPlan(planId, {
+      ...replacementBase,
       ...option.changes,
       strategy: strategyId,
       healed: true,
       selectedPlanId: planId,
+      onTrack: { ...plan.onTrack, expected: plan.onTrack.saved },
+      recoveryStatus: 'on-pace',
     });
     setTransactionDeviations((current) => current.map((item) => {
       if (item.id !== eventId) return item;
       const affectedPlans = item.affectedPlans.map((candidate) =>
-        candidate.planId === planId && candidate.status === 'pending'
+        candidate.planId === planId && isDeviationPlanActionable(candidate)
           ? { ...candidate, gap: 0, status: 'applied', resolution: strategyId, strategyId, resolvedAt: new Date().toISOString() }
           : candidate);
-      return { ...item, affectedPlans, status: affectedPlans.some((candidate) => candidate.status === 'pending') ? 'pending' : 'resolved' };
+      return { ...item, affectedPlans, notificationState: 'acknowledged', status: getDeviationStatus(affectedPlans) };
     }));
     addPlanActivity(planId, {
       id: `deviation-applied-${eventId}-${planId}`,
@@ -317,26 +340,71 @@ export const AppProvider = ({ children }) => {
     return true;
   };
 
+  const applyDeviationRecoveries = (eventId, selections) => {
+    const event = transactionDeviations.find((item) => item.id === eventId);
+    const validSelections = (selections || []).filter(({ planId, strategyId }) =>
+      event?.affectedPlans.some((plan) => plan.planId === planId && isDeviationPlanActionable(plan)
+        && plan.recoveryOptions.some((option) => option.id === strategyId)));
+    if (!event || !validSelections.length || validSelections.length !== selections.length) return false;
+    validSelections.forEach(({ planId, strategyId }) => applyDeviationRecovery(eventId, planId, strategyId));
+    const selectedIds = new Set(validSelections.map((selection) => selection.planId));
+    const resolvedAt = new Date().toISOString();
+    const continuingPlans = event.affectedPlans.filter((plan) => plan.status === 'pending' && !selectedIds.has(plan.planId));
+    setTransactionDeviations((current) => current.map((item) => {
+      if (item.id !== eventId) return item;
+      const affectedPlans = item.affectedPlans.map((plan) =>
+        plan.status === 'pending' && !selectedIds.has(plan.planId)
+          ? { ...plan, status: 'covered', resolution: 'portfolio-recovery', gap: 0, resolvedAt }
+          : plan);
+      return { ...item, affectedPlans, notificationState: 'acknowledged', status: 'resolved', resolvedAt };
+    }));
+    continuingPlans.forEach((plan) => addPlanActivity(plan.planId, {
+      id: `portfolio-covered-${eventId}-${plan.planId}`,
+      actor: 'owl',
+      type: 'assessment',
+      title: 'Plan remains on track',
+      description: `The recovery applied elsewhere restored the shared portfolio position, so ${plan.planName} continues without changes.`,
+      timestamp: resolvedAt,
+      status: 'assessed',
+    }));
+    return true;
+  };
+
   const declineDeviationRecovery = (eventId, planId) => {
     const event = transactionDeviations.find((item) => item.id === eventId);
     const affectedPlan = event?.affectedPlans.find((item) => item.planId === planId && item.status === 'pending');
     if (!event || !affectedPlan) return false;
+    const plan = getMilestonePlan(planId, planAdjustments);
+    const revision = buildTimelineRevision(plan, affectedPlan.gap);
+    if (!revision) return false;
+    adjustPlan(planId, {
+      goalDate: revision.revisedGoalDate,
+      milestones: revision.milestones,
+      timelineRevision: { ...revision, sourceDeviationId: eventId },
+      healed: false,
+      onTrack: { ...plan.onTrack, expected: plan.onTrack.saved },
+      recoveryStatus: 'on-pace',
+    });
     setTransactionDeviations((current) => current.map((item) => {
       if (item.id !== eventId) return item;
-      const affectedPlans = item.affectedPlans.map((candidate) =>
-        candidate.planId === planId && candidate.status === 'pending'
-          ? { ...candidate, status: 'declined', resolution: 'declined', resolvedAt: new Date().toISOString() }
-          : candidate);
-      return { ...item, affectedPlans, status: affectedPlans.some((candidate) => candidate.status === 'pending') ? 'pending' : 'resolved' };
+      const affectedPlans = item.affectedPlans.map((candidate) => {
+        if (candidate.planId === planId && candidate.status === 'pending') {
+          return { ...candidate, status: 'timeline-extended', resolution: 'timeline-extension', ...revision, resolvedAt: new Date().toISOString() };
+        }
+        return candidate.status === 'pending'
+          ? { ...candidate, status: 'covered', resolution: 'portfolio-recovery', gap: 0, resolvedAt: new Date().toISOString() }
+          : candidate;
+      });
+      return { ...item, affectedPlans, notificationState: 'acknowledged', status: 'resolved' };
     }));
     addPlanActivity(planId, {
       id: `deviation-declined-${eventId}-${planId}`,
       actor: 'user',
       type: 'decision',
-      title: 'Current plan kept',
-      description: `You reviewed the S$${event.amount.toLocaleString('en-SG')} transaction impact and chose not to change this plan.`,
+      title: 'Plan timeline extended',
+      description: `You kept your monthly contribution and moved the goal from ${revision.originalGoalDate} to ${revision.revisedGoalDate} (${revision.delayMonths} ${revision.delayMonths === 1 ? 'month' : 'months'} later).`,
       timestamp: new Date().toISOString(),
-      status: 'declined',
+      status: 'completed',
     });
     return true;
   };
@@ -359,10 +427,17 @@ export const AppProvider = ({ children }) => {
         const gap = Math.max(0, plan.gap - allocation);
         return { ...plan, gap, status: gap === 0 ? 'applied' : 'pending', resolution: 'opportunity' };
       });
-      return { ...item, affectedPlans, status: affectedPlans.some((plan) => plan.status === 'pending') ? 'pending' : 'resolved' };
+      return { ...item, affectedPlans, notificationState: 'acknowledged', status: getDeviationStatus(affectedPlans) };
     }));
     validAllocations.forEach((allocation) => {
       const before = event.affectedPlans.find((plan) => plan.planId === allocation.planId)?.gap || 0;
+      const remainingGap = Math.max(0, before - allocation.amount);
+      const plan = getMilestonePlan(allocation.planId, planAdjustments);
+      adjustPlan(allocation.planId, {
+        onTrack: { ...plan.onTrack, expected: plan.onTrack.saved + remainingGap },
+        recoveryStatus: remainingGap === 0 ? 'on-pace' : 'recovering',
+        healed: remainingGap === 0,
+      });
       addPlanActivity(allocation.planId, {
         id: `opportunity-heal-${eventId}-${allocation.planId}`,
         actor: 'owl',
@@ -370,7 +445,7 @@ export const AppProvider = ({ children }) => {
         title: 'Bonus used for plan recovery',
         description: `S$${allocation.amount.toLocaleString('en-SG')} of the bonus reduced the projected gap from S$${before.toLocaleString('en-SG')} to S$${Math.max(0, before - allocation.amount).toLocaleString('en-SG')}.`,
         timestamp: new Date().toISOString(),
-        status: Math.max(0, before - allocation.amount) === 0 ? 'completed' : 'partially healed',
+        status: remainingGap === 0 ? 'completed' : 'partially healed',
       });
     });
     setOpportunityLifecycle(completeOpportunityLifecycle);
@@ -650,8 +725,11 @@ export const AppProvider = ({ children }) => {
         registerTransactionDeviation,
         dismissDeviationNotifications,
         openDeviation,
+        restoreOrigin,
+        restoreIntent,
         applyHealerStrategy,
         applyDeviationRecovery,
+        applyDeviationRecoveries,
         declineDeviationRecovery,
         applyOpportunityRecovery,
         planChatRequest,

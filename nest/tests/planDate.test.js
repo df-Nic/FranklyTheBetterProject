@@ -5,7 +5,7 @@ import { parsePlanTargetDate } from '../src/lib/planDate.js';
 const NOW = new Date(2026, 7, 2);
 
 test('normalizes clear and fuzzy month-year dates', () => {
-  for (const input of ['Dec 2029', 'December 2029', 'Dec2029', 'Dec-2029', 'Dec/2029', 'Decmber 2029']) {
+  for (const input of ['Dec 2029', 'December 2029', 'December2029', 'Dec2029', 'Dec-2029', 'Dec/2029', 'Decmber 2029', 'decmber2029']) {
     assert.equal(parsePlanTargetDate(input, NOW).formatted, 'Dec 2029');
   }
 });

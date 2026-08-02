@@ -40,7 +40,7 @@ export default function PlanSimulationScreen() {
     preloadOwls();
   }, []);
 
-  const { state: liveState } = useSimulationRunner(
+  const { state: liveState, skip } = useSimulationRunner(
     pendingPlan?.script ?? null,
     {
       onComplete: (completedScript) => {
@@ -53,6 +53,7 @@ export default function PlanSimulationScreen() {
     },
   );
   const state = liveState ?? IDLE_STATE;
+  const evidenceSettled = state.phase === 'judging' || state.phase === 'complete';
 
   const telemetryRef = useRef(null);
   const debateRef = useRef(null);
@@ -69,6 +70,7 @@ export default function PlanSimulationScreen() {
       <div className="max-w-[430px] mx-auto px-4 pt-6 pb-24 flex flex-col gap-4">
         <SimulationHeader
           onBack={() => navigate(pendingPlan?.result?.returnPage || 'home')}
+          onSkip={skip}
         />
         <TournamentCard
           activeAgent={state.activeAgent}
@@ -79,11 +81,11 @@ export default function PlanSimulationScreen() {
           className="bg-white rounded-[--radius-card] shadow-[0_2px_12px_rgba(0,0,0,0.04)] p-4"
         >
           <div className="grid grid-cols-2 gap-4">
-            <TelemetryPanel telemetry={state.telemetry} />
-            <LeaderboardPanel leaderboard={state.leaderboard} />
+            <TelemetryPanel telemetry={state.telemetry} completed={evidenceSettled} />
+            <LeaderboardPanel leaderboard={state.leaderboard} completed={evidenceSettled} />
           </div>
           <ConfidenceScoreNote />
-          {state.stress && <StressCheckRow stress={state.stress} />}
+          {state.stress && <StressCheckRow stress={state.stress} completed={evidenceSettled} />}
         </div>
         <div ref={debateRef}>
           <DebateTranscript transcript={state.transcript} takeaway={state.takeaway} />
