@@ -111,20 +111,21 @@ const PlanLiquidityDetailsPage = () => {
       : (INITIAL_PLAN_SUBGOALS[activePlan.id] || INITIAL_PLAN_SUBGOALS['default']);
 
     const targetAmountVal = userPlanMeta.targetAmount ? Number(userPlanMeta.targetAmount) : null;
-    if (targetAmountVal && baseSubgoals.length > 0) {
+    const targetDateVal = userPlanMeta.targetDate || null;
+    if ((targetAmountVal || targetDateVal) && baseSubgoals.length > 0) {
       const baseTotal = baseSubgoals.reduce((acc, s) => acc + (s.amount || 0), 0) || 1;
       return baseSubgoals.map((s, idx) => {
         const ratio = s.amount / baseTotal;
-        const scaledAmount = Math.round(ratio * targetAmountVal);
+        const scaledAmount = targetAmountVal ? Math.round(ratio * targetAmountVal) : s.amount;
         let scaledDate = s.date;
-        if (userPlanMeta.targetDate) {
+        if (targetDateVal) {
           if (idx === baseSubgoals.length - 1) {
-            scaledDate = userPlanMeta.targetDate;
+            scaledDate = targetDateVal;
           } else {
-            const yearMatch = userPlanMeta.targetDate.match(/20\d\d/);
+            const yearMatch = targetDateVal.match(/\b\d{4}\b/);
             if (yearMatch) {
               const targetYr = parseInt(yearMatch[0], 10);
-              const startYr = 2026;
+              const startYr = new Date().getFullYear();
               const stepYr = Math.min(targetYr, startYr + Math.round(((targetYr - startYr) * (idx + 1)) / baseSubgoals.length));
               const monthStr = (s.date || '').split(' ')[0] || 'Dec';
               scaledDate = `${monthStr} ${stepYr}`;
@@ -189,7 +190,7 @@ const PlanLiquidityDetailsPage = () => {
   const userName = userPlanMeta.userName || "Daniel";
 
   return (
-    <div className="w-full h-full bg-[#F5F5F7] text-zinc-900 flex flex-col overflow-hidden relative select-none font-sans">
+    <div className="w-full h-full bg-[#F5F5F7] text-zinc-900 flex flex-col min-h-0 overflow-hidden relative select-none font-sans">
       {/* Background ambient decorative orbs matching PlanDetailsPage */}
       <BackgroundOrb color="pink" size="300px" className="-top-12 -left-12" />
       <BackgroundOrb color="blue" size="250px" className="bottom-20 -right-10" />
@@ -213,7 +214,7 @@ const PlanLiquidityDetailsPage = () => {
       </header>
 
       {/* Scrollable Container */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3.5 pb-24 z-10 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3.5 pb-24 z-10 touch-pan-y min-h-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
 
         {/* Card 1: PAYMENT FLEXIBILITY (Hero Concept Card matching Updated Screen 2 mockup) */}
         <motion.div

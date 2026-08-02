@@ -12,7 +12,7 @@ const BackgroundOrb = ({ className, color = 'pink', size = '300px' }) => {
   return (
     <div
       className={clsx(
-        'absolute rounded-full pointer-events-none background-orb z-0',
+        'absolute rounded-full pointer-events-none background-orb z-0 will-change-transform [transform:translateZ(0)]',
         colorMap[color] || colorMap.pink,
         className
       )}

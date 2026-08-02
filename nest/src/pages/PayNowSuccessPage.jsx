@@ -67,13 +67,13 @@ const PayNowSuccessPage = () => {
     : '+65 88888888 • Ivanhengsj';
 
   return (
-    <div className="flex-1 w-full bg-[#F5F5F7] flex flex-col relative overflow-hidden select-none">
+    <div className="flex-1 w-full bg-[#F5F5F7] flex flex-col min-h-0 relative overflow-hidden select-none">
       {/* Background Orbs */}
       <BackgroundOrb color="pink" size="300px" className="-top-12 -right-12" />
       <BackgroundOrb color="peach" size="250px" className="bottom-12 -left-12" />
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-8 flex flex-col items-center justify-center gap-6 z-10">
+      <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-8 flex flex-col items-center justify-center gap-6 z-10 touch-pan-y min-h-0">
         
         {/* Animated Checkmark Circle */}
         <div className="relative flex items-center justify-center">

@@ -10,7 +10,7 @@ const GlassCard = ({
   hoverable = false,
   ...props
 }) => {
-  const baseClasses = 'bg-white/50 backdrop-blur-[25px] border border-white/70 rounded-[20px] shadow-[0_8px_32px_0_rgba(46,62,79,0.06)] overflow-hidden';
+  const baseClasses = 'bg-white/80 supports-[backdrop-filter]:bg-white/50 supports-[backdrop-filter]:backdrop-blur-md border border-white/70 rounded-[20px] shadow-[0_8px_32px_0_rgba(46,62,79,0.06)] overflow-hidden [transform:translateZ(0)]';
   
   if (onClick || hoverable) {
     return (

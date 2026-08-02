@@ -128,7 +128,7 @@ const HomePage = () => {
   ];
 
   return (
-    <div className="flex-1 w-full bg-[#F5F5F7] flex flex-col relative overflow-hidden select-none">
+    <div className="flex-1 w-full bg-[#F5F5F7] flex flex-col min-h-0 relative overflow-hidden select-none">
       {/* Background Orb top-right */}
       <BackgroundOrb color="pink" size="360px" className="-top-10 -right-10" />
 
@@ -204,7 +204,7 @@ const HomePage = () => {
       </header>
 
       {/* Main Scrollable Content */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-4 py-4 flex flex-col gap-5 z-10 pb-safe-nav">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-4 py-4 flex flex-col gap-5 z-10 pb-safe-nav touch-pan-y min-h-0">
         
         {/* Full-bleed masthead with floating quick actions */}
         <div className="relative -mx-4 -mt-4">

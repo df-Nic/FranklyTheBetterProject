@@ -609,7 +609,7 @@ const PlanChangeOptionPage = () => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-[#F5F5F7] relative overflow-hidden select-none text-left">
+    <div className="w-full h-full flex flex-col min-h-0 bg-[#F5F5F7] relative overflow-hidden select-none text-left">
       <BackgroundOrb color="pink" size="300px" className="-top-12 -left-12" />
       <BackgroundOrb color="blue" size="250px" className="bottom-20 -right-10" />
 
@@ -627,12 +627,6 @@ const PlanChangeOptionPage = () => {
             <span className="text-base font-black text-zinc-900 tracking-tight mt-0.5">{displayGoalTitle}</span>
           </div>
         </div>
-        <button
-          onClick={handleCancel}
-          className="w-9 h-9 rounded-full bg-white border border-zinc-200/50 flex items-center justify-center text-zinc-700 active:scale-90 transition-all duration-150 cursor-pointer shadow-sm"
-        >
-          <X className="w-[18px] h-[18px] stroke-[2.2]" />
-        </button>
       </header>
 
       <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-5 flex flex-col gap-4 z-10 pb-64 touch-pan-y min-h-0">
