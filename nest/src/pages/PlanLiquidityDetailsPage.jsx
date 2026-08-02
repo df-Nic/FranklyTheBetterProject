@@ -344,7 +344,7 @@ const PlanLiquidityDetailsPage = () => {
 
               const tagText = idx === 0 ? "Near-term cash" : idx === 1 ? "Maturity matched" : "Later milestone";
               const whenAvailableText = idx === 0 ? "Daily access" : `Ready before ${matchedSubgoal.date || 'payment'}`;
-              const supportsPaymentText = `${shortSubgoalName} · ${matchedSubgoal.date || ''}`;
+              const supportsPaymentText = shortSubgoalName;
               const termsBadgeText = idx === 0 ? "No early withdrawal needed" : "Held to maturity";
               const termsSubtext = idx === 0
                 ? "Best for the nearest vendor payment."
@@ -389,17 +389,17 @@ const PlanLiquidityDetailsPage = () => {
                     </p>
                   </div>
 
-                  {/* Box 1: When funds available & Supports payment */}
-                  <div className="p-3 rounded-2xl bg-zinc-50/80 border border-zinc-200/60 grid grid-cols-2 gap-2 text-xs">
-                    <div className="space-y-0.5">
+                  {/* Boxes: When funds are available & Supports this payment — side by side */}
+                  <div className="flex gap-2">
+                    <div className="flex-1 p-3 rounded-2xl bg-zinc-50/80 border border-zinc-200/60 space-y-0.5 text-xs">
                       <span className="text-zinc-400 text-[11px] font-semibold block">When funds are available</span>
                       <span className="text-xs font-black text-emerald-700 block">
                         {whenAvailableText}
                       </span>
                     </div>
-                    <div className="space-y-0.5">
+                    <div className="flex-1 p-3 rounded-2xl bg-zinc-50/80 border border-zinc-200/60 space-y-0.5 text-xs">
                       <span className="text-zinc-400 text-[11px] font-semibold block">Supports this payment</span>
-                      <span className="text-xs font-black text-zinc-900 block truncate">
+                      <span className="text-xs font-black text-zinc-900 block">
                         {supportsPaymentText}
                       </span>
                     </div>
