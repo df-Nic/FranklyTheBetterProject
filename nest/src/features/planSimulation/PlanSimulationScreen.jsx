@@ -30,11 +30,11 @@ const IDLE_STATE = {
 };
 
 export default function PlanSimulationScreen() {
-  const { pendingPlan, navigate } = useApp();
+  const { pendingPlan, navigate, page } = useApp();
 
   useEffect(() => {
-    if (!pendingPlan?.script) navigate('home');
-  }, [navigate, pendingPlan]);
+    if (!pendingPlan?.script && page === 'plan-simulation') navigate('home');
+  }, [navigate, pendingPlan, page]);
 
   useEffect(() => {
     preloadOwls();

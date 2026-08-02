@@ -133,7 +133,7 @@ export default function ExpenseOptimizerPage() {
       </header>
 
       {/* Main Scrollable Area */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden touch-pan-y no-scrollbar px-4 py-4 pb-30 flex flex-col gap-4 min-h-0">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden touch-pan-y no-scrollbar px-4 py-4 pb-30 flex flex-col gap-4 min-h-0 [transform:translateZ(0)] isolation-isolate">
 
 
 

@@ -8,25 +8,35 @@ const AppContext = createContext();
 
 export const getHousingSubgoals = (propertyType = 'hdb', targetAmount = 500000, targetDate = 'Aug 2030') => {
   const amt = Number(targetAmount) || 500000;
+  const yearMatch = (targetDate || '').match(/\b\d{4}\b/);
+  const targetYr = yearMatch ? parseInt(yearMatch[0], 10) : 2030;
+  const startYr = new Date().getFullYear();
+  const yr1 = Math.min(targetYr, startYr + Math.round((targetYr - startYr) * (1 / 3)));
+  const yr2 = Math.min(targetYr, startYr + Math.round((targetYr - startYr) * (2 / 3)));
+
+  const date1 = `Dec ${yr1}`;
+  const date2 = `Dec ${yr2}`;
+  const date3 = targetDate || `Aug ${targetYr}`;
+
   if (propertyType === 'condo') {
     return [
-      { id: 1, name: "OTP Booking Cash Deposit", amount: Math.round(amt * 0.20), date: "Dec 2027" },
-      { id: 2, name: "S&P Agreement & Stamp Duties (BSD)", amount: Math.round(amt * 0.35), date: "Dec 2028" },
-      { id: 3, name: "Full Mortgage Payoff & Condo Ownership", amount: Math.round(amt * 0.45), date: targetDate }
+      { id: 1, name: "OTP Booking Cash Deposit", amount: Math.round(amt * 0.20), date: date1 },
+      { id: 2, name: "S&P Agreement & Stamp Duties (BSD)", amount: Math.round(amt * 0.35), date: date2 },
+      { id: 3, name: "Full Mortgage Payoff & Condo Ownership", amount: Math.round(amt * 0.45), date: date3 }
     ];
   }
   if (propertyType === 'landed') {
     return [
-      { id: 1, name: "OTP Booking Cash Deposit", amount: Math.round(amt * 0.15), date: "Dec 2027" },
-      { id: 2, name: "Full Downpayment & Stamp Duty (BSD)", amount: Math.round(amt * 0.40), date: "Dec 2028" },
-      { id: 3, name: "Full Mortgage Settlement & Landed Title", amount: Math.round(amt * 0.45), date: targetDate }
+      { id: 1, name: "OTP Booking Cash Deposit", amount: Math.round(amt * 0.15), date: date1 },
+      { id: 2, name: "Full Downpayment & Stamp Duty (BSD)", amount: Math.round(amt * 0.40), date: date2 },
+      { id: 3, name: "Full Mortgage Settlement & Landed Title", amount: Math.round(amt * 0.45), date: date3 }
     ];
   }
   // Default HDB (BTO)
   return [
-    { id: 1, name: "First down payment (Agreement to Lease)", amount: Math.round(amt * 0.25), date: "Dec 2027" },
-    { id: 2, name: "Second down payment (Key Collection)", amount: Math.round(amt * 0.35), date: "Dec 2028" },
-    { id: 3, name: "Full Home Ownership & Mortgage Cleared", amount: Math.round(amt * 0.40), date: targetDate }
+    { id: 1, name: "First down payment (Agreement to Lease)", amount: Math.round(amt * 0.25), date: date1 },
+    { id: 2, name: "Second down payment (Key Collection)", amount: Math.round(amt * 0.35), date: date2 },
+    { id: 3, name: "Full Home Ownership & Mortgage Cleared", amount: Math.round(amt * 0.40), date: date3 }
   ];
 };
 

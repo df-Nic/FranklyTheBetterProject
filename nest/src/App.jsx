@@ -109,7 +109,7 @@ function AppContent() {
             <LoginPage />
           </motion.div>
         )}
-        {(page === 'home' || (page === 'plan-details' && detailsOrigin === 'home')) && (
+        {(page === 'home' || page === 'risk-profiling' || (page === 'plan-details' && detailsOrigin === 'home')) && (
           <motion.div
             key="home"
             initial={{ opacity: 0, x: 60 }}

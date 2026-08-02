@@ -203,7 +203,7 @@ const HomePage = () => {
       </header>
 
       {/* Main Scrollable Content */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-4 py-4 flex flex-col gap-5 z-10 pb-safe-nav">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-4 py-4 flex flex-col gap-5 z-10 pb-safe-nav [transform:translateZ(0)] isolation-isolate">
         
         {/* Full-bleed masthead with floating quick actions */}
         <div className="relative -mx-4 -mt-4">

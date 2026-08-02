@@ -262,22 +262,23 @@ const PlanDetailsPage = () => {
         ? getHousingSubgoals(housingPropertyType || 'hdb', userPlanMeta.targetAmount || 500000, userPlanMeta.targetDate || 'Aug 2030')
         : (INITIAL_PLAN_SUBGOALS[activePlan.id] || INITIAL_PLAN_SUBGOALS['default']);
       const targetAmountVal = userPlanMeta.targetAmount ? Number(userPlanMeta.targetAmount) : null;
+      const targetDateVal = userPlanMeta.targetDate || null;
 
-      if (targetAmountVal && baseSubgoals.length > 0) {
+      if ((targetAmountVal || targetDateVal) && baseSubgoals.length > 0) {
         const baseTotal = baseSubgoals.reduce((acc, s) => acc + (s.amount || 0), 0) || 1;
         const scaledSubs = baseSubgoals.map((s, idx) => {
           const ratio = s.amount / baseTotal;
-          const scaledAmount = Math.round(ratio * targetAmountVal);
+          const scaledAmount = targetAmountVal ? Math.round(ratio * targetAmountVal) : s.amount;
 
           let scaledDate = s.date;
-          if (userPlanMeta.targetDate) {
+          if (targetDateVal) {
             if (idx === baseSubgoals.length - 1) {
-              scaledDate = userPlanMeta.targetDate;
+              scaledDate = targetDateVal;
             } else {
-              const yearMatch = userPlanMeta.targetDate.match(/20\d\d/);
+              const yearMatch = targetDateVal.match(/\b\d{4}\b/);
               if (yearMatch) {
                 const targetYr = parseInt(yearMatch[0], 10);
-                const startYr = 2026;
+                const startYr = new Date().getFullYear();
                 const stepYr = Math.min(targetYr, startYr + Math.round(((targetYr - startYr) * (idx + 1)) / baseSubgoals.length));
                 const monthStr = (s.date || '').split(' ')[0] || 'Dec';
                 scaledDate = `${monthStr} ${stepYr}`;
@@ -314,11 +315,11 @@ const PlanDetailsPage = () => {
   // Extract target deadline year/date from user target date or active timeline
   const getPlanTargetYear = (plan) => {
     if (canonicalTargetDate) {
-      const yearMatch = canonicalTargetDate.match(/20\d\d/);
+      const yearMatch = canonicalTargetDate.match(/\b\d{4}\b/);
       if (yearMatch) return parseInt(yearMatch[0], 10);
     }
     if (!plan || !plan.timelineAll) return 2035;
-    const years = plan.timelineAll.match(/20\d\d/g);
+    const years = plan.timelineAll.match(/\b\d{4}\b/g);
     if (years && years.length > 0) {
       return Math.max(...years.map(y => parseInt(y, 10)));
     }
@@ -332,7 +333,7 @@ const PlanDetailsPage = () => {
   const isAmountTally = Math.abs(totalSubgoalAmount - targetPlanAmount) < 1;
 
   const isDateExceeded = subgoals.some(sub => {
-    const yearMatch = (sub.date || '').match(/20\d\d/);
+    const yearMatch = (sub.date || '').match(/\b\d{4}\b/);
     if (yearMatch) {
       const yr = parseInt(yearMatch[0], 10);
       return yr > planHorizonYear;
@@ -953,7 +954,7 @@ const PlanDetailsPage = () => {
         </header>
 
         {/* Main Scroll Area */}
-        <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-5 flex flex-col gap-4 z-10 pb-[130px]">
+        <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-5 flex flex-col gap-4 z-10 pb-[130px] [transform:translateZ(0)] isolation-isolate">
 
           {/* Top Section: Goal & Timeline */}
           <GlassCard className="p-4 border-white/70 relative overflow-hidden bg-white/40 shadow-sm flex flex-col gap-3 shrink-0">

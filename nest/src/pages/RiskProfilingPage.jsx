@@ -196,7 +196,11 @@ const SwipeCardComponent = ({ scenario, stackIndex, isTop, onSwipe, swipeTopCard
 
 const RiskProfilingPage = () => {
   const {
+    page,
+    setPage,
     navigate,
+    requestPlanChatOpen,
+    setHasCreatedFirstPlan,
     activePlanId,
     activePlanTitle,
     setClickPos,
@@ -212,6 +216,16 @@ const RiskProfilingPage = () => {
   const [isComplete, setIsComplete] = useState(false);
   const [isSwiping, setIsSwiping] = useState(false);
   const swipeTopCardRef = useRef(null);
+
+  // Reset quiz state whenever Risk Profiling page opens
+  useEffect(() => {
+    if (page === 'risk-profiling') {
+      setCards(SCENARIOS);
+      setDecisions({});
+      setIsComplete(false);
+      setIsSwiping(false);
+    }
+  }, [page]);
 
   const handleSwipe = (id, direction) => {
     setDecisions(prev => ({ ...prev, [id]: direction }));
@@ -268,47 +282,49 @@ const RiskProfilingPage = () => {
   const handleProceedToPlanDetails = (e) => {
     setRiskProfile(profile.badge);
     setHasAssessedRisk(true);
+    setHasCreatedFirstPlan(true);
     if (e) {
       setClickPos({ x: e.clientX, y: e.clientY });
     } else {
-      // Center of screen for a smooth Iris expansion
       setClickPos({ x: 195, y: 422 });
     }
-    setPlanDetailOrigin('risk-profiling');
-    const draft = planDrafts[activePlanId] || {};
-    const adjustment = planAdjustments[activePlanId] || {};
-    const targetDate = draft.targetDate || adjustment.goalDate;
-    const horizonMonths = getHorizonMonths(targetDate);
-    const monthlyContribution = draft.monthlyContribution
-      ?? adjustment.monthlyContribution
-      ?? (draft.paymentStrategy === 'staggered' && draft.targetAmount
-        ? Math.ceil(Number(draft.targetAmount) / horizonMonths / 10) * 10
-        : 0);
+    setPlanDetailOrigin('home');
+
+    // Launch simulation page directly with updated risk profile
+    const planId = activePlanId || 'retirement';
+    const draft = planDrafts[planId] || {};
+    const targetAmt = draft.targetAmount || 100000;
+    const targetDt = draft.targetDate || 'Dec 2035';
+    const horizon = getHorizonMonths(targetDt);
+    const monthlyContribution = draft.paymentStrategy === 'lump-sum'
+      ? 0
+      : Math.ceil(Number(targetAmt) / horizon / 10) * 10;
+
     const request = {
-      goalType: GOAL_TYPE_BY_PLAN[activePlanId] || 'general',
-      goalLabel: activePlanTitle || GOAL_LABEL_BY_PLAN[activePlanId] || 'Your Goal',
-      horizonMonths,
-      monthlyContribution: Number(monthlyContribution),
+      goalType: GOAL_TYPE_BY_PLAN[planId] || 'general',
+      goalLabel: activePlanTitle || GOAL_LABEL_BY_PLAN[planId] || 'Your Goal',
+      horizonMonths: horizon,
+      monthlyContribution,
       riskProfile: normalizeRiskProfile(profile.badge),
-      planId: activePlanId || '',
+      planId,
     };
 
     startPlanSimulation(request, {
-      planId: activePlanId,
-      planTitle: activePlanTitle || GOAL_LABEL_BY_PLAN[activePlanId] || 'Your Goal',
-      draft,
-      returnPage: 'risk-profiling',
+      planId,
+      planTitle: activePlanTitle || GOAL_LABEL_BY_PLAN[planId] || 'Your Goal',
+      returnPage: 'home',
     });
   };
-// Auto-redirect after risk profiling is complete
-useEffect(() => {
-  if (isComplete) {
-    handleProceedToPlanDetails();
-  }
-}, [isComplete]);
+
+  // Auto-redirect after risk profiling is complete (ONLY when actively on risk-profiling page)
+  useEffect(() => {
+    if (isComplete && page === 'risk-profiling') {
+      handleProceedToPlanDetails();
+    }
+  }, [isComplete, page]);
 
   return (
-    <div className="flex-1 w-full bg-[#F5F5F7] flex flex-col relative px-6 py-6 overflow-y-auto no-scrollbar select-none text-zinc-800">
+    <div className="flex-1 w-full bg-[#F5F5F7] flex flex-col relative px-6 py-6 overflow-y-auto no-scrollbar select-none text-zinc-800 [transform:translateZ(0)] isolation-isolate">
       {/* Background Orb */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <BackgroundOrb color="peach" size="300px" className="-top-12 -right-12" />

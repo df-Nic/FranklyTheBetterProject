@@ -73,7 +73,7 @@ const PayNowSuccessPage = () => {
       <BackgroundOrb color="peach" size="250px" className="bottom-12 -left-12" />
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-8 flex flex-col items-center justify-center gap-6 z-10">
+      <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-8 flex flex-col items-center justify-center gap-6 z-10 [transform:translateZ(0)] isolation-isolate">
         
         {/* Animated Checkmark Circle */}
         <div className="relative flex items-center justify-center">

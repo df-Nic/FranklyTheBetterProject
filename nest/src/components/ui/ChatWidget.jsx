@@ -212,9 +212,9 @@ const ChatWidget = () => {
     const relativeMonths = normalized.match(/\b(?:in\s+)?(\d+)\s+months?\b/);
     const wordNumbers = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 };
 
-    const yearMatch = str.match(/\b(202[6-9]|203[0-9]|204[0-9]|205[0-9])\b/);
+    const yearMatch = str.match(/\b\d{4}\b/);
     if (yearMatch) {
-      year = parseInt(yearMatch[1], 10);
+      year = parseInt(yearMatch[0], 10);
     } else if (relativeYears) {
       year += Number(relativeYears[1]) || wordNumbers[relativeYears[1]];
     } else if (relativeMonths) {
@@ -273,6 +273,12 @@ const ChatWidget = () => {
   const consumedChatRequest = useRef(0);
   const isDragging = useRef(false);
   const flowSessionRef = useRef(0);
+  const routingTimersRef = useRef([]);
+
+  const clearPendingRoutingTimers = () => {
+    routingTimersRef.current.forEach(clearTimeout);
+    routingTimersRef.current = [];
+  };
 
   const handleDragStart = () => {
     isDragging.current = true;
@@ -289,6 +295,8 @@ const ChatWidget = () => {
       )
     }
   ]);
+
+  const isBotTyping = messages.some(m => m.isTyping) || flowState === 'processing';
 
   const handleSelectHousingPropertyType = (propType) => {
     setSelectedPropertyType(propType);
@@ -709,6 +717,7 @@ const ChatWidget = () => {
   };
 
   const launchPlanSimulation = (selectedPlanTitle, selectedSubgoals = []) => {
+    clearPendingRoutingTimers();
     const planId = resolvePlanId(selectedPlanTitle);
 
     // Save custom user parameters to AppContext
@@ -754,6 +763,7 @@ const ChatWidget = () => {
   // Preview only — does NOT save to dashboard
   const handleReviewPlanClick = (e, selectedPlanTitle, selectedSubgoals = []) => {
     e.stopPropagation();
+    clearPendingRoutingTimers();
     if (containerRef.current) {
       const parentRect = containerRef.current.getBoundingClientRect();
       setClickPos({ x: e.clientX - parentRect.left, y: e.clientY - parentRect.top });
@@ -762,7 +772,9 @@ const ChatWidget = () => {
     }
     launchPlanSimulation(selectedPlanTitle, selectedSubgoals);
   };
+
   const handleRiskPromptSelect = (agree, e) => {
+    clearPendingRoutingTimers();
     const sessionId = flowSessionRef.current;
     setFlowState('processing');
     // If user agrees to redo risk profiling (Yes), navigate immediately with Iris curtain
@@ -784,10 +796,24 @@ const ChatWidget = () => {
       return;
     }
 
-    // Keep the existing profile and launch the simulation immediately.
-    setMessages(prev => [...prev, { id: Date.now(), sender: 'user', text: 'No' }]);
+    // Keep the existing profile and present the generated plan confirmation card.
     setHasCreatedFirstPlan(true);
-    if (sessionId === flowSessionRef.current) launchPlanSimulation(planTitle, generatedSubgoals);
+    setMessages(prev => [
+      ...prev,
+      { id: Date.now(), sender: 'user', text: 'No' },
+      {
+        id: Date.now() + 1,
+        sender: 'bot',
+        isReturningUserConfirmation: true,
+        planTitle: planTitle,
+        text: (
+          <span>
+            Your plan has been generated successfully! <span className="text-brand-primary font-black">Tap the button below to view and customize your Plan Details.</span>
+          </span>
+        )
+      }
+    ]);
+    setFlowState('idle');
   };
 
 
@@ -967,6 +993,42 @@ const ChatWidget = () => {
           setUnsureFields(current => [...new Set([...current, 'date'])]);
         } else {
           const parsedDate = parseDateInput(trimmed);
+          const now = new Date();
+          const currentYr = now.getFullYear();
+          const currentMo = now.getMonth();
+
+          // 1. Check if date is in the past
+          const isPastDate = parsedDate.getFullYear() < currentYr || (parsedDate.getFullYear() === currentYr && parsedDate.getMonth() < currentMo);
+          if (isPastDate) {
+            setMessages(prev => [...prev, {
+              id: Date.now(),
+              sender: 'bot',
+              text: (
+                <span>
+                  The target date you entered (<span className="text-red-600 font-extrabold">{formatDate(parsedDate)}</span>) is in the past. <span className="text-brand-primary font-black">Please specify a future target date (e.g. Dec 2029 or Dec 2100).</span>
+                </span>
+              ),
+            }]);
+            setFlowState('asking_date');
+            return;
+          }
+
+          // 2. Check 3-year minimum horizon check
+          const totalMonthsDiff = (parsedDate.getFullYear() - currentYr) * 12 + (parsedDate.getMonth() - currentMo);
+          if (totalMonthsDiff < 36) {
+            setMessages(prev => [...prev, {
+              id: Date.now(),
+              sender: 'bot',
+              text: (
+                <span>
+                  Building a strong financial cushion works best with a bit of breathing room! A timeline of less than 3 years (<span className="text-amber-600 font-extrabold">{formatDate(parsedDate)}</span>) might feel a little tight to hit your target comfortably. We recommend giving your strategy at least 3 years to grow smoothly. <span className="text-brand-primary font-black">How about setting a target date of Dec 2029 or later?</span>
+                </span>
+              ),
+            }]);
+            setFlowState('asking_date');
+            return;
+          }
+
           const formattedTargetDate = formatDate(parsedDate);
           setTargetDate(formattedTargetDate);
         }
@@ -1073,14 +1135,15 @@ const ChatWidget = () => {
         ]);
 
         // Post-plan Routing decision
-        setTimeout(() => {
+        clearPendingRoutingTimers();
+        const t1 = setTimeout(() => {
           if (sessionId !== flowSessionRef.current) return;
           setMessages(prev => [
             ...prev,
             { id: 'typing-strategy', sender: 'bot', isTyping: true }
           ]);
 
-          setTimeout(() => {
+          const t2 = setTimeout(() => {
             if (sessionId !== flowSessionRef.current) return;
             if (!hasCreatedFirstPlan) {
               // First time user risk profiling prompt
@@ -1116,7 +1179,9 @@ const ChatWidget = () => {
               setFlowState('idle');
             }
           }, 1000);
+          routingTimersRef.current.push(t2);
         }, 1200);
+        routingTimersRef.current.push(t1);
       }
     }, 1500);
   };
@@ -1384,24 +1449,27 @@ const ChatWidget = () => {
                 <div className="grid w-full grid-cols-3 gap-1.5">
                   <button
                     type="button"
-                    onClick={() => handleSelectHousingPropertyType('hdb')}
-                    className="flex flex-col items-center justify-center p-2 rounded-xl border border-zinc-200 bg-white hover:border-brand-primary/40 active:scale-95 shadow-sm transition-all"
+                    disabled={isBotTyping}
+                    onClick={() => !isBotTyping && handleSelectHousingPropertyType('hdb')}
+                    className={`flex flex-col items-center justify-center p-2 rounded-xl border border-zinc-200 bg-white hover:border-brand-primary/40 active:scale-95 shadow-sm transition-all ${isBotTyping ? 'opacity-50 pointer-events-none' : ''}`}
                   >
                     <span className="text-[10px] font-black text-zinc-800">HDB (BTO)</span>
                     <span className="text-[8px] text-zinc-400 font-medium text-center">Public / BTO</span>
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleSelectHousingPropertyType('condo')}
-                    className="flex flex-col items-center justify-center p-2 rounded-xl border border-zinc-200 bg-white hover:border-brand-primary/40 active:scale-95 shadow-sm transition-all"
+                    disabled={isBotTyping}
+                    onClick={() => !isBotTyping && handleSelectHousingPropertyType('condo')}
+                    className={`flex flex-col items-center justify-center p-2 rounded-xl border border-zinc-200 bg-white hover:border-brand-primary/40 active:scale-95 shadow-sm transition-all ${isBotTyping ? 'opacity-50 pointer-events-none' : ''}`}
                   >
                     <span className="text-[10px] font-black text-zinc-800">Condo</span>
                     <span className="text-[8px] text-zinc-400 font-medium text-center">Private / EC</span>
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleSelectHousingPropertyType('landed')}
-                    className="flex flex-col items-center justify-center p-2 rounded-xl border border-zinc-200 bg-white hover:border-brand-primary/40 active:scale-95 shadow-sm transition-all"
+                    disabled={isBotTyping}
+                    onClick={() => !isBotTyping && handleSelectHousingPropertyType('landed')}
+                    className={`flex flex-col items-center justify-center p-2 rounded-xl border border-zinc-200 bg-white hover:border-brand-primary/40 active:scale-95 shadow-sm transition-all ${isBotTyping ? 'opacity-50 pointer-events-none' : ''}`}
                   >
                     <span className="text-[10px] font-black text-zinc-800">Landed</span>
                     <span className="text-[8px] text-zinc-400 font-medium text-center">Freehold Title</span>
@@ -1413,8 +1481,9 @@ const ChatWidget = () => {
                     <button
                       key={option.value}
                       type="button"
-                      onClick={() => handleEstimationAnswer(option)}
-                      className="flex min-h-10 w-full items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-left shadow-sm transition-all active:scale-[0.98] hover:border-brand-primary/40"
+                      disabled={isBotTyping}
+                      onClick={() => !isBotTyping && handleEstimationAnswer(option)}
+                      className={`flex min-h-10 w-full items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-left shadow-sm transition-all active:scale-[0.98] hover:border-brand-primary/40 ${isBotTyping ? 'opacity-50 pointer-events-none' : ''}`}
                     >
                       <span className="text-[10px] font-black text-zinc-800">{option.label}</span>
                       <span className="text-right text-[8.5px] font-semibold text-zinc-400">{option.detail}</span>
@@ -1425,15 +1494,17 @@ const ChatWidget = () => {
                 <div className="flex w-full gap-2">
                   <button
                     type="button"
-                    onClick={editGuidedEstimate}
-                    className="h-10 flex-1 rounded-xl border border-zinc-200 bg-white text-[10px] font-bold text-zinc-700 shadow-sm active:scale-95"
+                    disabled={isBotTyping}
+                    onClick={() => !isBotTyping && editGuidedEstimate()}
+                    className={`h-10 flex-1 rounded-xl border border-zinc-200 bg-white text-[10px] font-bold text-zinc-700 shadow-sm active:scale-95 ${isBotTyping ? 'opacity-50 pointer-events-none' : ''}`}
                   >
                     Edit amount
                   </button>
                   <button
                     type="button"
-                    onClick={acceptGuidedEstimate}
-                    className="h-10 flex-1 rounded-xl bg-brand-primary text-[10px] font-bold text-white shadow-sm shadow-brand-primary/15 active:scale-95"
+                    disabled={isBotTyping}
+                    onClick={() => !isBotTyping && acceptGuidedEstimate()}
+                    className={`h-10 flex-1 rounded-xl bg-brand-primary text-[10px] font-bold text-white shadow-sm shadow-brand-primary/15 active:scale-95 ${isBotTyping ? 'opacity-50 pointer-events-none' : ''}`}
                   >
                     Use estimate
                   </button>
@@ -1441,14 +1512,16 @@ const ChatWidget = () => {
               ) : flowState === 'asking_strategy' ? (
                 <div className="flex gap-2 w-full justify-between">
                   <button
-                    onClick={() => handleSend('Staggered')}
-                    className="flex-1 h-10 bg-white border border-zinc-200 shadow-sm text-zinc-700 font-bold rounded-xl text-xs active:scale-95 transition-all cursor-pointer hover:bg-zinc-50"
+                    disabled={isBotTyping}
+                    onClick={() => !isBotTyping && handleSend('Staggered')}
+                    className={`flex-1 h-10 bg-white border border-zinc-200 shadow-sm text-zinc-700 font-bold rounded-xl text-xs active:scale-95 transition-all cursor-pointer hover:bg-zinc-50 ${isBotTyping ? 'opacity-50 pointer-events-none' : ''}`}
                   >
                     Staggered
                   </button>
                   <button
-                    onClick={() => handleSend('1-Lump Sum')}
-                    className="flex-1 h-10 bg-brand-primary hover:bg-[#c11e15] text-white font-bold rounded-xl text-xs active:scale-95 transition-all cursor-pointer shadow-sm shadow-brand-primary/10"
+                    disabled={isBotTyping}
+                    onClick={() => !isBotTyping && handleSend('1-Lump Sum')}
+                    className={`flex-1 h-10 bg-brand-primary hover:bg-[#c11e15] text-white font-bold rounded-xl text-xs active:scale-95 transition-all cursor-pointer shadow-sm shadow-brand-primary/10 ${isBotTyping ? 'opacity-50 pointer-events-none' : ''}`}
                   >
                     1-Lump Sum
                   </button>
@@ -1456,14 +1529,16 @@ const ChatWidget = () => {
               ) : flowState === 'asking_risk_prompt' ? (
                 <div className="flex gap-2 w-full justify-between">
                   <button
-                    onClick={(e) => handleRiskPromptSelect(false, e)}
-                    className="flex-1 h-10 bg-white border border-zinc-200 shadow-sm text-zinc-700 font-bold rounded-xl text-xs active:scale-95 transition-all cursor-pointer hover:bg-zinc-50"
+                    disabled={isBotTyping}
+                    onClick={(e) => !isBotTyping && handleRiskPromptSelect(false, e)}
+                    className={`flex-1 h-10 bg-white border border-zinc-200 shadow-sm text-zinc-700 font-bold rounded-xl text-xs active:scale-95 transition-all cursor-pointer hover:bg-zinc-50 ${isBotTyping ? 'opacity-50 pointer-events-none' : ''}`}
                   >
                     No, skip it
                   </button>
                   <button
-                    onClick={(e) => handleRiskPromptSelect(true, e)}
-                    className="flex-1 h-10 bg-brand-primary hover:bg-[#c11e15] text-white font-bold rounded-xl text-xs active:scale-95 transition-all cursor-pointer shadow-sm shadow-brand-primary/10"
+                    disabled={isBotTyping}
+                    onClick={(e) => !isBotTyping && handleRiskPromptSelect(true, e)}
+                    className={`flex-1 h-10 bg-brand-primary hover:bg-[#c11e15] text-white font-bold rounded-xl text-xs active:scale-95 transition-all cursor-pointer shadow-sm shadow-brand-primary/10 ${isBotTyping ? 'opacity-50 pointer-events-none' : ''}`}
                   >
                     Yes, update
                   </button>
@@ -1473,22 +1548,26 @@ const ChatWidget = () => {
                   <input
                     ref={chatInputRef}
                     type="text"
+                    disabled={isBotTyping}
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
-                    onKeyDown={handleKeyPress}
+                    onKeyDown={(e) => !isBotTyping && handleKeyPress(e)}
                     placeholder={
-                      flowState === 'asking_amount'
-                        ? "Enter total target amount..."
-                        : flowState === 'asking_date'
-                          ? "Enter target achievement date..."
-                          : "Type any savings/life goals you have"
+                      isBotTyping
+                        ? "Nest Planner is typing..."
+                        : flowState === 'asking_amount'
+                          ? "Enter total target amount..."
+                          : flowState === 'asking_date'
+                            ? "Enter target achievement date..."
+                            : "Type any savings/life goals you have"
                     }
-                    className="w-full h-10 pl-3.5 pr-10 bg-zinc-100 border border-zinc-200/50 rounded-xl text-xs font-medium focus:outline-none focus:ring-1 focus:ring-brand-primary focus:border-brand-primary placeholder-zinc-400 transition-all duration-150"
+                    className={`w-full h-10 pl-3.5 pr-10 bg-zinc-100 border border-zinc-200/50 rounded-xl text-xs font-medium focus:outline-none focus:ring-1 focus:ring-brand-primary focus:border-brand-primary placeholder-zinc-400 transition-all duration-150 ${isBotTyping ? 'opacity-60 cursor-not-allowed bg-zinc-200/60' : ''}`}
                   />
                   <button
                     type="button"
                     title="Voice input"
-                    className="absolute right-2.5 p-1 text-zinc-400 hover:text-brand-primary active:scale-95 transition-all rounded-lg focus:outline-none cursor-pointer"
+                    disabled={isBotTyping}
+                    className={`absolute right-2.5 p-1 text-zinc-400 hover:text-brand-primary active:scale-95 transition-all rounded-lg focus:outline-none ${isBotTyping ? 'opacity-40 pointer-events-none' : 'cursor-pointer'}`}
                   >
                     <Mic className="w-4 h-4" />
                   </button>
