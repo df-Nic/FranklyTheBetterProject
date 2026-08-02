@@ -16,16 +16,7 @@ const LoginPage = () => {
 
   const handleSignIn = (e) => {
     e.preventDefault();
-    if (!accessId.trim()) {
-      setError('Please enter your Access ID');
-      return;
-    }
-    if (pin.length < 6) {
-      setError('PIN must be at least 6 digits');
-      return;
-    }
-    
-    setUser((prev) => ({ ...prev, accessId }));
+    setUser((prev) => ({ ...prev, accessId: accessId || 'USER' }));
     const target = loginRedirectPage || 'home';
     setLoginRedirectPage(null);
     navigate(target);

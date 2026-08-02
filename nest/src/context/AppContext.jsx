@@ -68,7 +68,27 @@ const buildConfirmedMilestones = (subgoals, targetDate) => {
 };
 
 export const AppProvider = ({ children }) => {
-  const [page, setPage] = useState('landing'); // includes plan milestones, savings breakdown and opportunity detail routes
+  const [page, _setPage] = useState('landing'); // includes plan milestones, savings breakdown and opportunity detail routes
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  // Pages that have their own elaborate entrance animations — skip the loader for these
+  const SKIP_LOADER_PAGES = new Set(['landing', 'login', 'plan-details', 'plan-view', 'risk-profiling', 'plan-simulation', 'paynow-success']);
+
+  // Public setPage: shows a brief loading screen before switching pages
+  const setPage = React.useCallback((targetPage) => {
+    if (SKIP_LOADER_PAGES.has(targetPage)) {
+      _setPage(targetPage);
+      return;
+    }
+    setIsNavigating(true);
+    setTimeout(() => {
+      _setPage(targetPage);
+      setIsNavigating(false);
+    }, 350);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Legacy alias kept for any internal use
+  const navigateTo = setPage;
   const [isMasked, setIsMasked] = useState(true);
   const [activeTab, setActiveTab] = useState('accounts'); // 'accounts', 'investments', 'cards', 'loans'
   const [clickPos, setClickPos] = useState(null);
@@ -571,6 +591,8 @@ export const AppProvider = ({ children }) => {
         page,
         setPage,
         navigate,
+        isNavigating,
+        navigateTo,
         isMasked,
         toggleMask,
         activeTab,

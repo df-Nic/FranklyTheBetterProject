@@ -25,6 +25,7 @@ import AccountDetailPage from './pages/AccountDetailPage';
 import PlanSimulationScreen from './features/planSimulation/PlanSimulationScreen';
 import ReasoningLogPage from './features/planSimulation/ReasoningLogPage';
 import PlanLiquidityDetailsPage from './pages/PlanLiquidityDetailsPage';
+import PageTransitionLoader from './components/ui/PageTransitionLoader';
 
 // Iris-animated wrapper for RiskProfilingPage — mirrors how PlanDetailsPage enters/exits
 function RiskProfilingIrisWrapper() {
@@ -57,7 +58,7 @@ function RiskProfilingIrisWrapper() {
 }
 
 function AppContent() {
-  const { page, planDetailOrigin, setPage } = useApp();
+  const { page, planDetailOrigin, setPage, isNavigating } = useApp();
 
   // Background under plan-details depends on where the user came from
   const detailsOrigin = planDetailOrigin || 'home';
@@ -338,6 +339,9 @@ function AppContent() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Page transition loading overlay */}
+      <PageTransitionLoader visible={isNavigating} />
     </MobileFrame>
   );
 }
