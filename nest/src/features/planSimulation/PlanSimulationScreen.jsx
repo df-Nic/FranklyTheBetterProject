@@ -40,7 +40,7 @@ export default function PlanSimulationScreen() {
     preloadOwls();
   }, []);
 
-  const { state: liveState, isComplete, skip } = useSimulationRunner(
+  const { state: liveState } = useSimulationRunner(
     pendingPlan?.script ?? null,
     {
       onComplete: (completedScript) => {
@@ -69,8 +69,6 @@ export default function PlanSimulationScreen() {
       <div className="max-w-[430px] mx-auto px-4 pt-6 pb-24 flex flex-col gap-4">
         <SimulationHeader
           onBack={() => navigate(pendingPlan?.result?.returnPage || 'home')}
-          onSkip={skip}
-          isComplete={isComplete}
         />
         <TournamentCard
           activeAgent={state.activeAgent}

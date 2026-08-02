@@ -28,6 +28,7 @@ import PlanAreaChart from '../components/ui/PlanAreaChart';
 import PlanTabbedDeck from '../components/ui/PlanTabbedDeck';
 import ReplanOverlay from '../components/ui/ReplanOverlay';
 import { getMilestonePlan } from '../data/milestonePlans';
+import AgentSynthesisCard from '../features/planSimulation/components/AgentSynthesisCard';
 
 const buildCanonicalProjection = ({
   targetAmount,
@@ -140,6 +141,7 @@ const PlanDetailsPage = () => {
     appliedExcluded,
     setAppliedExcluded,
     housingPropertyType,
+    pendingPlan,
   } = useApp();
 
   // 1. Identify active plan template — prefer activePlanId (precise), fall back to fuzzy title match
@@ -199,6 +201,9 @@ const PlanDetailsPage = () => {
   const isDraftReview = Boolean(activePlanDraft)
     && !['plan-milestones', 'plan-dashboard'].includes(planDetailOrigin);
   const isConfirmedBreakdown = Boolean(isPlanAccepted && !isDraftReview);
+  const strategySnapshot = pendingPlan?.script?.planId === activePlanId
+    ? pendingPlan.script.request?.strategySnapshot
+    : null;
 
   // Custom user preferences passed from chat widget setup
   const userPlanMeta = isDraftReview
@@ -988,6 +993,8 @@ const PlanDetailsPage = () => {
               </div>
             </div>
           </GlassCard>
+
+          {strategySnapshot && <AgentSynthesisCard snapshot={strategySnapshot} />}
 
           {/* User Risk Profile Status Card */}
           <GlassCard className="p-3.5 border-indigo-100/60 bg-gradient-to-br from-indigo-50/40 via-white/50 to-purple-50/30 shadow-xs flex flex-col gap-2.5 shrink-0 relative overflow-hidden">

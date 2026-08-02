@@ -24,6 +24,10 @@ export function buildCompletedPlanScript(plan) {
     horizonMonths: getHorizonMonths(plan.goalDate),
     monthlyContribution: Number(plan.monthlyContribution || 0),
     targetAmount: Number(plan.targetAmount || 0),
+    targetDate: plan.goalDate,
+    paymentStrategy: plan.paymentStrategy ?? 'staggered',
+    milestones: plan.milestones ?? [],
+    propertyType: plan.propertyType ?? 'hdb',
     riskProfile: plan.personalContext?.priority ?? 'balanced',
     strategy: plan.strategy,
   });

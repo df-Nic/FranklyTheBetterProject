@@ -2,7 +2,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import AgentOwl from './AgentOwl';
 
 /**
- * ArenaStage — the "Live Sandbox Tournament" visual.
+ * ArenaStage — the "Finding your best-fit strategy" visual.
  *
  * Three agents orbit the marble podium. `activeAgent` lifts whichever lever
  * is currently being stress-tested. The arena backdrop is pure SVG (no binary

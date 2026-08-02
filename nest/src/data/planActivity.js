@@ -1,4 +1,4 @@
-import { getSavingsBreakdown } from "./savingsBreakdowns";
+import { getSavingsBreakdown } from "./savingsBreakdowns.js";
 
 const dateValue = (value) => {
   const parsed = Date.parse(value);
@@ -18,7 +18,7 @@ const offsetDate = (value, days) => {
   return date.toISOString();
 };
 
-export function buildSeededPlanActivity(plan, opportunity, decision) {
+export function buildSeededPlanActivity(plan, opportunity, decision, opportunityLifecycle) {
   if (!plan || !plan.id) return [];
   const milestones = plan.milestones || [];
   const savings = getSavingsBreakdown(plan.id) || { items: [], asOf: "22 Jul 2026" };
@@ -93,20 +93,19 @@ export function buildSeededPlanActivity(plan, opportunity, decision) {
     status: "completed",
   }));
 
-  if (opportunity) events.push({
+  const isStandaloneOpportunity = opportunityLifecycle?.route === "standalone";
+
+  if (opportunity && isStandaloneOpportunity) events.push({
     id: `opportunity-${opportunity.id}`, planId: plan.id, actor: "owl", type: "opportunity",
     title: opportunity.title,
     description: opportunity.summary,
-    timestamp: createdDate && dateValue(opportunity.detectedDate) <= createdDate
-      ? new Date(createdDate + 5 * 60_000).toISOString()
-      : opportunity.detectedDate,
-    sortTimestamp: decision?.decidedAt ?? opportunity.detectedDate,
+    timestamp: opportunityLifecycle.triggeredAt ?? opportunity.detectedDate,
     lifecycleGroup: `opportunity-${opportunity.id}`,
     lifecycleStep: 0,
     status: "identified",
   });
 
-  if (decision) events.push({
+  if (decision && isStandaloneOpportunity) events.push({
     id: `decision-${opportunity?.id ?? plan.id}-${decision.status}`, planId: plan.id,
     actor: "user", type: "decision",
     title: decision.status === "accepted" ? "Opportunity accepted" : "Current plan kept",
@@ -120,7 +119,7 @@ export function buildSeededPlanActivity(plan, opportunity, decision) {
     status: decision.status,
   });
 
-  if (decision?.status === "accepted" && opportunity) events.push({
+  if (decision?.status === "accepted" && opportunity && isStandaloneOpportunity) events.push({
     id: `opportunity-completed-${opportunity.id}`,
     planId: plan.id,
     actor: "owl",
@@ -138,11 +137,15 @@ export function buildSeededPlanActivity(plan, opportunity, decision) {
   return events.map((event) => ({ ...event, timestamp: normalizeTimestamp(event.timestamp) }));
 }
 
-export function getPlanActivity({ plan, opportunity, decision, runtimeEvents = [] }) {
+export function getPlanActivity({ plan, opportunity, decision, opportunityLifecycle, runtimeEvents = [] }) {
   if (!plan || !plan.id) return [];
   const byId = new Map();
-  [...buildSeededPlanActivity(plan, opportunity, decision), ...(runtimeEvents || [])]
-    .filter((event) => event && event.planId === plan.id)
+  [...buildSeededPlanActivity(plan, opportunity, decision, opportunityLifecycle), ...(runtimeEvents || [])]
+    .filter((event) => {
+      if (!event || event.planId !== plan.id) return false;
+      const timestamp = dateValue(event.timestamp);
+      return timestamp === 0 || timestamp <= Date.now();
+    })
     .forEach((event) => {
       const existing = byId.get(event.id);
       byId.set(event.id, {
@@ -152,13 +155,13 @@ export function getPlanActivity({ plan, opportunity, decision, runtimeEvents = [
       });
     });
   return [...byId.values()].sort((a, b) => {
-    if (a.lifecycleGroup && a.lifecycleGroup === b.lifecycleGroup) {
-      return (b.lifecycleStep ?? 0) - (a.lifecycleStep ?? 0);
-    }
-
     const aDate = dateValue(a.sortTimestamp ?? a.timestamp);
     const bDate = dateValue(b.sortTimestamp ?? b.timestamp);
     if (aDate !== bDate) return bDate - aDate;
+
+    if (a.lifecycleGroup && a.lifecycleGroup === b.lifecycleGroup) {
+      return (b.lifecycleStep ?? 0) - (a.lifecycleStep ?? 0);
+    }
 
     const lifecycleRank = (event) => {
       if (event.type === "completion") return 6;

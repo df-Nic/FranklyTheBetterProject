@@ -10,7 +10,7 @@ export default function JudgeProgressCard({ judge, completed = false }) {
       ? 'Checking returns against the stress-test evidence'
       : pct < 85
         ? 'Weighing safety, growth, and timing trade-offs'
-        : 'Selecting the strongest strategy for your goal';
+        : 'Combining all three agents\u2019 evidence into the final strategy';
 
   return (
     <AnimatePresence>
@@ -26,7 +26,7 @@ export default function JudgeProgressCard({ judge, completed = false }) {
             <AgentOwl variant="judge" size={64} title="Judge Agent" className="shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="text-[13px] font-bold text-gray-900 leading-snug">{completed ? 'Judge Agent completed the evaluation.' : 'Judge Agent is evaluating the evidence'}</p>
-              <p className="text-[11px] text-gray-400 mt-0.5 leading-snug">{completed ? 'The winning strategy was assembled into your plan.' : evaluationMessage}</p>
+              <p className="text-[11px] text-gray-400 mt-0.5 leading-snug">{completed ? 'Strategy selected using evidence from all three agents.' : evaluationMessage}</p>
             </div>
             <div className="shrink-0 text-right">
               <motion.p

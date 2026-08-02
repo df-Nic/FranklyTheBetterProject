@@ -47,6 +47,7 @@ export default function PlanMilestonesPage() {
     opportunityReveal,
     markOpportunityRevealViewed,
     opportunitySourceAmount,
+    opportunityLifecycle,
     pendingPlan,
   } = useApp();
   const basePlan = getMilestonePlan(activePlanId, planAdjustments);
@@ -84,7 +85,7 @@ export default function PlanMilestonesPage() {
       ? { ...basePlan, onTrack: updatedPlan?.onTrack }
       : updatedPlan;
   const onTrack = deriveOnTrack(plan?.onTrack);
-  const activities = getPlanActivity({ plan, opportunity, decision, runtimeEvents: planActivity });
+  const activities = getPlanActivity({ plan, opportunity, decision, opportunityLifecycle, runtimeEvents: planActivity });
   const wasHealed = Boolean(planAdjustments?.[activePlanId]?.healed);
   const personalCopy = buildPersonalizedPlanCopy({
     plan, userName: user?.name, onTrack, recentActivity: activities[0], decision, wasHealed,

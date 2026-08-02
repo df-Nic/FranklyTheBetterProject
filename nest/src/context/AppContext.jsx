@@ -3,6 +3,8 @@ import { createTransactionDeviation } from '../data/transactionDeviations';
 import { getMilestonePlan } from '../data/milestonePlans';
 import { applyOpportunityChanges, getAllocationImpact, getPlanOpportunity } from '../data/planOpportunities';
 import { buildSimulationScript } from '../features/planSimulation/engine/buildSimulationScript';
+import { getPlanHorizonMonths, parsePlanTargetDate } from '../lib/planDate';
+import { completeOpportunityLifecycle, createOpportunityLifecycle } from '../lib/opportunityLifecycle';
 
 const AppContext = createContext();
 
@@ -33,10 +35,7 @@ export const getHousingSubgoals = (propertyType = 'hdb', targetAmount = 500000, 
 const DEMO_HOUSING_SUBGOALS = getHousingSubgoals('hdb', 500000, 'Aug 2030');
 
 const getMonthsUntil = (targetDate) => {
-  const parsed = new Date(targetDate);
-  if (Number.isNaN(parsed.getTime())) return 1;
-  const now = new Date();
-  return Math.max(1, (parsed.getFullYear() - now.getFullYear()) * 12 + parsed.getMonth() - now.getMonth());
+  return getPlanHorizonMonths(targetDate) ?? 1;
 };
 
 const getRequiredMonthlyContribution = (targetAmount, targetDate, paymentStrategy) => {
@@ -170,6 +169,7 @@ export const AppProvider = ({ children }) => {
   const [selectedAccountId, setSelectedAccountId] = useState('acc-1');
   const [opportunitySourceAmount, setOpportunitySourceAmount] = useState(0);
   const [showOpportunityPopup, setShowOpportunityPopup] = useState(false);
+  const [opportunityLifecycle, setOpportunityLifecycle] = useState({ state: 'idle', route: null, triggeredAt: null });
 
   const performMockDeposit = (amount, accountId = selectedAccountId || 'acc-1') => {
     const numAmount = Number(amount);
@@ -183,7 +183,10 @@ export const AppProvider = ({ children }) => {
     setOpportunityDecisions({});
     setOpportunityNotice(null);
     setOpportunityReveal(null);
-    setShowOpportunityPopup(true);
+    const lifecycle = createOpportunityLifecycle(transactionDeviations.some((event) => event.status === 'pending'));
+    const route = lifecycle.route;
+    setOpportunityLifecycle(lifecycle);
+    setShowOpportunityPopup(route === 'standalone');
     setPage('home');
     return true;
   };
@@ -297,6 +300,10 @@ export const AppProvider = ({ children }) => {
       timestamp: new Date().toISOString(),
       status: 'completed',
     });
+    if (opportunityLifecycle.route === 'healer') {
+      setOpportunityLifecycle(completeOpportunityLifecycle);
+      setShowOpportunityPopup(false);
+    }
     return true;
   };
 
@@ -356,6 +363,8 @@ export const AppProvider = ({ children }) => {
         status: Math.max(0, before - allocation.amount) === 0 ? 'completed' : 'partially healed',
       });
     });
+    setOpportunityLifecycle(completeOpportunityLifecycle);
+    setShowOpportunityPopup(false);
     return true;
   };
   const requestPlanChatOpen = () => setPlanChatRequest(value => value + 1);
@@ -448,7 +457,7 @@ export const AppProvider = ({ children }) => {
           : 'Your plan has been enhanced with this opportunity.'
         : 'Your existing plan remains unchanged.',
     });
-    setPlanActivity(prev => [...prev.filter(item => item.id !== `decision-${opportunity.id}-${status}`), {
+    if (opportunityLifecycle.route === 'standalone') setPlanActivity(prev => [...prev.filter(item => item.id !== `decision-${opportunity.id}-${status}`), {
       id: `decision-${opportunity.id}-${status}`,
       planId,
       actor: 'user',
@@ -460,6 +469,8 @@ export const AppProvider = ({ children }) => {
       timestamp: decidedAt,
       status,
     }]);
+    setOpportunityLifecycle(completeOpportunityLifecycle);
+    setShowOpportunityPopup(false);
     return true;
   };
 
@@ -535,11 +546,14 @@ export const AppProvider = ({ children }) => {
 
   const confirmPlan = (planId, data) => {
     if (!planId || !data?.targetAmount || !data?.targetDate) return false;
+    const parsedTarget = parsePlanTargetDate(data.targetDate);
+    if (parsedTarget.status !== 'complete') return false;
     const targetAmount = Number(data.targetAmount);
+    const targetDate = parsedTarget.formatted;
     const paymentStrategy = data.paymentStrategy || 'lump-sum';
     const confirmedSubgoals = (data.subgoals || []).map((subgoal) => ({ ...subgoal, amount: Number(subgoal.amount) }));
     const confirmedAt = new Date().toISOString();
-    const monthlyContribution = getRequiredMonthlyContribution(targetAmount, data.targetDate, paymentStrategy);
+    const monthlyContribution = getRequiredMonthlyContribution(targetAmount, targetDate, paymentStrategy);
     const confirmedCategories = (data.categories || []).map((category) => ({
       ...category,
       actions: category.actions.map((action) => ({ ...action })),
@@ -551,7 +565,7 @@ export const AppProvider = ({ children }) => {
         ...(prev[planId] || {}),
         ...data,
         targetAmount,
-        targetDate: data.targetDate,
+        targetDate,
         paymentStrategy,
         subgoals: confirmedSubgoals,
         confirmedSubgoals,
@@ -564,7 +578,7 @@ export const AppProvider = ({ children }) => {
       ...prev,
       [planId]: {
         targetAmount,
-        goalDate: data.targetDate,
+        goalDate: targetDate,
         monthlyContribution,
         lumpSumContribution: paymentStrategy === 'lump-sum' ? targetAmount : 0,
         paymentStrategy,
@@ -572,7 +586,7 @@ export const AppProvider = ({ children }) => {
           ? 'One-time contribution'
           : `Monthly contributions of S$${monthlyContribution.toLocaleString('en-SG')}`,
         onTrack: { expected: 0, saved: 0 },
-        milestones: buildConfirmedMilestones(confirmedSubgoals, data.targetDate),
+        milestones: buildConfirmedMilestones(confirmedSubgoals, targetDate),
         isUserCreated: true,
       },
     }));
@@ -655,6 +669,7 @@ export const AppProvider = ({ children }) => {
         setSelectedAccountId,
         opportunitySourceAmount,
         setOpportunitySourceAmount,
+        opportunityLifecycle,
         showOpportunityPopup,
         setShowOpportunityPopup,
         performMockDeposit,
