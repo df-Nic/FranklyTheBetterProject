@@ -81,11 +81,23 @@ const buildConfirmedMilestones = (subgoals, targetDate) => {
 export const AppProvider = ({ children }) => {
   const [page, _setPage] = useState('landing'); // includes plan milestones, savings breakdown and opportunity detail routes
   const [isNavigating, setIsNavigating] = useState(false);
+  const [navigationLabel, setNavigationLabel] = useState('');
 
-  // Pages that have their own elaborate entrance animations — skip the loader for these
-  const SKIP_LOADER_PAGES = new Set(['landing', 'login', 'plan-details', 'plan-view', 'risk-profiling', 'plan-simulation', 'paynow-success']);
+  // Pages that do not use the loading screen for seamless transitions
+  const SKIP_LOADER_PAGES = new Set([
+    'landing',
+    'login',
+    'home',
+    'plan-dashboard',
+    'paynow-contacts',
+    'paynow-amount',
+    'paynow-confirm',
+    'paynow-success',
+    'plan-change-option',
+    'plan-healer',
+  ]);
 
-  // Public setPage: shows a brief loading screen before switching pages
+  // Public setPage: switches pages seamlessly
   const setPage = React.useCallback((targetPage) => {
     if (SKIP_LOADER_PAGES.has(targetPage)) {
       _setPage(targetPage);
@@ -231,7 +243,12 @@ export const AppProvider = ({ children }) => {
     const coordinatedRequest = { ...request, portfolioSnapshot };
     const script = buildSimulationScript(coordinatedRequest);
     setPendingPlan({ request: coordinatedRequest, result, script });
-    setPage('plan-simulation');
+
+    setIsNavigating(true);
+    setTimeout(() => {
+      _setPage('plan-simulation');
+      setIsNavigating(false);
+    }, 1200);
   };
 
   // Add a plan to the in-memory list (deduplicated by id)
@@ -691,6 +708,7 @@ export const AppProvider = ({ children }) => {
         setPage,
         navigate,
         isNavigating,
+        navigationLabel,
         navigateTo,
         isMasked,
         toggleMask,

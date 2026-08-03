@@ -47,7 +47,7 @@ const PageTransitionLoader = ({ visible }) => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="absolute inset-0 z-[200] flex flex-col items-center justify-center bg-white/85 backdrop-blur-sm gap-6 pointer-events-auto"
+          className="absolute inset-0 z-[200] flex flex-col items-center justify-center bg-white/85 backdrop-blur-sm gap-6 pointer-events-auto select-none"
         >
           {/* Wavy NEST letters */}
           <div className="flex items-center gap-0.5" aria-hidden="true">

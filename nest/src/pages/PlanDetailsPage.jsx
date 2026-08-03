@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp, getHousingSubgoals } from '../context/AppContext';
 import {
@@ -399,25 +399,7 @@ const PlanDetailsPage = () => {
     });
   }, [activePlanId, activePlan, createdPlans, isPlanAccepted, planDetailOrigin]);
 
-  // Back transition clip paths
-  const x = clickPos?.x ?? 195;
-  const y = clickPos?.y ?? 422;
-  const initialClip = `circle(0% at ${x}px ${y}px)`;
-  const animateClip = `circle(150% at ${x}px ${y}px)`;
 
-  const contentVariants = {
-    hidden: { opacity: 0, y: 15 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { delay: 0.3, duration: 0.4, ease: "easeOut" }
-    },
-    exit: {
-      opacity: 0,
-      y: 15,
-      transition: { duration: 0.2, ease: "easeIn" }
-    }
-  };
 
   // Checkbox toggle actions
   const toggleAction = (actionId) => {
@@ -925,19 +907,12 @@ const PlanDetailsPage = () => {
 
   return (
     <motion.div
-      initial={{ clipPath: initialClip }}
-      animate={{ clipPath: animateClip }}
-      exit={{ clipPath: initialClip }}
-      transition={{ duration: 0.75, ease: [0.76, 0, 0.24, 1] }}
-      className="absolute inset-0 h-full min-h-0 z-50 bg-brand-primary flex flex-col overflow-hidden select-none"
+      initial={{ opacity: 0, x: 40 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -40 }}
+      transition={{ type: 'spring', damping: 25, stiffness: 180 }}
+      className="absolute inset-0 h-full min-h-0 z-50 flex flex-col min-h-0 bg-[#F5F5F7] relative overflow-hidden select-none"
     >
-      <motion.div
-        variants={contentVariants}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-        className="w-full h-full flex flex-col min-h-0 bg-[#F5F5F7] relative overflow-hidden"
-      >
         {/* Background Orbs */}
         <BackgroundOrb color="pink" size="300px" className="-top-12 -left-12" />
         <BackgroundOrb color="blue" size="250px" className="bottom-20 -right-10" />
@@ -1330,7 +1305,6 @@ const PlanDetailsPage = () => {
 
 
       </motion.div>
-    </motion.div>
   );
 };
 
