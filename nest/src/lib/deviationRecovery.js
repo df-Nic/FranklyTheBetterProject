@@ -11,6 +11,49 @@ export const getDeviationStatus = (affectedPlans = []) => {
     : "pending";
 };
 
+export const createRecoveryBatch = (affectedPlans = [], selectedPlanIds = [], resolvedAt = new Date().toISOString()) => {
+  const actionableIds = new Set(
+    affectedPlans.filter(isDeviationPlanActionable).map((plan) => plan.planId),
+  );
+  const recoveryBatchPlanIds = [...new Set(selectedPlanIds)].filter((planId) => actionableIds.has(planId));
+  if (!recoveryBatchPlanIds.length) return null;
+
+  const batchIds = new Set(recoveryBatchPlanIds);
+  const nextAffectedPlans = affectedPlans.map((plan) => (
+    plan.status === "pending" && !batchIds.has(plan.planId)
+      ? {
+        ...plan,
+        status: "covered",
+        resolution: "recovery-concentrated-elsewhere",
+        gap: 0,
+        resolvedAt,
+      }
+      : plan
+  ));
+
+  return { recoveryBatchPlanIds, affectedPlans: nextAffectedPlans };
+};
+
+export const getTimelineAutoCoverage = (affectedPlans = [], selectedPlanIds = [], selectedStrategies = {}) => {
+  const selectedIds = new Set(selectedPlanIds);
+  const selectedPlans = affectedPlans.filter((plan) => selectedIds.has(plan.planId));
+  const timelinePlans = selectedPlans.filter((plan) => selectedStrategies[plan.planId] === "timeline");
+  if (!timelinePlans.length) return { capacity: 0, sourcePlanId: null, autoCoveredPlanIds: [] };
+
+  const sourcePlan = timelinePlans.reduce((largest, plan) =>
+    (Number(plan.gap) || 0) > (Number(largest.gap) || 0) ? plan : largest);
+  const capacity = Number(sourcePlan.gap) || 0;
+  const autoCoveredPlanIds = selectedPlans
+    .filter((plan) => (
+      plan.planId !== sourcePlan.planId
+      && selectedStrategies[plan.planId] !== "timeline"
+      && (Number(plan.gap) || 0) <= capacity
+    ))
+    .map((plan) => plan.planId);
+
+  return { capacity, sourcePlanId: sourcePlan.planId, autoCoveredPlanIds };
+};
+
 export const calculateTimelineDelayMonths = (gap, monthlyContribution) => {
   const contribution = Number(monthlyContribution);
   if (!Number.isFinite(contribution) || contribution <= 0) return null;
