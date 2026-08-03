@@ -121,7 +121,7 @@ const PayNowContactsPage = () => {
           </div>
 
           {/* Contact List */}
-          <div className="flex-1 overflow-y-auto scroll-ios no-scrollbar px-2 divide-y divide-zinc-100">
+          <div className="flex-1 min-h-0 overflow-y-auto scroll-ios touch-pan-y no-scrollbar px-2 divide-y divide-zinc-100">
             {filteredContacts.length > 0 ? (
               filteredContacts.map((contact) => (
                 <motion.div

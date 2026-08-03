@@ -1237,39 +1237,39 @@ const ChatWidget = () => {
                       </div>
                     ) : msg.isInferredDefaults ? (
                       <div className="w-full min-w-[220px] text-zinc-800">
-                        <div className="text-[9px] font-black uppercase tracking-wider text-brand-primary">Owl’s suggested starting point</div>
-                        <div className="mt-2 space-y-1.5 rounded-xl bg-zinc-50 p-2.5 text-[9.5px]">
+                        <div className="text-[11px] font-black uppercase tracking-wider text-brand-primary">Owl’s suggested starting point</div>
+                        <div className="mt-2 space-y-1.5 rounded-xl bg-zinc-50 p-2.5 text-[11px]">
                           <div className="flex justify-between"><span>Target</span><strong>S${msg.proposal.amount.toLocaleString()}</strong></div>
                           <div className="flex justify-between"><span>Goal date</span><strong>{msg.proposal.date}</strong></div>
                           <div className="flex justify-between"><span>Monthly amount</span><strong>S${msg.proposal.monthly.toLocaleString()}</strong></div>
                           <div className="flex justify-between"><span>Payment style</span><strong>Staggered</strong></div>
                         </div>
-                        <p className="mt-2 text-[9px] leading-relaxed text-zinc-500">Based on this goal type, your linked balances, and a contribution that preserves flexibility.</p>
-                        <button onClick={confirmInferredPlan} className="mt-2.5 w-full rounded-lg bg-brand-primary py-2 text-[9px] font-black text-white">Use these suggestions</button>
-                        <button onClick={editInferredPlan} className="mt-1.5 w-full rounded-lg border border-zinc-200 py-2 text-[9px] font-black">Edit values</button>
+                        <p className="mt-2 text-[11px] leading-relaxed text-zinc-500">Based on this goal type, your linked balances, and a contribution that preserves flexibility.</p>
+                        <button onClick={confirmInferredPlan} className="mt-2.5 w-full rounded-lg bg-brand-primary py-2 text-[11px] font-black text-white">Use these suggestions</button>
+                        <button onClick={editInferredPlan} className="mt-1.5 w-full rounded-lg border border-zinc-200 py-2 text-[11px] font-black">Edit values</button>
                       </div>
                     ) : msg.isPlanBreakdown ? (
                       <div className="flex flex-col gap-2.5 w-full min-w-0 text-zinc-800">
                         <div className="flex items-center gap-1.5 text-zinc-900 font-bold border-b border-zinc-100/50 pb-1.5 shrink-0">
                           <Compass className="w-3.5 h-3.5 text-brand-primary animate-pulse shrink-0" />
-                          <span className="text-[10px] uppercase tracking-wider font-extrabold">Plan Subgoals</span>
+                          <span className="text-[11.5px] uppercase tracking-wider font-extrabold">Plan Subgoals</span>
                         </div>
                         <div className="flex flex-col gap-2 pl-1">
                           {msg.categories.map((c, idx) => (
                             <div key={idx} className="flex flex-col border-l-2 border-brand-primary/20 pl-2 text-left">
-                              <span className="font-extrabold text-[10px] text-zinc-800 leading-tight">{c.name}</span>
-                              <div className="flex justify-between items-center text-[8.5px] font-bold text-zinc-400 mt-0.5">
+                              <span className="font-extrabold text-[11.5px] text-zinc-800 leading-tight">{c.name}</span>
+                              <div className="flex justify-between items-center text-[10.5px] font-bold text-zinc-400 mt-0.5">
                                 {c.date ? <span>Milestone: {c.date}</span> : <span />}
                                 <span className="text-zinc-800 font-extrabold">S${c.amount.toLocaleString()}</span>
                               </div>
                             </div>
                           ))}
                         </div>
-                        <div className="text-[8px] text-zinc-400 font-bold border-t border-zinc-200/50 pt-2 flex justify-between px-0.5 shrink-0">
+                        <div className="text-[10.5px] text-zinc-400 font-bold border-t border-zinc-200/50 pt-2 flex justify-between px-0.5 shrink-0">
                           <span>Total: S${msg.targetAmount.toLocaleString()}</span>
                           <span>Target: {msg.targetDate}</span>
                         </div>
-                        <p className="text-[11px] leading-normal text-brand-primary font-black mt-2 text-left italic">
+                        <p className="text-[11.5px] leading-normal text-brand-primary font-black mt-2 text-left italic">
                           * You can edit these individual subgoals later before confirming your plan.
                         </p>
                       </div>
@@ -1277,62 +1277,63 @@ const ChatWidget = () => {
                       <div className="flex flex-col gap-2.5 w-full min-w-0 text-zinc-800">
                         <div className="flex items-center gap-1.5 text-zinc-900 font-bold border-b border-zinc-100/50 pb-1.5 shrink-0">
                           <Compass className="w-3.5 h-3.5 text-brand-primary animate-pulse shrink-0" />
-                          <span className="text-[10px] uppercase tracking-wider font-extrabold">Plan Summary</span>
+                          <span className="text-[11.5px] uppercase tracking-wider font-extrabold">Plan Summary</span>
                         </div>
                         <div className="bg-zinc-50 border border-zinc-200/50 rounded-xl p-2.5 flex flex-col gap-2">
-                          <div className="flex justify-between items-center text-[9.5px] font-bold">
+                          <div className="flex justify-between items-center text-[11px] font-bold">
                             <span className="text-zinc-500">Target Goal:</span>
                             <span className="text-zinc-900 font-black">S${msg.targetAmount.toLocaleString()}</span>
                           </div>
-                          <div className="flex justify-between items-center text-[9.5px] font-bold">
+                          <div className="flex justify-between items-center text-[11px] font-bold">
                             <span className="text-zinc-500">Target Date:</span>
                             <span className="text-zinc-900 font-black">{msg.targetDate}</span>
                           </div>
                         </div>
-                        <p className="text-[11px] leading-normal text-brand-primary font-black mt-2 text-left italic">
+                        <p className="text-[11.5px] leading-normal text-brand-primary font-black mt-2 text-left italic">
                           * You can customize and add subgoals later before confirming your plan.
                         </p>
                       </div>
                     ) : msg.isFirstPlanReview ? (
                       <div className="flex flex-col gap-2 min-w-[200px]">
-                        <p className="text-zinc-600 font-medium leading-relaxed text-[11px]">
+                        <p className="text-zinc-700 font-medium leading-relaxed text-[13px]">
                           {msg.text}
                         </p>
                         <button
                           onClick={(e) => handleReviewPlanClick(e, msg.planTitle)}
-                          className="mt-2.5 w-full py-2 bg-brand-primary hover:bg-[#c11e15] text-white font-bold rounded-xl text-[10px] tracking-wide uppercase transition-all duration-150 active:scale-95 shadow-md shadow-brand-primary/25 cursor-pointer flex items-center justify-center gap-1"
+                          className="mt-2.5 w-full py-2.5 bg-brand-primary hover:bg-[#c11e15] text-white font-black rounded-xl text-[12px] tracking-wide uppercase transition-all duration-150 active:scale-95 shadow-md shadow-brand-primary/25 cursor-pointer flex items-center justify-center gap-1.5"
                         >
                           <span>Generate your plan</span>
-                          <ArrowRight className="w-3 h-3 stroke-[2.5]" />
+                          <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
                         </button>
                       </div>
                     ) : msg.isReturningUserConfirmation ? (
                       <div className="flex flex-col gap-2 min-w-[200px]">
-                        <p className="text-zinc-600 font-medium leading-relaxed text-[11.5px]">
+                        <p className="text-zinc-700 font-medium leading-relaxed text-[13px]">
                           {msg.text}
                         </p>
                         <button
                           onClick={(e) => handleReviewPlanClick(e, msg.planTitle)}
-                          className="mt-2.5 w-full py-2 bg-brand-primary hover:bg-[#c11e15] text-white font-bold rounded-xl text-[10px] tracking-wide uppercase transition-all duration-150 active:scale-95 shadow-md shadow-brand-primary/25 cursor-pointer flex items-center justify-center gap-1"
+                          className="mt-2.5 w-full py-2.5 bg-brand-primary hover:bg-[#c11e15] text-white font-black rounded-xl text-[12px] tracking-wide uppercase transition-all duration-150 active:scale-95 shadow-md shadow-brand-primary/25 cursor-pointer flex items-center justify-center gap-1.5"
                         >
                           <span>Generate your plan</span>
-                          <ArrowRight className="w-3 h-3 stroke-[2.5]" />
+                          <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
                         </button>
                       </div>
                     ) : msg.isPlanProposal ? (
                       <div className="flex flex-col gap-2">
                         <div className="flex items-center gap-1.5 text-zinc-900 font-bold border-b border-zinc-100 pb-1">
                           <Compass className="w-3.5 h-3.5 text-brand-primary animate-pulse" />
-                          <span>{msg.planTitle} Ready</span>
+                          <span className="text-[13px] font-bold">{msg.planTitle} Ready</span>
                         </div>
-                        <p className="text-zinc-600 font-medium leading-relaxed text-[11.5px]">
+                        <p className="text-zinc-700 font-medium leading-relaxed text-[13px]">
                           I have compiled a customized wealth strategy: <strong className="text-brand-primary font-bold">"{msg.planTitle}"</strong> for your target: *"{msg.originalQuery}"*.
                         </p>
                         <button
                           onClick={(e) => handleReviewPlanClick(e, msg.originalQuery)}
-                          className="mt-1.5 w-full py-2 bg-brand-primary hover:bg-[#c11e15] text-white font-bold rounded-xl text-[10px] tracking-wide uppercase transition-all duration-150 active:scale-95 shadow-md shadow-brand-primary/25 cursor-pointer flex items-center justify-center gap-1.5"
+                          className="mt-2 w-full py-2.5 bg-brand-primary hover:bg-[#c11e15] text-white font-black rounded-xl text-[12px] tracking-wide uppercase transition-all duration-150 active:scale-95 shadow-md shadow-brand-primary/25 cursor-pointer flex items-center justify-center gap-1.5"
                         >
                           <span>Generate your plan</span>
+                          <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
                         </button>
                       </div>
                     ) : (
@@ -1349,7 +1350,7 @@ const ChatWidget = () => {
               <div className="px-4 py-3 border-t border-zinc-200/40 bg-zinc-50/50 shrink-0 flex flex-col gap-1.5">
                 <div className="flex items-center gap-1.5 mb-1.5">
                   <Compass className="w-3.5 h-3.5 text-brand-primary" />
-                  <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Plan suggestions based on your portfolio</span>
+                  <span className="text-[11px] font-extrabold text-zinc-500 uppercase tracking-wider">Plan suggestions based on your portfolio</span>
                 </div>
                 <div
                   ref={suggestionsRef}
@@ -1360,7 +1361,7 @@ const ChatWidget = () => {
                     <button
                       key={idx}
                       onClick={() => handleSend(suggestion)}
-                      className="flex-shrink-0 bg-white hover:bg-zinc-50 border border-zinc-200/60 shadow-sm text-zinc-700 font-bold px-3.5 py-2 rounded-full text-[10px] transition-colors cursor-pointer active:scale-95"
+                      className="flex-shrink-0 bg-white hover:bg-zinc-50 border border-zinc-200/80 shadow-sm text-zinc-800 font-bold px-3.5 py-2 rounded-full text-[12px] transition-colors cursor-pointer active:scale-95"
                     >
                       {suggestion}
                     </button>
