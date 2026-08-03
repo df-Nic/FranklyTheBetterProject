@@ -3,7 +3,7 @@ import { ArrowLeft, CalendarClock, Check, ChevronDown, ChevronRight, ShieldCheck
 import { useApp } from "../context/AppContext";
 import { getMilestonePlan } from "../data/milestonePlans";
 import { getPlanOpportunity } from "../data/planOpportunities";
-import { isDeviationPlanActionable } from "../lib/deviationRecovery";
+import { buildTimelineRevision, getTimelineAutoCoverage, isDeviationPlanActionable } from "../lib/deviationRecovery";
 
 const money = (value) => `S$${Math.round(value || 0).toLocaleString("en-SG")}`;
 
@@ -16,7 +16,6 @@ export default function PlanHealerPage() {
     activePlanId,
     setPage,
     applyDeviationRecoveries,
-    declineDeviationRecovery,
     applyOpportunityRecovery,
     opportunityDecisions,
     user,
@@ -52,11 +51,12 @@ export default function PlanHealerPage() {
   }, [event?.id, opportunity.sourceAmount]);
 
   const [selectedPlanIds, setSelectedPlanIds] = useState(new Set());
-  const [expandedPlanId, setExpandedPlanId] = useState(null);
+  const [expandedPlanIds, setExpandedPlanIds] = useState(new Set());
   const [selectedStrategies, setSelectedStrategies] = useState({});
   const [bonusOpen, setBonusOpen] = useState(false);
   const [bonusAllocations, setBonusAllocations] = useState(defaultAllocations);
   const [reviewingRevisionIds, setReviewingRevisionIds] = useState(new Set());
+  const [acceptedSummary, setAcceptedSummary] = useState(null);
 
   useEffect(() => {
     if (!event) return;
@@ -69,13 +69,22 @@ export default function PlanHealerPage() {
     const initialPlanId = requestedRevision?.planId || (recommendedPending
       ? event.recommendedPlanId
       : event.affectedPlans.find((plan) => plan.status === "pending")?.planId);
+    const existingBatchPlanIds = (event.recoveryBatchPlanIds || []).filter((planId) =>
+      event.affectedPlans.some((plan) => (
+        plan.planId === planId
+        && (plan.status === "pending" || (plan.status === "timeline-extended" && planId === requestedRevision?.planId))
+      )));
+    const initialPlanIds = existingBatchPlanIds.length
+      ? existingBatchPlanIds
+      : (initialPlanId ? [initialPlanId] : []);
     setActiveDeviationId(event.id);
-    setSelectedPlanIds(new Set(initialPlanId ? [initialPlanId] : []));
-    setExpandedPlanId(initialPlanId || null);
+    setSelectedPlanIds(new Set(initialPlanIds));
+    setExpandedPlanIds(new Set(initialPlanIds));
     setSelectedStrategies({});
     setBonusOpen(false);
     setBonusAllocations(defaultAllocations);
     setReviewingRevisionIds(new Set(requestedRevision ? [requestedRevision.planId] : []));
+    setAcceptedSummary(null);
   }, [event?.id, restoreIntent]);
 
   if (!event) {
@@ -108,9 +117,43 @@ export default function PlanHealerPage() {
   );
   const allReviewsComplete = event.status === "resolved" && pendingPlans.length === 0 && revisedPlans.length === 0;
   const hasPendingRecovery = event.affectedPlans.some((plan) => plan.status === "pending");
+  const recoveryBatchLocked = Boolean(event.recoveryBatchPlanIds?.length);
+  const effectiveStrategies = Object.fromEntries(
+    [...selectedPlanIds].map((planId) => {
+      const plan = pendingPlans.find((candidate) => candidate.planId === planId);
+      return [planId, selectedStrategies[planId] || plan?.recoveryOptions[0]?.id];
+    }).filter(([, strategyId]) => Boolean(strategyId)),
+  );
+  const timelineCoverage = getTimelineAutoCoverage(
+    event.affectedPlans,
+    [...selectedPlanIds],
+    effectiveStrategies,
+  );
+  const autoCoveredPlanIds = new Set(timelineCoverage.autoCoveredPlanIds);
+  const coverageSourcePlan = event.affectedPlans.find((plan) => plan.planId === timelineCoverage.sourcePlanId);
 
   const togglePlan = (planId) => {
+    if (recoveryBatchLocked) return;
     setSelectedPlanIds((current) => {
+      const next = new Set(current);
+      const isBeingSelected = !next.has(planId);
+
+      if (isBeingSelected) next.add(planId);
+      else next.delete(planId);
+
+      setExpandedPlanIds((currentExpanded) => {
+        const nextExpanded = new Set(currentExpanded);
+        if (isBeingSelected) nextExpanded.add(planId);
+        else nextExpanded.delete(planId);
+        return nextExpanded;
+      });
+
+      return next;
+    });
+  };
+
+  const togglePlanDetails = (planId) => {
+    setExpandedPlanIds((current) => {
       const next = new Set(current);
       if (next.has(planId)) next.delete(planId);
       else next.add(planId);
@@ -127,8 +170,8 @@ export default function PlanHealerPage() {
 
   const reviewTimelineAlternatives = (planId) => {
     setReviewingRevisionIds((current) => new Set([...current, planId]));
-    setSelectedPlanIds(new Set([planId]));
-    setExpandedPlanId(planId);
+    setSelectedPlanIds((current) => new Set([...current, planId]));
+    setExpandedPlanIds((current) => new Set([...current, planId]));
   };
 
   const viewUpdatedMilestones = (planId) => {
@@ -138,28 +181,112 @@ export default function PlanHealerPage() {
 
   const applySelectedRecoveries = () => {
     const selections = pendingPlans
-      .filter((plan) => selectedPlanIds.has(plan.planId))
+      .filter((plan) => selectedPlanIds.has(plan.planId) && !autoCoveredPlanIds.has(plan.planId))
       .map((plan) => ({
         planId: plan.planId,
-        strategyId: selectedStrategies[plan.planId] || plan.recoveryOptions[0]?.id,
+        strategyId: effectiveStrategies[plan.planId],
       }));
-    applyDeviationRecoveries(event.id, selections);
+    const outcomes = [...selectedPlanIds].map((planId) => {
+      const affectedPlan = event.affectedPlans.find((plan) => plan.planId === planId);
+      if (!affectedPlan) return null;
+      if (autoCoveredPlanIds.has(planId)) {
+        return {
+          planId,
+          planName: affectedPlan.planName,
+          kind: "auto-covered",
+          title: "Covered by timeline change",
+          detail: `${coverageSourcePlan?.planName || "The extended plan"} absorbed the shared funding impact, so no separate recovery was needed.`,
+        };
+      }
+
+      const strategyId = effectiveStrategies[planId];
+      const option = affectedPlan.recoveryOptions.find((candidate) => candidate.id === strategyId);
+      if (strategyId === "timeline") {
+        const plan = getMilestonePlan(planId, planAdjustments);
+        const revision = buildTimelineRevision(plan, affectedPlan.gap);
+        return {
+          planId,
+          planName: affectedPlan.planName,
+          kind: "timeline",
+          title: "Timeline extended",
+          detail: `Monthly contribution remains unchanged; ${revision?.delayMonths || 0} ${revision?.delayMonths === 1 ? "month" : "months"} added.`,
+          originalGoalDate: revision?.originalGoalDate,
+          revisedGoalDate: revision?.revisedGoalDate,
+        };
+      }
+      return {
+        planId,
+        planName: affectedPlan.planName,
+        kind: "healed",
+        title: option?.title || "Recovery applied",
+        detail: option ? `${option.before} → ${option.after}` : "Plan returned to pace.",
+      };
+    }).filter(Boolean);
+    const accepted = applyDeviationRecoveries(event.id, selections, {
+      batchPlanIds: [...selectedPlanIds],
+      autoCoveredPlanIds: [...autoCoveredPlanIds],
+      coverageSourcePlanId: timelineCoverage.sourcePlanId,
+    });
+    if (accepted) setAcceptedSummary({ outcomes, acceptedAt: accepted.resolvedAt });
   };
 
   return (
     <div className="flex h-full flex-col overflow-y-auto scroll-ios bg-[#F9F4EE] text-[#2B2320] no-scrollbar">
       <header className="sticky top-0 z-30 border-b border-[#EAE0D7] bg-[#F9F4EE]/95 px-4 pb-3 pt-5 backdrop-blur-xl">
         <div className="flex items-center gap-3">
-          <button onClick={handleBack} aria-label="Go back" className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#7C2230] shadow-sm">
+          <button onClick={acceptedSummary ? () => setPage("home") : handleBack} aria-label={acceptedSummary ? "Back to home" : "Go back"} className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#7C2230] shadow-sm">
             <ArrowLeft size={18} />
           </button>
           <div>
-            <h1 className="text-[18px] font-black">NEST Restore</h1>
+            <h1 className="text-[18px] font-black">{acceptedSummary ? "Recovery summary" : "NEST Restore"}</h1>
           </div>
         </div>
       </header>
 
-      {allReviewsComplete ? (
+      {acceptedSummary ? (
+        <main className="space-y-4 px-4 pb-12 pt-5">
+          <section className="rounded-[22px] bg-[#2E7D4F] p-5 text-white shadow-[0_10px_26px_rgba(46,125,79,0.2)]">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/15"><ShieldCheck size={23} /></span>
+            <h2 className="mt-4 text-[20px] font-black">Recovery choices accepted</h2>
+            <p className="mt-1 text-[10px] leading-relaxed text-white/75">Your selected plans now follow the updated recovery paths below.</p>
+          </section>
+
+          {acceptedSummary.outcomes.map((outcome) => (
+            <section key={`summary-${outcome.planId}`} className="overflow-hidden rounded-[18px] border border-[#D7E8DB] bg-white">
+              <div className="p-4">
+                <div className="flex items-start gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#E4F1E7] text-[#2E7D4F]">
+                    {outcome.kind === "timeline" ? <CalendarClock size={17} /> : <ShieldCheck size={17} />}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[8px] font-black uppercase tracking-[0.14em] text-[#2E7D4F]">{outcome.title}</div>
+                    <h3 className="mt-0.5 text-[12px] font-black">{outcome.planName}</h3>
+                    <p className="mt-1 text-[9px] leading-relaxed text-[#627267]">{outcome.detail}</p>
+                  </div>
+                </div>
+
+                {outcome.kind === "timeline" && (
+                  <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-[13px] bg-[#F4F9F5] px-3 py-3">
+                    <div>
+                      <div className="text-[7.5px] font-black uppercase text-[#8A7F78]">Original</div>
+                      <div className="mt-0.5 text-[10.5px] font-black">{outcome.originalGoalDate}</div>
+                    </div>
+                    <ChevronRight size={15} className="text-[#2E7D4F]" />
+                    <div className="text-right">
+                      <div className="text-[7.5px] font-black uppercase text-[#2E7D4F]">Revised</div>
+                      <div className="mt-0.5 text-[10.5px] font-black text-[#2E523A]">{outcome.revisedGoalDate}</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <button onClick={() => viewUpdatedMilestones(outcome.planId)} className="flex w-full items-center justify-between border-t border-[#E5EEE7] bg-[#F4F9F5] px-4 py-3 text-left text-[9.5px] font-black text-[#2E7D4F]">
+                <span>{outcome.kind === "timeline" ? "View updated plan" : "View healed plan"}</span>
+                <ChevronRight size={15} />
+              </button>
+            </section>
+          ))}
+        </main>
+      ) : allReviewsComplete ? (
         <main className="flex flex-1 items-center justify-center px-6 pb-12 text-center">
           <section className="max-w-[280px] text-[#2E523A]">
             <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#E4F1E7]">
@@ -352,15 +479,29 @@ export default function PlanHealerPage() {
             <div className="flex items-end justify-between px-1">
               <div>
                 <h2 className="text-[13px] font-black">Choose plans to heal</h2>
-                <p className="text-[8.5px] font-bold text-[#7C2230]">Only plans that need recovery can be selected.</p>
+                <p className="text-[8.5px] font-bold text-[#7C2230]">
+                  {recoveryBatchLocked
+                    ? `Recovery is ${event.recoveryBatchPlanIds.length === 1 ? "focused on this plan" : `spread across ${event.recoveryBatchPlanIds.length} plans`}. Finish each selected plan.`
+                    : selectedPlanIds.size > 1
+                      ? `Recovery will be spread across ${selectedPlanIds.size} plans.`
+                      : "Select one plan to focus the full recovery there, or select more to spread it."}
+                </p>
               </div>
-              <span className="text-[8.5px] font-black text-[#7C2230]">{selectedPlanIds.size} selected</span>
+              <span className="text-[8.5px] font-black text-[#7C2230]">
+                {recoveryBatchLocked ? `${event.recoveryBatchPlanIds.length}-plan batch` : `${selectedPlanIds.size} selected`}
+              </span>
             </div>
             <div className="mt-2 space-y-2">
               {pendingPlans.map((plan) => {
                 const selected = selectedPlanIds.has(plan.planId);
                 return (
-                  <button key={plan.planId} onClick={() => togglePlan(plan.planId)} className={`flex w-full items-center gap-3 rounded-[15px] border p-3 text-left ${selected ? "border-[#7C2230] bg-[#FFF8F4] ring-1 ring-[#7C2230]" : "border-[#E8DED5] bg-white"}`}>
+                  <button
+                    key={plan.planId}
+                    type="button"
+                    disabled={recoveryBatchLocked}
+                    onClick={() => togglePlan(plan.planId)}
+                    className={`flex w-full items-center gap-3 rounded-[15px] border p-3 text-left ${selected ? "border-[#7C2230] bg-[#FFF8F4] ring-1 ring-[#7C2230]" : "border-[#E8DED5] bg-white"} disabled:cursor-default`}
+                  >
                     <span className={`flex h-5 w-5 items-center justify-center rounded border ${selected ? "bg-[#7C2230] text-white" : "text-transparent"}`}><Check size={13} /></span>
                     <span className="flex-1">
                       <strong className="block text-[10.5px]">{plan.planName}</strong>
@@ -375,10 +516,32 @@ export default function PlanHealerPage() {
 
           {pendingPlans.filter((plan) => selectedPlanIds.has(plan.planId)).map((plan) => {
             const selectedStrategy = selectedStrategies[plan.planId] || plan.recoveryOptions[0]?.id;
-            const expanded = expandedPlanId === plan.planId;
+            const expanded = expandedPlanIds.has(plan.planId);
+            const timelinePreview = buildTimelineRevision(getMilestonePlan(plan.planId, planAdjustments), plan.gap);
+            if (autoCoveredPlanIds.has(plan.planId)) {
+              return (
+                <section key={`strategy-${plan.planId}`} className="overflow-hidden rounded-[18px] border border-[#BCD8C4] bg-[#F2F8F3]">
+                  <div className="flex items-start gap-3 p-4">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#DDEEE1] text-[#2E7D4F]"><Check size={17} /></span>
+                    <span className="flex-1">
+                      <span className="text-[8px] font-black uppercase tracking-[0.12em] text-[#2E7D4F]">Selected automatically</span>
+                      <strong className="mt-0.5 block text-[11px]">{plan.planName} is covered</strong>
+                      <span className="mt-1 block text-[9px] leading-relaxed text-[#627267]">
+                        Extending {coverageSourcePlan?.planName || "the other plan"} absorbs {money(timelineCoverage.capacity)} of shared impact, which covers this plan's {money(plan.gap)} gap.
+                      </span>
+                    </span>
+                  </div>
+                </section>
+              );
+            }
             return (
               <section key={`strategy-${plan.planId}`} className="overflow-hidden rounded-[18px] border border-[#E8DED5] bg-white">
-                <button onClick={() => setExpandedPlanId(expanded ? null : plan.planId)} className="flex w-full items-center justify-between p-4 text-left">
+                <button
+                  type="button"
+                  aria-expanded={expanded}
+                  onClick={() => togglePlanDetails(plan.planId)}
+                  className="flex w-full items-center justify-between p-4 text-left"
+                >
                   <strong className="text-[11px]">{plan.planName}: choose a recovery</strong>
                   <ChevronDown size={15} className={expanded ? "rotate-180" : ""} />
                 </button>
@@ -393,15 +556,14 @@ export default function PlanHealerPage() {
                         >
                           <span className="text-[8px] font-black uppercase text-[#9A641E]">{option.label}</span>
                           <strong className="mt-0.5 block text-[10.5px]">{option.title}</strong>
-                          <span className="mt-1 block text-[9px] leading-relaxed text-[#756A63]">{option.description}</span>
+                          <span className="mt-1 block text-[9px] leading-relaxed text-[#756A63]">
+                            {option.id === "timeline" && timelinePreview
+                              ? `Keep monthly savings unchanged and move the target from ${timelinePreview.originalGoalDate} to ${timelinePreview.revisedGoalDate}.`
+                              : option.description}
+                          </span>
                         </button>
                       ))}
                     </div>
-                    {plan.status !== "timeline-extended" && (
-                      <button onClick={() => declineDeviationRecovery(event.id, plan.planId)} className="mt-2 w-full rounded-xl border border-[#D9CEC5] py-2.5 text-[10px] font-black">
-                        Keep contribution and extend timeline
-                      </button>
-                    )}
                   </div>
                 )}
               </section>
@@ -410,7 +572,7 @@ export default function PlanHealerPage() {
 
           {pendingPlans.some((plan) => selectedPlanIds.has(plan.planId)) && (
             <button onClick={applySelectedRecoveries} className="w-full rounded-xl bg-[#7C2230] py-3.5 text-[10px] font-black text-white shadow-[0_7px_16px_rgba(124,34,48,0.18)]">
-              Apply {selectedPlanIds.size > 1 ? `recoveries to ${selectedPlanIds.size} plans` : "selected recovery"}
+              Accept recovery choices
             </button>
           )}
 

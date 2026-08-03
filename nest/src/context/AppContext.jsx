@@ -6,7 +6,7 @@ import { buildSimulationScript } from '../features/planSimulation/engine/buildSi
 import { buildPortfolioSnapshot } from '../features/planSimulation/data/portfolioSnapshot';
 import { getPlanHorizonMonths, parsePlanTargetDate } from '../lib/planDate';
 import { completeOpportunityLifecycle, createOpportunityLifecycle } from '../lib/opportunityLifecycle';
-import { buildTimelineRevision, getDeviationStatus, isDeviationPlanActionable } from '../lib/deviationRecovery';
+import { buildTimelineRevision, createRecoveryBatch, getDeviationStatus, isDeviationPlanActionable } from '../lib/deviationRecovery';
 
 const AppContext = createContext();
 
@@ -362,43 +362,167 @@ export const AppProvider = ({ children }) => {
     return true;
   };
 
-  const applyDeviationRecoveries = (eventId, selections) => {
+  const applyDeviationRecoveries = (eventId, selections, config = {}) => {
     const event = transactionDeviations.find((item) => item.id === eventId);
+    const requestedBatchIds = event?.recoveryBatchPlanIds?.length
+      ? event.recoveryBatchPlanIds
+      : (config.batchPlanIds || (selections || []).map(({ planId }) => planId));
+    const batch = createRecoveryBatch(event?.affectedPlans || [], requestedBatchIds);
+    const batchIds = new Set(batch?.recoveryBatchPlanIds || []);
+    const autoCoveredIds = new Set((config.autoCoveredPlanIds || []).filter((planId) => batchIds.has(planId)));
     const validSelections = (selections || []).filter(({ planId, strategyId }) =>
-      event?.affectedPlans.some((plan) => plan.planId === planId && isDeviationPlanActionable(plan)
+      batchIds.has(planId) && event?.affectedPlans.some((plan) => plan.planId === planId && isDeviationPlanActionable(plan)
         && plan.recoveryOptions.some((option) => option.id === strategyId)));
-    if (!event || !validSelections.length || validSelections.length !== selections.length) return false;
-    validSelections.forEach(({ planId, strategyId }) => applyDeviationRecovery(eventId, planId, strategyId));
-    const selectedIds = new Set(validSelections.map((selection) => selection.planId));
+    const outcomeIds = new Set([...validSelections.map(({ planId }) => planId), ...autoCoveredIds]);
+    const unresolvedBatchPlans = event?.affectedPlans.filter((plan) => batchIds.has(plan.planId) && isDeviationPlanActionable(plan)) || [];
+    if (
+      !event
+      || !batch
+      || !validSelections.length
+      || validSelections.length !== selections.length
+      || unresolvedBatchPlans.some((plan) => !outcomeIds.has(plan.planId))
+    ) return false;
+
     const resolvedAt = new Date().toISOString();
-    const continuingPlans = event.affectedPlans.filter((plan) => plan.status === 'pending' && !selectedIds.has(plan.planId));
+    const appliedResults = validSelections.map(({ planId, strategyId }) => {
+      const affectedPlan = event.affectedPlans.find((plan) => plan.planId === planId);
+      const option = affectedPlan.recoveryOptions.find((candidate) => candidate.id === strategyId);
+      const plan = getMilestonePlan(planId, planAdjustments);
+      const revision = strategyId === 'timeline' ? buildTimelineRevision(plan, affectedPlan.gap) : null;
+      if (strategyId === 'timeline' && !revision) return null;
+
+      if (revision) {
+        adjustPlan(planId, {
+          goalDate: revision.revisedGoalDate,
+          milestones: revision.milestones,
+          timelineRevision: { ...revision, sourceDeviationId: eventId },
+          healed: false,
+          onTrack: { ...plan.onTrack, expected: plan.onTrack.saved },
+          recoveryStatus: 'on-pace',
+        });
+        addPlanActivity(planId, {
+          id: `deviation-declined-${eventId}-${planId}`,
+          actor: 'user',
+          type: 'decision',
+          title: 'Plan timeline extended',
+          description: `You kept your monthly contribution and moved the goal from ${revision.originalGoalDate} to ${revision.revisedGoalDate} (${revision.delayMonths} ${revision.delayMonths === 1 ? 'month' : 'months'} later).`,
+          timestamp: resolvedAt,
+          status: 'completed',
+        });
+      } else {
+        const replacementBase = affectedPlan.status === 'timeline-extended'
+          ? { goalDate: affectedPlan.originalGoalDate, milestones: affectedPlan.originalMilestones, timelineRevision: null }
+          : {};
+        adjustPlan(planId, {
+          ...replacementBase,
+          ...option.changes,
+          strategy: strategyId,
+          healed: true,
+          selectedPlanId: planId,
+          onTrack: { ...plan.onTrack, expected: plan.onTrack.saved },
+          recoveryStatus: 'on-pace',
+        });
+        addPlanActivity(planId, {
+          id: `deviation-applied-${eventId}-${planId}`,
+          actor: 'owl',
+          type: 'adjustment',
+          title: 'Plan recovery applied',
+          description: `${option.title} was applied after a S$${event.amount.toLocaleString('en-SG')} ${event.type === 'paynow' ? 'PayNow payment' : 'transaction'} (${option.before} to ${option.after}).`,
+          timestamp: resolvedAt,
+          status: 'completed',
+        });
+      }
+
+      return { planId, strategyId, option, revision };
+    });
+    if (appliedResults.some((result) => !result)) return false;
+
+    const continuingPlans = event.affectedPlans.filter((plan) =>
+      plan.status === 'pending' && !batchIds.has(plan.planId));
     setTransactionDeviations((current) => current.map((item) => {
       if (item.id !== eventId) return item;
-      const affectedPlans = item.affectedPlans.map((plan) =>
-        plan.status === 'pending' && !selectedIds.has(plan.planId)
-          ? { ...plan, status: 'covered', resolution: 'portfolio-recovery', gap: 0, resolvedAt }
-          : plan);
-      return { ...item, affectedPlans, notificationState: 'acknowledged', status: 'resolved', resolvedAt };
+      const affectedPlans = item.affectedPlans.map((plan) => {
+        const result = appliedResults.find((candidate) => candidate.planId === plan.planId);
+        if (result?.revision) {
+          return { ...plan, status: 'timeline-extended', resolution: 'timeline-extension', ...result.revision, resolvedAt };
+        }
+        if (result) {
+          return { ...plan, gap: 0, status: 'applied', resolution: result.strategyId, strategyId: result.strategyId, resolvedAt };
+        }
+        if (autoCoveredIds.has(plan.planId) && isDeviationPlanActionable(plan)) {
+          return {
+            ...plan,
+            status: 'covered',
+            resolution: 'timeline-auto-coverage',
+            coverageSourcePlanId: config.coverageSourcePlanId || null,
+            gap: 0,
+            resolvedAt,
+          };
+        }
+        if (plan.status === 'pending' && !batchIds.has(plan.planId)) {
+          return {
+            ...plan,
+            status: 'covered',
+            resolution: 'recovery-concentrated-elsewhere',
+            gap: 0,
+            resolvedAt,
+          };
+        }
+        return plan;
+      });
+      const status = getDeviationStatus(affectedPlans);
+      return {
+        ...item,
+        recoveryBatchPlanIds: batch.recoveryBatchPlanIds,
+        recoveryBatchConfirmedAt: item.recoveryBatchConfirmedAt || resolvedAt,
+        affectedPlans,
+        notificationState: 'acknowledged',
+        status,
+        ...(status === 'resolved' ? { resolvedAt } : {}),
+      };
     }));
     continuingPlans.forEach((plan) => addPlanActivity(plan.planId, {
       id: `portfolio-covered-${eventId}-${plan.planId}`,
       actor: 'owl',
       type: 'assessment',
       title: 'Plan remains on track',
-      description: `The recovery applied elsewhere restored the shared portfolio position, so ${plan.planName} continues without changes.`,
+      description: `You concentrated this recovery on ${batch.recoveryBatchPlanIds.length === 1 ? 'one plan' : 'the selected plans'}, so ${plan.planName} continues without changes.`,
       timestamp: resolvedAt,
       status: 'assessed',
     }));
-    return true;
+    [...autoCoveredIds].forEach((planId) => {
+      const coveredPlan = event.affectedPlans.find((plan) => plan.planId === planId);
+      const sourcePlan = event.affectedPlans.find((plan) => plan.planId === config.coverageSourcePlanId);
+      if (!coveredPlan) return;
+      addPlanActivity(planId, {
+        id: `timeline-covered-${eventId}-${planId}`,
+        actor: 'owl',
+        type: 'assessment',
+        title: 'Plan covered by recovery choice',
+        description: `${sourcePlan?.planName || 'The extended plan'} absorbed the shared funding impact, so ${coveredPlan.planName} no longer needs a separate recovery.`,
+        timestamp: resolvedAt,
+        status: 'assessed',
+      });
+    });
+    if (opportunityLifecycle.route === 'healer') {
+      setOpportunityLifecycle(completeOpportunityLifecycle);
+      setShowOpportunityPopup(false);
+    }
+    return { resolvedAt, recoveryBatchPlanIds: batch.recoveryBatchPlanIds, appliedResults };
   };
 
-  const declineDeviationRecovery = (eventId, planId) => {
+  const declineDeviationRecovery = (eventId, planId, selectedPlanIds = []) => {
     const event = transactionDeviations.find((item) => item.id === eventId);
     const affectedPlan = event?.affectedPlans.find((item) => item.planId === planId && item.status === 'pending');
-    if (!event || !affectedPlan) return false;
+    const requestedBatchIds = event?.recoveryBatchPlanIds?.length
+      ? event.recoveryBatchPlanIds
+      : selectedPlanIds;
+    const batch = createRecoveryBatch(event?.affectedPlans || [], requestedBatchIds);
+    if (!event || !affectedPlan || !batch || !batch.recoveryBatchPlanIds.includes(planId)) return false;
     const plan = getMilestonePlan(planId, planAdjustments);
     const revision = buildTimelineRevision(plan, affectedPlan.gap);
     if (!revision) return false;
+    const resolvedAt = new Date().toISOString();
     adjustPlan(planId, {
       goalDate: revision.revisedGoalDate,
       milestones: revision.milestones,
@@ -409,15 +533,23 @@ export const AppProvider = ({ children }) => {
     });
     setTransactionDeviations((current) => current.map((item) => {
       if (item.id !== eventId) return item;
-      const affectedPlans = item.affectedPlans.map((candidate) => {
+      const capturedBatch = createRecoveryBatch(item.affectedPlans, batch.recoveryBatchPlanIds, resolvedAt);
+      const affectedPlans = (capturedBatch?.affectedPlans || item.affectedPlans).map((candidate) => {
         if (candidate.planId === planId && candidate.status === 'pending') {
-          return { ...candidate, status: 'timeline-extended', resolution: 'timeline-extension', ...revision, resolvedAt: new Date().toISOString() };
+          return { ...candidate, status: 'timeline-extended', resolution: 'timeline-extension', ...revision, resolvedAt };
         }
-        return candidate.status === 'pending'
-          ? { ...candidate, status: 'covered', resolution: 'portfolio-recovery', gap: 0, resolvedAt: new Date().toISOString() }
-          : candidate;
+        return candidate;
       });
-      return { ...item, affectedPlans, notificationState: 'acknowledged', status: 'resolved' };
+      const status = getDeviationStatus(affectedPlans);
+      return {
+        ...item,
+        recoveryBatchPlanIds: batch.recoveryBatchPlanIds,
+        recoveryBatchConfirmedAt: item.recoveryBatchConfirmedAt || resolvedAt,
+        affectedPlans,
+        notificationState: 'acknowledged',
+        status,
+        ...(status === 'resolved' ? { resolvedAt } : {}),
+      };
     }));
     addPlanActivity(planId, {
       id: `deviation-declined-${eventId}-${planId}`,
@@ -428,6 +560,17 @@ export const AppProvider = ({ children }) => {
       timestamp: new Date().toISOString(),
       status: 'completed',
     });
+    event.affectedPlans
+      .filter((candidate) => candidate.status === 'pending' && !batch.recoveryBatchPlanIds.includes(candidate.planId))
+      .forEach((candidate) => addPlanActivity(candidate.planId, {
+        id: `portfolio-covered-${eventId}-${candidate.planId}`,
+        actor: 'owl',
+        type: 'assessment',
+        title: 'Plan continues unchanged',
+        description: `You concentrated this recovery on ${affectedPlan.planName}, so ${candidate.planName} does not need a separate recovery.`,
+        timestamp: resolvedAt,
+        status: 'assessed',
+      }));
     return true;
   };
 
