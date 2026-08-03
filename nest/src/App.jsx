@@ -212,7 +212,17 @@ function AppContent() {
           </RoutePage>
         )}
         {page === 'plan-details' && (
-          <PlanDetailsPage />
+          <RoutePage
+            key="plan-details"
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -40 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 180 }}
+            className="absolute inset-0 z-50 overflow-hidden"
+            style={{ pointerEvents: page === 'plan-details' ? 'auto' : 'none' }}
+          >
+            <PlanDetailsPage />
+          </RoutePage>
         )}
         {page === 'plan-view' && (
           <PlanViewPage />
@@ -224,7 +234,7 @@ function AppContent() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -40 }}
             transition={{ type: 'spring', damping: 25, stiffness: 180 }}
-            className="absolute inset-0 z-30 overflow-hidden"
+            className="absolute inset-0 z-[60] overflow-hidden"
           >
             <RiskProfilingPage />
           </RoutePage>
@@ -287,7 +297,7 @@ function AppContent() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="absolute inset-0 z-30 overflow-hidden"
+            className="absolute inset-0 z-[60] overflow-hidden"
             style={{ pointerEvents: page === 'plan-change-option' ? 'auto' : 'none' }}
           >
             <PlanChangeOptionPage />
@@ -300,7 +310,7 @@ function AppContent() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="absolute inset-0 z-30 overflow-hidden"
+            className="absolute inset-0 z-[60] overflow-hidden"
           >
             <PlanHealerPage />
           </RoutePage>
@@ -324,7 +334,7 @@ function AppContent() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -40 }}
             transition={{ type: 'spring', damping: 25, stiffness: 180 }}
-            className="absolute inset-0 z-30 overflow-hidden"
+            className="absolute inset-0 z-[60] overflow-hidden"
           >
             <PlanLiquidityDetailsPage />
           </RoutePage>

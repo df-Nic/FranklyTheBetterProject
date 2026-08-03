@@ -1,8 +1,9 @@
-﻿import React, { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft,
   Coins,
+  TrendingUp,
   Calendar,
   AlertCircle,
   Lock,
@@ -63,7 +64,9 @@ const PlanLiquidityDetailsPage = () => {
     activePlanId,
     activePlanTitle,
     customPlanData,
+    planDrafts,
     chosenAlternatives,
+    pendingExcluded,
     appliedExcluded,
     housingPropertyType,
     setPage,
@@ -89,13 +92,16 @@ const PlanLiquidityDetailsPage = () => {
     return basePlan;
   }, [activePlanId, activePlanTitle, housingPropertyType]);
 
-  const userPlanMeta = (activePlan && customPlanData[activePlan.id]) || {};
+  const userPlanMeta = useMemo(() => {
+    const planKey = activePlan?.id || activePlanId;
+    return (planKey && planDrafts[planKey]) || (planKey && customPlanData[planKey]) || {};
+  }, [activePlan, activePlanId, planDrafts, customPlanData]);
 
-  // Resolve active subgoals
+  // Resolve active subgoals (prioritizes draft subgoals edited by user on plan review page)
   const subgoals = useMemo(() => {
-    const savedSubgoals = userPlanMeta.confirmedSubgoals?.length
-      ? userPlanMeta.confirmedSubgoals
-      : userPlanMeta.subgoals;
+    const savedSubgoals = userPlanMeta.subgoals?.length
+      ? userPlanMeta.subgoals
+      : (userPlanMeta.confirmedSubgoals?.length ? userPlanMeta.confirmedSubgoals : null);
 
     if (savedSubgoals && savedSubgoals.length > 0) {
       return savedSubgoals.map((sub, i) => ({
@@ -138,9 +144,11 @@ const PlanLiquidityDetailsPage = () => {
     return baseSubgoals;
   }, [activePlan, userPlanMeta, housingPropertyType]);
 
-  // Extract recommended Deposits & Investments
+  // Extract recommended Deposits & Investments (supports replaced alternatives and correct category labeling)
   const depositAndInvestmentActions = useMemo(() => {
     if (!activePlan || !activePlan.categories) return [];
+
+    const isExcluded = (id) => (pendingExcluded && pendingExcluded.has(id)) || (appliedExcluded && appliedExcluded.has(id));
 
     const result = [];
     activePlan.categories.forEach((cat) => {
@@ -157,15 +165,52 @@ const PlanLiquidityDetailsPage = () => {
       if (!isDepositOrInvestCategory) return;
 
       (cat.actions || []).forEach((originalAction) => {
-        if (appliedExcluded.has(originalAction.id)) return;
-        const actionObj = chosenAlternatives[originalAction.id] || originalAction;
+        const actionObj = isExcluded(originalAction.id)
+          ? chosenAlternatives[originalAction.id]
+          : originalAction;
+
+        if (!actionObj) return; // Excluded without replacement
+
         const actType = (actionObj.type || '').toLowerCase();
-        if (['deposit', 'investment', 'yield'].includes(actType)) {
+        const actId = (actionObj.id || '').toLowerCase();
+        const actName = (actionObj.name || '').toLowerCase();
+
+        if (['deposit', 'investment', 'yield', 'fixed income', 'spending strategy', 'recurring investment'].includes(actType)) {
           const explanation = getLiquidityExplanation(actionObj);
+
+          // Correctly distinguish Investments / Fixed Income from Deposits across all products
+          const isInvestType =
+            actType.includes('invest') ||
+            actType.includes('yield') ||
+            actType.includes('fixed') ||
+            actId.includes('tbills') ||
+            actId.includes('robo') ||
+            actId.includes('bcip') ||
+            actId.includes('etf') ||
+            actId.includes('reit') ||
+            actId.includes('unit_trust') ||
+            actId.includes('mmf') ||
+            actId.includes('bond') ||
+            actName.includes('treasury') ||
+            actName.includes('t-bill') ||
+            actName.includes('robo') ||
+            actName.includes('blue chip') ||
+            actName.includes('reit') ||
+            actName.includes('etf') ||
+            actName.includes('bond') ||
+            actName.includes('money market') ||
+            actName.includes('fund') ||
+            actName.includes('trust') ||
+            actName.includes('equity') ||
+            catId.includes('invest') ||
+            catName.includes('invest');
+
+          const displayCategoryName = isInvestType ? 'INVESTMENTS' : 'DEPOSITS';
+
           result.push({
             action: actionObj,
             originalId: originalAction.id,
-            categoryName: cat.name,
+            categoryName: displayCategoryName,
             categoryId: cat.id,
             isReplanned: Boolean(chosenAlternatives[originalAction.id]),
             explanation,
@@ -175,7 +220,7 @@ const PlanLiquidityDetailsPage = () => {
     });
 
     return result;
-  }, [activePlan, chosenAlternatives, appliedExcluded]);
+  }, [activePlan, chosenAlternatives, pendingExcluded, appliedExcluded]);
 
   // Goal name descriptor for dynamic text (e.g. 'wedding', 'housing', etc.)
   const goalDescriptor = useMemo(() => {
@@ -347,10 +392,14 @@ const PlanLiquidityDetailsPage = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <div className="w-7 h-7 rounded-full bg-red-50 text-red-600 border border-red-100 flex items-center justify-center shrink-0">
-                        <Coins className="w-3.5 h-3.5 stroke-[2.2]" />
+                        {categoryName === 'INVESTMENTS' ? (
+                          <TrendingUp className="w-3.5 h-3.5 stroke-[2.2]" />
+                        ) : (
+                          <Coins className="w-3.5 h-3.5 stroke-[2.2]" />
+                        )}
                       </div>
                       <span className="text-[11px] font-black uppercase tracking-wider text-red-600">
-                        DEPOSITS
+                        {categoryName}
                       </span>
                     </div>
                     <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-100">

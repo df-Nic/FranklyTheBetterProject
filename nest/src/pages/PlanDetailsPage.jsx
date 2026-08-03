@@ -126,6 +126,7 @@ const PlanDetailsPage = () => {
     createdPlans,
     customPlanData,
     planDrafts,
+    updatePlanDraft,
     confirmPlan,
     riskProfile,
     hasAssessedRisk,
@@ -387,6 +388,13 @@ const PlanDetailsPage = () => {
     }));
     setEditingId(null);
   };
+
+  // Sync draft subgoals to AppContext so NEST Adapt and other views receive user edits
+  useEffect(() => {
+    if (activePlan?.id && subgoals.length > 0 && typeof updatePlanDraft === 'function') {
+      updatePlanDraft(activePlan.id, { subgoals });
+    }
+  }, [subgoals, activePlan?.id, updatePlanDraft]);
 
   useEffect(() => {
     console.log("PLAN DETAILS PAGE STATE:", {

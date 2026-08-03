@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import {
@@ -61,9 +61,7 @@ const getActionContext = (changingCategory, changingAction) => {
     actId.includes('t-bills') ||
     actId.includes('fixed_income') ||
     actName.includes('treasury') ||
-    actName.includes('t-bill') ||
-    actName.includes('fixed deposit') ||
-    catId.includes('fixed')
+    actName.includes('t-bill')
   ) {
     return 'tbills';
   }
@@ -572,13 +570,16 @@ const PlanChangeOptionPage = () => {
     });
   }, [filteredAlts, riskProfile]);
 
-  const [selectedAltId, setSelectedAltId] = useState("");
+  const existingChosen = changingAction ? chosenAlternatives[changingAction.id] : null;
+  const [selectedAltId, setSelectedAltId] = useState(() => existingChosen?.id || "");
 
   useEffect(() => {
-    if (filteredAlts.length > 0 && !filteredAlts.some(a => a.id === selectedAltId)) {
+    if (existingChosen?.id && filteredAlts.some(a => a.id === existingChosen.id)) {
+      setSelectedAltId(existingChosen.id);
+    } else if (filteredAlts.length > 0 && !filteredAlts.some(a => a.id === selectedAltId)) {
       setSelectedAltId(filteredAlts[0].id);
     }
-  }, [filteredAlts, selectedAltId]);
+  }, [changingAction, filteredAlts, existingChosen, selectedAltId]);
 
   const selectedAlt = filteredAlts.find(a => a.id === selectedAltId) || filteredAlts[0];
 
@@ -586,26 +587,32 @@ const PlanChangeOptionPage = () => {
     const targetAlt = overrideAlt || selectedAlt;
     if (!changingAction || !targetAlt) return;
 
+    const actionId = changingAction.id;
+
     setPendingExcluded(prev => {
       const next = new Set(prev);
-      next.add(changingAction.id);
+      next.add(actionId);
       return next;
     });
 
     setChosenAlternatives(prev => ({
       ...prev,
-      [changingAction.id]: targetAlt
+      [actionId]: targetAlt
     }));
 
-    setChangingAction(null);
-    setChangingCategory(null);
     setPage('plan-details');
+    setTimeout(() => {
+      setChangingAction(null);
+      setChangingCategory(null);
+    }, 100);
   };
 
   const handleCancel = () => {
-    setChangingAction(null);
-    setChangingCategory(null);
     setPage('plan-details');
+    setTimeout(() => {
+      setChangingAction(null);
+      setChangingCategory(null);
+    }, 100);
   };
 
   return (
