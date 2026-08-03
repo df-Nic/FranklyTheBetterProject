@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, useMotionValue, useTransform, animate, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ChevronsRight, Sparkles, Check } from 'lucide-react';
 import { getMilestonePlan } from '../data/milestonePlans';
@@ -22,7 +22,7 @@ const PayNowConfirmPage = () => {
     addPlanActivity
   } = useApp();
 
-  const [sliderWidth, setSliderWidth] = useState(0);
+  const [sliderWidth, setSliderWidth] = useState(350);
   const [isHealing, setIsHealing] = useState(false);
   const [healingProgress, setHealingProgress] = useState(0);
   const [healingStepText, setHealingStepText] = useState('');
@@ -55,7 +55,7 @@ const PayNowConfirmPage = () => {
   const dragX = useMotionValue(0);
   const handleWidth = 48; // width of drag handle is 48px (w-12)
   const padding = 6; // track padding p-1.5 is 6px
-  const maxDrag = sliderWidth - handleWidth - padding * 2;
+  const maxDrag = Math.max(0, sliderWidth - handleWidth - padding * 2);
 
   const targetMax = maxDrag > 0 ? maxDrag : 1;
 
@@ -75,8 +75,9 @@ const PayNowConfirmPage = () => {
   // Transform drag distance into "Make payment" text opacity (fade in as slider moves right)
   const makePaymentOpacity = useTransform(dragX, [targetMax * 0.3, targetMax * 0.8], [0, 1]);
 
-  // Update slider width on mount / resize
+  // Update slider width on mount / resize & ensure handle is reset to 0
   useEffect(() => {
+    dragX.set(0);
     if (trackRef.current) {
       setSliderWidth(trackRef.current.offsetWidth);
     }

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Edit2, Eye, EyeOff, X, Check } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -106,21 +106,19 @@ const PayNowAmountPage = () => {
 
         {/* Amount Input Card */}
         <GlassCard className="p-5 border-white/70 relative">
-          <div className="flex justify-between items-baseline">
+          <div className="flex justify-between items-baseline w-full">
             {/* Custom Input */}
-            <div className="flex items-baseline w-full">
-              <input
-                ref={inputRef}
-                type="text"
-                inputMode="decimal"
-                value={amount}
-                onChange={handleAmountChange}
-                placeholder="0.00"
-                className="text-4xl font-black text-zinc-900 tracking-tight bg-transparent border-none outline-none p-0 focus:ring-0 max-w-[70%]"
-                style={{ caretColor: '#E1251B' }}
-              />
-              <span className="text-base font-black text-zinc-400 ml-2 tracking-tight">SGD</span>
-            </div>
+            <input
+              ref={inputRef}
+              type="text"
+              inputMode="decimal"
+              value={amount}
+              onChange={handleAmountChange}
+              placeholder="0.00"
+              className="text-4xl font-black text-zinc-900 placeholder:text-zinc-400 placeholder:font-black tracking-tight bg-transparent border-none outline-none p-0 focus:ring-0 flex-1 min-w-0"
+              style={{ caretColor: '#E1251B' }}
+            />
+            <span className="text-xl font-black text-zinc-400 shrink-0 ml-4 tracking-tight">SGD</span>
           </div>
 
           {error && <span className="text-[10px] font-bold text-brand-primary mt-1 block">{error}</span>}

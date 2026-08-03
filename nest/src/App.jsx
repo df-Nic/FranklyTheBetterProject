@@ -77,7 +77,7 @@ function RiskProfilingIrisWrapper() {
 }
 
 function AppContent() {
-  const { page, planDetailOrigin, setPage, isNavigating } = useApp();
+  const { page, planDetailOrigin, setPage, isNavigating, setPaynowContact, setPaynowAmount, setPaynowReference } = useApp();
 
   // Background under plan-details depends on where the user came from
   const detailsOrigin = planDetailOrigin || 'home';
@@ -96,6 +96,9 @@ function AppContent() {
     } else if (tabId === 'plan') {
       setPage('plan-dashboard');
     } else if (tabId === 'pay') {
+      setPaynowContact(null);
+      setPaynowAmount('');
+      setPaynowReference('');
       setPage('paynow-contacts');
     }
   };

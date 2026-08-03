@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { CONTACTS_DATA } from '../data/contacts';
@@ -6,13 +6,15 @@ import { ArrowLeft, Search, User, FileText, ChevronRight } from 'lucide-react';
 import BackgroundOrb from '../components/ui/BackgroundOrb';
 
 const PayNowContactsPage = () => {
-  const { navigate, setPaynowContact } = useApp();
+  const { navigate, setPaynowContact, setPaynowAmount, setPaynowReference } = useApp();
   const [activeTab, setActiveTab] = useState('nric'); // 'nric' (for NRIC/FIN) or 'uen' (for UEN/VPA)
   const [searchQuery, setSearchQuery] = useState('');
 
   // Handle contact selection
   const handleSelectContact = (contact) => {
     setPaynowContact(contact);
+    setPaynowAmount('');
+    setPaynowReference('');
     navigate('paynow-amount');
   };
 
