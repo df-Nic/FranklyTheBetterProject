@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { CONTACTS_DATA } from '../data/contacts';
@@ -119,7 +119,7 @@ const PayNowContactsPage = () => {
           </div>
 
           {/* Contact List */}
-          <div className="flex-1 overflow-y-auto no-scrollbar px-2 divide-y divide-zinc-100">
+          <div className="flex-1 overflow-y-auto scroll-ios no-scrollbar px-2 divide-y divide-zinc-100">
             {filteredContacts.length > 0 ? (
               filteredContacts.map((contact) => (
                 <motion.div

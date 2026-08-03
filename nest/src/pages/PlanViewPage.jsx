@@ -1,4 +1,4 @@
-import { ArrowLeft, CalendarDays, Coins, Target } from "lucide-react";
+﻿import { ArrowLeft, CalendarDays, Coins, Target } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { formatSGD, getMilestonePlan } from "../data/milestonePlans";
 import { PLANS_DATA } from "../data/planTemplates";
@@ -15,7 +15,7 @@ export default function PlanViewPage() {
   const isStaggered = custom.paymentStrategy ? custom.paymentStrategy === 'staggered' : true;
 
   return (
-    <div className="h-full overflow-y-auto bg-[#F9F4EE] text-[#2B2320] no-scrollbar">
+    <div className="h-full overflow-y-auto scroll-ios bg-[#F9F4EE] text-[#2B2320] no-scrollbar">
       <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-[#EAE0D7] bg-[#F9F4EE]/95 px-4 pb-3 pt-5 backdrop-blur-xl">
         <button onClick={() => setPage("plan-milestones")} className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#7C2230] shadow-sm"><ArrowLeft size={18} /></button>
         <div><div className="text-[9px] font-black uppercase tracking-[0.16em] text-[#8A7F78]">{plan.goalName}</div><h1 className="text-[18px] font-black">Plan breakdown</h1></div>

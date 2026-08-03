@@ -12,7 +12,7 @@ import SavingsBreakdownPage from './pages/SavingsBreakdownPage';
 import OpportunityDetailPage from './pages/OpportunityDetailPage';
 import BottomNavBar from './components/layout/BottomNavBar';
 import ChatWidget from './components/ui/ChatWidget';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useIsPresent } from 'framer-motion';
 import PayNowContactsPage from './pages/PayNowContactsPage';
 import PayNowAmountPage from './pages/PayNowAmountPage';
 import PayNowConfirmPage from './pages/PayNowConfirmPage';
@@ -26,6 +26,25 @@ import PlanSimulationScreen from './features/planSimulation/PlanSimulationScreen
 import ReasoningLogPage from './features/planSimulation/ReasoningLogPage';
 import PlanLiquidityDetailsPage from './pages/PlanLiquidityDetailsPage';
 import PageTransitionLoader from './components/ui/PageTransitionLoader';
+
+/**
+ * RoutePage — thin wrapper around motion.div that disables pointer-events
+ * the instant a route starts its AnimatePresence exit animation.
+ * This prevents an exiting (fading/sliding out) page from intercepting
+ * clicks that belong to the newly-entering page underneath it.
+ */
+function RoutePage({ children, className, style, ...motionProps }) {
+  const isPresent = useIsPresent();
+  return (
+    <motion.div
+      className={className}
+      style={{ ...style, pointerEvents: isPresent ? 'auto' : 'none' }}
+      {...motionProps}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 // Iris-animated wrapper for RiskProfilingPage — mirrors how PlanDetailsPage enters/exits
 function RiskProfilingIrisWrapper() {
@@ -83,10 +102,12 @@ function AppContent() {
 
   return (
     <MobileFrame>
-      {/* No mode="wait" — simultaneous crossfade prevents white-page flash between routes */}
+      {/* No mode="wait" — simultaneous crossfade prevents white-page flash between routes.
+          RoutePage wrappers disable pointer-events during exit so the fading page
+          never intercepts clicks meant for the newly-entering page. */}
       <AnimatePresence>
         {page === 'landing' && (
-          <motion.div
+          <RoutePage
             key="landing"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -95,10 +116,10 @@ function AppContent() {
             className="absolute inset-0 flex flex-col min-h-0 overflow-hidden"
           >
             <LandingPage />
-          </motion.div>
+          </RoutePage>
         )}
         {page === 'login' && (
-          <motion.div
+          <RoutePage
             key="login"
             initial={{ opacity: 0, x: 60 }}
             animate={{ opacity: 1, x: 0 }}
@@ -107,10 +128,10 @@ function AppContent() {
             className="absolute inset-0 flex flex-col min-h-0 overflow-hidden"
           >
             <LoginPage />
-          </motion.div>
+          </RoutePage>
         )}
         {(page === 'home' || page === 'risk-profiling' || (page === 'plan-details' && detailsOrigin === 'home')) && (
-          <motion.div
+          <RoutePage
             key="home"
             initial={{ opacity: 0, x: 60 }}
             animate={{ opacity: 1, x: 0 }}
@@ -119,21 +140,21 @@ function AppContent() {
             className="absolute inset-0 flex flex-col min-h-0 overflow-hidden z-10"
           >
             <HomePage />
-          </motion.div>
+          </RoutePage>
         )}
         {/* risk-profiling stays mounted as background only when plan-details opens on top of it */}
         {isRiskProfilingBackground && (
-          <motion.div
+          <RoutePage
             key="risk-profiling-bg"
             animate={{ opacity: 1, x: 0 }}
             className="absolute inset-0 flex flex-col min-h-0 overflow-hidden z-10"
           >
             <RiskProfilingPage />
-          </motion.div>
+          </RoutePage>
         )}
         {/* plan-dashboard: visible on plan-dashboard page, or as background when plan-details was opened from plan-dashboard */}
         {(page === 'plan-dashboard' || (page === 'plan-details' && (detailsOrigin === 'plan-dashboard' || !detailsOrigin))) && (
-          <motion.div
+          <RoutePage
             key="plan-dashboard"
             initial={{ opacity: 0, x: 60 }}
             animate={{ opacity: 1, x: 0 }}
@@ -142,10 +163,10 @@ function AppContent() {
             className="absolute inset-0 flex flex-col min-h-0 overflow-hidden z-10"
           >
             <PlanDashboardPage />
-          </motion.div>
+          </RoutePage>
         )}
         {page === 'expense-optimizer' && (
-          <motion.div
+          <RoutePage
             key="expense-optimizer"
             initial={{ opacity: 0, x: 60 }}
             animate={{ opacity: 1, x: 0 }}
@@ -154,10 +175,10 @@ function AppContent() {
             className="absolute inset-0 flex flex-col min-h-0 overflow-hidden z-10"
           >
             <ExpenseOptimizerPage />
-          </motion.div>
+          </RoutePage>
         )}
         {page === 'paynow-contacts' && (
-          <motion.div
+          <RoutePage
             key="paynow-contacts"
             initial={{ opacity: 0, x: 60 }}
             animate={{ opacity: 1, x: 0 }}
@@ -166,10 +187,10 @@ function AppContent() {
             className="absolute inset-0 flex flex-col min-h-0 overflow-hidden z-10"
           >
             <PayNowContactsPage />
-          </motion.div>
+          </RoutePage>
         )}
         {page === 'paynow-amount' && (
-          <motion.div
+          <RoutePage
             key="paynow-amount"
             initial={{ opacity: 0, x: 60 }}
             animate={{ opacity: 1, x: 0 }}
@@ -178,10 +199,10 @@ function AppContent() {
             className="absolute inset-0 flex flex-col min-h-0 overflow-hidden z-10"
           >
             <PayNowAmountPage />
-          </motion.div>
+          </RoutePage>
         )}
         {page === 'paynow-confirm' && (
-          <motion.div
+          <RoutePage
             key="paynow-confirm"
             initial={{ opacity: 0, x: 60 }}
             animate={{ opacity: 1, x: 0 }}
@@ -190,10 +211,10 @@ function AppContent() {
             className="absolute inset-0 flex flex-col min-h-0 overflow-hidden z-10"
           >
             <PayNowConfirmPage />
-          </motion.div>
+          </RoutePage>
         )}
         {page === 'paynow-success' && (
-          <motion.div
+          <RoutePage
             key="paynow-success"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -201,7 +222,7 @@ function AppContent() {
             className="absolute inset-0 flex flex-col min-h-0 overflow-hidden z-20"
           >
             <PayNowSuccessPage />
-          </motion.div>
+          </RoutePage>
         )}
 
       </AnimatePresence>
@@ -217,16 +238,16 @@ function AppContent() {
       {/* plan-details, plan-view, and risk-profiling are clip-circle overlays on top of whichever background is active */}
       <AnimatePresence>
         {page === 'plan-simulation' && (
-          <motion.div
+          <RoutePage
             key="plan-simulation"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="absolute inset-0 z-[60] overflow-y-auto no-scrollbar"
+            className="absolute inset-0 z-[60] overflow-y-auto scroll-ios no-scrollbar"
           >
             <PlanSimulationScreen />
-          </motion.div>
+          </RoutePage>
         )}
         {page === 'plan-details' && (
           <PlanDetailsPage />
@@ -239,7 +260,7 @@ function AppContent() {
           <RiskProfilingIrisWrapper key="risk-profiling-iris" />
         )}
         {(page === 'plan-milestones' || (page === 'plan-details' && detailsOrigin === 'plan-milestones')) && (
-          <motion.div
+          <RoutePage
             key="plan-milestones"
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
@@ -249,10 +270,10 @@ function AppContent() {
             style={{ pointerEvents: page === 'plan-milestones' ? 'auto' : 'none' }}
           >
             <PlanMilestonesPage />
-          </motion.div>
+          </RoutePage>
         )}
         {page === 'reasoning-log' && (
-          <motion.div
+          <RoutePage
             key="reasoning-log"
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
@@ -261,10 +282,10 @@ function AppContent() {
             className="absolute inset-0 z-40 overflow-hidden"
           >
             <ReasoningLogPage />
-          </motion.div>
+          </RoutePage>
         )}
         {page === 'savings-breakdown' && (
-          <motion.div
+          <RoutePage
             key="savings-breakdown"
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
@@ -274,10 +295,10 @@ function AppContent() {
             style={{ pointerEvents: page === 'savings-breakdown' ? 'auto' : 'none' }}
           >
             <SavingsBreakdownPage />
-          </motion.div>
+          </RoutePage>
         )}
         {page === 'opportunity-detail' && (
-          <motion.div
+          <RoutePage
             key="opportunity-detail"
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
@@ -287,10 +308,10 @@ function AppContent() {
             style={{ pointerEvents: page === 'opportunity-detail' ? 'auto' : 'none' }}
           >
             <OpportunityDetailPage />
-          </motion.div>
+          </RoutePage>
         )}
         {page === 'plan-change-option' && (
-          <motion.div
+          <RoutePage
             key="plan-change-option"
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
@@ -300,10 +321,10 @@ function AppContent() {
             style={{ pointerEvents: page === 'plan-change-option' ? 'auto' : 'none' }}
           >
             <PlanChangeOptionPage />
-          </motion.div>
+          </RoutePage>
         )}
         {page === 'plan-healer' && (
-          <motion.div
+          <RoutePage
             key="plan-healer"
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
@@ -312,10 +333,10 @@ function AppContent() {
             className="absolute inset-0 z-30 overflow-hidden"
           >
             <PlanHealerPage />
-          </motion.div>
+          </RoutePage>
         )}
         {page === 'account-detail' && (
-          <motion.div
+          <RoutePage
             key="account-detail"
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
@@ -324,10 +345,10 @@ function AppContent() {
             className="absolute inset-0 z-30 overflow-hidden"
           >
             <AccountDetailPage />
-          </motion.div>
+          </RoutePage>
         )}
         {page === 'plan-liquidity-details' && (
-          <motion.div
+          <RoutePage
             key="plan-liquidity-details"
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
@@ -336,7 +357,7 @@ function AppContent() {
             className="absolute inset-0 z-30 overflow-hidden"
           >
             <PlanLiquidityDetailsPage />
-          </motion.div>
+          </RoutePage>
         )}
       </AnimatePresence>
 

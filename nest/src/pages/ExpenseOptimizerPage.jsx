@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+﻿import React, { useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import CardDeckCarousel from '../components/ui/CardDeckCarousel';
@@ -132,7 +132,7 @@ export default function ExpenseOptimizerPage() {
       </header>
 
       {/* Main Scrollable Area */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden touch-pan-y no-scrollbar px-4 py-4 pb-30 flex flex-col gap-4 min-h-0">
+      <div className="flex-1 overflow-y-auto scroll-ios overflow-x-hidden touch-pan-y no-scrollbar px-4 py-4 pb-30 flex flex-col gap-4 min-h-0">
 
         {/* Highlight Banner */}
         <div className="w-full shrink-0 bg-gradient-to-r from-[#E1251B] via-[#C62828] to-[#8E0000] rounded-2xl p-4 text-white shadow-lg relative overflow-hidden flex flex-col gap-1.5 border border-red-400/30">

@@ -6,6 +6,7 @@ import { useApp } from '../../context/AppContext';
 import { PLANS_DATA } from '../../data/planTemplates';
 import { estimateGoalAmount, getGoalEstimationQuestions, supportsGuidedEstimate } from '../../data/goalEstimators';
 import { getPlanHorizonMonths, parsePlanTargetDate } from '../../lib/planDate';
+import { parseAmountInput } from '../../lib/parseAmount';
 
 const HOUSING_SUBGOALS_BY_TYPE = {
   hdb: [
@@ -186,20 +187,7 @@ const ChatWidget = () => {
     setTimeout(() => chatInputRef.current?.focus(), 0);
   };
 
-  const parseAmountInput = (str) => {
-    if (!str) return 0;
-    const normalized = str.trim().toLowerCase();
-    const kMatch = normalized.match(/([0-9]+(?:\.[0-9]+)?)\s*k\b/);
-    if (kMatch) {
-      return parseFloat(kMatch[1]) * 1000;
-    }
-    const mMatch = normalized.match(/([0-9]+(?:\.[0-9]+)?)\s*m\b/);
-    if (mMatch) {
-      return parseFloat(mMatch[1]) * 1000000;
-    }
-    const num = parseFloat(normalized.replace(/[^0-9.]/g, ''));
-    return isNaN(num) ? 0 : num;
-  };
+
 
   const formatDate = (date) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -958,6 +946,7 @@ const ChatWidget = () => {
           setPendingTargetYear(null);
         } else {
           const now = new Date();
+
           let parsedTarget = parsePlanTargetDate(trimmed);
           if (pendingTargetYear && parsedTarget.status === 'error' && parsedTarget.error === 'missing-year') {
             parsedTarget = parsePlanTargetDate(`${trimmed} ${pendingTargetYear}`);
@@ -1213,7 +1202,7 @@ const ChatWidget = () => {
             </div>
 
             {/* Scrollable Message Box */}
-            <div ref={scrollContainerRef} className="flex-1 overflow-y-auto no-scrollbar p-5 flex flex-col gap-4">
+            <div ref={scrollContainerRef} className="flex-1 overflow-y-auto scroll-ios no-scrollbar p-5 flex flex-col gap-4">
               {messages.map((msg) => (
                 <motion.div
                   key={msg.id}
@@ -1223,7 +1212,7 @@ const ChatWidget = () => {
                   className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[82%] rounded-2xl px-4 py-3 text-xs leading-relaxed ${msg.sender === 'user'
+                    className={`max-w-[82%] rounded-2xl px-4 py-3 text-[13px] leading-relaxed ${msg.sender === 'user'
                       ? 'bg-brand-primary text-white font-medium rounded-tr-none shadow-md shadow-brand-primary/10'
                       : 'bg-white text-zinc-800 font-medium rounded-tl-none border border-zinc-200/40 shadow-sm'
                       }`}
@@ -1531,7 +1520,7 @@ const ChatWidget = () => {
                             ? "Enter target achievement date..."
                             : "Type any savings/life goals you have"
                     }
-                    className={`w-full h-10 pl-3.5 pr-10 bg-zinc-100 border border-zinc-200/50 rounded-xl text-xs font-medium focus:outline-none focus:ring-1 focus:ring-brand-primary focus:border-brand-primary placeholder-zinc-400 transition-all duration-150 ${isBotTyping ? 'opacity-60 cursor-not-allowed bg-zinc-200/60' : ''}`}
+                    className={`w-full h-10 pl-3.5 pr-10 bg-zinc-100 border border-zinc-200/50 rounded-xl text-xs font-medium focus:outline-none focus:ring-1 focus:ring-brand-primary focus:border-brand-primary placeholder:text-[11px] placeholder-zinc-400 transition-all duration-150 ${isBotTyping ? 'opacity-60 cursor-not-allowed bg-zinc-200/60' : ''}`}
                   />
                   <button
                     type="button"

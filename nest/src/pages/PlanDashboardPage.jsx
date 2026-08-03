@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { ChevronRight, Plus, CalendarDays, Sparkles, CreditCard, Zap, ShieldCheck } from 'lucide-react';
@@ -181,7 +181,7 @@ const PlanDashboardPage = () => {
       </header>
 
       {/* Cards area */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-4 py-5 pb-safe-nav flex flex-col gap-4 z-10 touch-pan-y min-h-0">
+      <div className="flex-1 overflow-y-auto scroll-ios overflow-x-hidden no-scrollbar px-4 py-5 pb-safe-nav flex flex-col gap-4 z-10 touch-pan-y min-h-0">
         {/* OCBC Expense Optimiser Banner */}
         <button
           type="button"

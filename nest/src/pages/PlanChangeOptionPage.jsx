@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import {
@@ -629,7 +629,7 @@ const PlanChangeOptionPage = () => {
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-5 flex flex-col gap-4 z-10 pb-64 touch-pan-y min-h-0">
+      <div className="flex-1 overflow-y-auto scroll-ios no-scrollbar px-4 py-5 flex flex-col gap-4 z-10 pb-64 touch-pan-y min-h-0">
         
         {/* Sub-header Title */}
         <h1 className="text-xl font-black text-zinc-900 tracking-tight leading-none mt-1">

@@ -19,9 +19,24 @@
   --font-sans: 'Outfit', sans-serif;
 }
 
+/* ─── iOS Safari: prevent the root document from scrolling/bouncing ─── */
+html, body {
+  height: 100%;
+  overflow: hidden;
+  /* Prevent iOS overscroll bounce on the root shell */
+  overscroll-behavior: none;
+  /* Ensure safe-area env vars are respected */
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   font-size: 15px;
   line-height: 1.5;
+}
+
+/* ─── iOS Safari: stop input zoom (inputs need font-size >= 16px to prevent) ─── */
+input, select, textarea {
+  font-size: max(16px, 1em);
 }
 
 
@@ -75,6 +90,13 @@ body {
 /* Hide scrollbar for Firefox */
 .no-scrollbar {
   scrollbar-width: none;
+}
+
+/* ─── iOS-safe momentum scrolling for inner scroll containers ─── */
+/* Apply alongside overflow-y-auto on any scrollable div */
+.scroll-ios {
+  -webkit-overflow-scrolling: touch; /* smooth momentum scroll on iOS */
+  overscroll-behavior-y: contain;    /* prevent bounce propagating to root */
 }
 
 /* Custom Red/White Range Slider Thumb */

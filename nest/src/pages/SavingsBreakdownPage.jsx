@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeft, Calculator, CheckCircle2, ChevronDown, Lightbulb, Pencil, UserRound,
@@ -109,7 +109,7 @@ export default function SavingsBreakdownPage() {
   const [expandedId, setExpandedId] = useState(null);
 
   return (
-    <div className="h-full overflow-y-auto bg-[#F9F4EE] text-[#2B2320] no-scrollbar">
+    <div className="h-full overflow-y-auto scroll-ios bg-[#F9F4EE] text-[#2B2320] no-scrollbar">
       <header className="sticky top-0 z-30 border-b border-[#EAE0D7] bg-[#F9F4EE]/95 px-4 pb-3 pt-5 backdrop-blur-xl">
         <div className="flex items-center gap-3">
           <button onClick={() => setPage("plan-milestones")} aria-label="Back to plan journey" className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#7C2230] shadow-sm active:scale-90">

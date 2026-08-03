@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
 import { ArrowLeft, ArrowRight, CheckCircle2, ShieldAlert, X, Check } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -321,7 +321,7 @@ const RiskProfilingPage = () => {
   }, [isComplete, page]);
 
   return (
-    <div className="flex-1 w-full bg-[#F5F5F7] flex flex-col min-h-0 relative px-6 py-6 overflow-y-auto no-scrollbar select-none text-zinc-800 touch-pan-y">
+    <div className="flex-1 w-full bg-[#F5F5F7] flex flex-col min-h-0 relative px-6 py-6 overflow-y-auto scroll-ios no-scrollbar select-none text-zinc-800 touch-pan-y">
       {/* Background Orb */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <BackgroundOrb color="peach" size="300px" className="-top-12 -right-12" />

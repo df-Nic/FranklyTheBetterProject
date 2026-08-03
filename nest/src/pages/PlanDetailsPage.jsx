@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp, getHousingSubgoals } from '../context/AppContext';
 import {
@@ -959,7 +959,7 @@ const PlanDetailsPage = () => {
         </header>
 
         {/* Main Scroll Area */}
-        <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-5 flex flex-col gap-4 z-10 pb-[130px] touch-pan-y min-h-0">
+        <div className="flex-1 overflow-y-auto scroll-ios no-scrollbar px-4 py-5 flex flex-col gap-4 z-10 pb-[130px] touch-pan-y min-h-0">
 
           {/* Top Section: Goal & Timeline */}
           <GlassCard className="p-4 border-white/70 relative overflow-hidden bg-white/40 shadow-sm flex flex-col gap-3 shrink-0">

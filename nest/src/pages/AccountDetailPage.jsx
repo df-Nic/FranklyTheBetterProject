@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import BackgroundOrb from '../components/ui/BackgroundOrb';
@@ -78,7 +78,7 @@ export default function AccountDetailPage() {
       </header>
 
       {/* Main Content Container */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-4 py-4 flex flex-col gap-4 z-10 pb-safe-nav touch-pan-y min-h-0">
+      <div className="flex-1 overflow-y-auto scroll-ios overflow-x-hidden no-scrollbar px-4 py-4 flex flex-col gap-4 z-10 pb-safe-nav touch-pan-y min-h-0">
 
         {/* Account Info Certificate Card */}
         <GlassCard className="p-5 border-white/70 bg-white/80 shadow-lg flex flex-col gap-4 relative overflow-hidden">

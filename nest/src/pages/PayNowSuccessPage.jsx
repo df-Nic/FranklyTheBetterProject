@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, ArrowRight, Share2, Download, Sparkles } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -73,7 +73,7 @@ const PayNowSuccessPage = () => {
       <BackgroundOrb color="peach" size="250px" className="bottom-12 -left-12" />
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-8 flex flex-col items-center justify-center gap-6 z-10 touch-pan-y min-h-0">
+      <div className="flex-1 overflow-y-auto scroll-ios no-scrollbar px-4 py-8 flex flex-col items-center justify-center gap-6 z-10 touch-pan-y min-h-0">
 
         {/* Animated Checkmark Circle */}
         <div className="relative flex items-center justify-center">

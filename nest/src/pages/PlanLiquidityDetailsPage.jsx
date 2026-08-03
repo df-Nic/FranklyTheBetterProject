@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft,
@@ -211,7 +211,7 @@ const PlanLiquidityDetailsPage = () => {
       </header>
 
       {/* Scrollable Container */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3.5 pb-24 z-10 touch-pan-y min-h-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex-1 overflow-y-auto scroll-ios p-4 space-y-3.5 pb-24 z-10 touch-pan-y min-h-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
 
         {/* Card 1: PAYMENT FLEXIBILITY (Hero Concept Card matching Updated Screen 2 mockup) */}
         <motion.div
