@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import BackgroundOrb from '../components/ui/BackgroundOrb';
@@ -30,7 +30,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex-1 w-full min-h-0 bg-[#F5F5F7] flex flex-col relative px-6 py-6 overflow-y-auto scroll-ios touch-pan-y overflow-x-hidden no-scrollbar">
+    <div className="flex-1 w-full bg-[#F5F5F7] flex flex-col relative px-6 py-6 overflow-y-auto scroll-ios overflow-x-hidden no-scrollbar select-none">
       {/* Background Orb in top-right */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <BackgroundOrb color="peach" size="350px" className="-top-12 -right-12" />
