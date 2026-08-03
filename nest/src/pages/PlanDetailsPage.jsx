@@ -929,7 +929,7 @@ const PlanDetailsPage = () => {
       animate={{ clipPath: animateClip }}
       exit={{ clipPath: initialClip }}
       transition={{ duration: 0.75, ease: [0.76, 0, 0.24, 1] }}
-      className="absolute inset-0 z-50 bg-brand-primary flex flex-col min-h-0 overflow-hidden select-none"
+      className="absolute inset-0 h-full min-h-0 z-50 bg-brand-primary flex flex-col overflow-hidden select-none"
     >
       <motion.div
         variants={contentVariants}

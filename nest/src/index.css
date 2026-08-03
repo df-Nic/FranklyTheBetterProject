@@ -29,6 +29,36 @@ html, body {
   -webkit-text-size-adjust: 100%;
 }
 
+/* #root must have a definite height or every h-full beneath it resolves to
+   auto, the scroll containers grow to fit their content, and nothing is
+   scrollable. */
+#root {
+  height: 100%;
+}
+
+/* Viewport height with a fallback. iOS Safari before 15.4 does not support
+   dvh and DROPS the declaration, leaving height:auto — which collapses the
+   whole chain and silently disables scrolling. vh keeps those versions
+   working; dvh upgrades newer ones so the frame tracks Safari's expanding
+   and collapsing browser chrome. */
+.h-viewport {
+  height: 100vh;
+}
+
+.min-h-viewport {
+  min-height: 100vh;
+}
+
+@supports (height: 100dvh) {
+  .h-viewport {
+    height: 100dvh;
+  }
+
+  .min-h-viewport {
+    min-height: 100dvh;
+  }
+}
+
 body {
   font-size: 15px;
   line-height: 1.5;
@@ -97,6 +127,7 @@ input, select, textarea {
 .scroll-ios {
   -webkit-overflow-scrolling: touch; /* smooth momentum scroll on iOS */
   overscroll-behavior-y: contain;    /* prevent bounce propagating to root */
+  touch-action: pan-y;               /* claim vertical gestures on iOS */
 }
 
 /* Custom Red/White Range Slider Thumb */

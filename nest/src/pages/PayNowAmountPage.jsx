@@ -79,7 +79,7 @@ const PayNowAmountPage = () => {
   };
 
   return (
-    <div className="flex-1 w-full bg-[#F5F5F7] flex flex-col min-h-0 relative overflow-hidden select-none">
+    <div className="flex-1 h-full min-h-0 w-full bg-[#F5F5F7] flex flex-col relative overflow-hidden select-none">
       {/* Background Orbs */}
       <BackgroundOrb color="pink" size="320px" className="-top-10 -right-10" />
       <BackgroundOrb color="peach" size="240px" className="bottom-10 -left-10" />

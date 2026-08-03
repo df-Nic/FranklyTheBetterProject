@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { ChevronLeft, Scale } from 'lucide-react';
 import { useApp } from '../../context/AppContext.jsx';
 import { getReasoningLog, listReasoningLogs } from '../../lib/reasoningLogStore.js';
@@ -24,7 +24,7 @@ export default function ReasoningLogPage() {
   const script = log?.script;
 
   return (
-    <div className="flex-1 w-full min-h-0 overflow-y-auto scroll-ios touch-pan-y no-scrollbar bg-[#F9F4EE] text-[#2B2320]">
+    <div className="h-full overflow-y-auto scroll-ios no-scrollbar bg-[#F9F4EE] text-[#2B2320]">
       <header className="sticky top-0 z-30 border-b border-[#E4D8CE] bg-[#F9F4EE]/95 px-[18px] pb-3 pt-3.5 backdrop-blur-xl">
         <div className="flex items-center justify-between text-[#7C2230]">
           <button type="button" onClick={() => navigate('plan-milestones')} aria-label="Back to plan journey" className="rounded-full p-1 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C2230]">

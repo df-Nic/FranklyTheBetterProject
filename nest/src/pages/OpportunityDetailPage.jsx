@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 import { ArrowLeft, Check, ChevronDown, Coins, Sparkles } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { formatSGD, getMilestonePlan } from "../data/milestonePlans";
@@ -70,7 +70,7 @@ export default function OpportunityDetailPage() {
   };
 
   return (
-    <div className="flex-1 w-full min-h-0 overflow-y-auto scroll-ios touch-pan-y bg-[#F9F4EE] text-[#2B2320] no-scrollbar">
+    <div className="h-full overflow-y-auto scroll-ios bg-[#F9F4EE] text-[#2B2320] no-scrollbar">
       <header className="sticky top-0 z-30 border-b border-[#EAE0D7] bg-[#F9F4EE]/95 px-4 pb-3 pt-5 backdrop-blur-xl">
         <div className="flex items-center gap-3">
           <button onClick={() => setPage("plan-dashboard")} className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#7C2230] shadow-sm"><ArrowLeft size={18} /></button>

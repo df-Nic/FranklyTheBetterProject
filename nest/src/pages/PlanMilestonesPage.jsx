@@ -277,7 +277,7 @@ export default function PlanMilestonesPage() {
   }, [activePlanId, planAdjustments, adjustPlan]);
 
   return (
-    <div ref={scrollContainerRef} className="flex-1 w-full min-h-0 overflow-y-auto scroll-ios touch-pan-y no-scrollbar bg-[#F9F4EE] text-[#2B2320]">
+    <div ref={scrollContainerRef} className="h-full overflow-y-auto scroll-ios no-scrollbar bg-[#F9F4EE] text-[#2B2320]">
       {/* Header */}
       <div className="px-[18px] pb-1.5 pt-3.5">
         <div className="flex items-center justify-between text-[#7C2230]">
