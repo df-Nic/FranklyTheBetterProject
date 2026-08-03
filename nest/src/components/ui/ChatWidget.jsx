@@ -967,21 +967,6 @@ const ChatWidget = () => {
             setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', text: errorText }]);
             return;
           }
-          const totalMonthsDiff = getPlanHorizonMonths(parsedTarget.formatted, now);
-          if (totalMonthsDiff < 36) {
-            const minimumDate = new Date(now.getFullYear(), now.getMonth() + 36, 1);
-            setMessages(prev => [...prev, {
-              id: Date.now(),
-              sender: 'bot',
-              text: (
-                <span>
-                  Building a strong financial cushion works best with a bit of breathing room. A timeline of less than 3 years (<span className="text-amber-600 font-extrabold">{parsedTarget.formatted}</span>) may feel tight for this target. <span className="text-brand-primary font-black">How about {formatDate(minimumDate)} or later?</span>
-                </span>
-              ),
-            }]);
-            setFlowState('asking_date');
-            return;
-          }
           setTargetDate(parsedTarget.formatted);
           setPendingTargetYear(null);
         }
@@ -1521,7 +1506,7 @@ const ChatWidget = () => {
                             ? "Enter target achievement date..."
                             : "Type any savings/life goals you have"
                     }
-                    className={`w-full h-10 pl-3.5 pr-10 bg-zinc-100 border border-zinc-200/50 rounded-xl text-xs font-medium focus:outline-none focus:ring-1 focus:ring-brand-primary focus:border-brand-primary placeholder:text-[11px] placeholder-zinc-400 transition-all duration-150 ${isBotTyping ? 'opacity-60 cursor-not-allowed bg-zinc-200/60' : ''}`}
+                    className={`w-full h-10 pl-3.5 pr-10 bg-zinc-100 border border-zinc-200/50 rounded-xl !text-[13.5px] font-medium focus:outline-none focus:ring-1 focus:ring-brand-primary focus:border-brand-primary placeholder:!text-[11px] placeholder-zinc-400 transition-all duration-150 ${isBotTyping ? 'opacity-60 cursor-not-allowed bg-zinc-200/60' : ''}`}
                   />
                   <button
                     type="button"
