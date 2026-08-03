@@ -292,27 +292,6 @@ const PlanLiquidityDetailsPage = () => {
           </div>
         </motion.div>
 
-        {/* Card 3: Auto-fund this goal (matching Updated Screen 3 mockup) */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="p-3.5 rounded-3xl bg-white border border-zinc-200/70 shadow-xs flex items-center justify-between gap-3 cursor-pointer hover:bg-zinc-50/80 transition-all group"
-        >
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-2xl bg-red-50 border border-red-100/80 flex items-center justify-center text-red-600 shrink-0 group-hover:scale-105 transition-transform">
-              <RefreshCw className="w-4.5 h-4.5 stroke-[2.2]" />
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-xs font-black text-zinc-900">Auto-fund this goal</span>
-              <span className="text-[11px] text-zinc-600 font-medium truncate mt-0.5">
-                Transfer S${monthlyTransferAmount} monthly into {userName}&apos;s {goalDescriptor} allocation.
-              </span>
-            </div>
-          </div>
-          <ChevronRight className="w-4 h-4 text-zinc-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
-        </motion.div>
-
         {/* Section Title: RECOMMENDED ALLOCATIONS (matching Updated Screen 3 mockup) */}
         <div className="flex items-center justify-between pt-1 px-1 gap-2">
           <div className="flex items-center gap-2 min-w-0">

@@ -260,7 +260,7 @@ const ChatWidget = () => {
         sender: 'bot',
         text: (
           <span>
-            Great! Let's build your strategy for: <span className="text-brand-primary font-black">"{title}"</span>. What is the total target financial amount or budget you'll need? (If you're not sure, reply <span className="text-brand-primary font-black font-mono">"not sure"</span> for guided estimation).
+            Great! Let's build your strategy for: <span className="text-brand-primary font-black">"{title}"</span>. What is the total target financial amount or budget you'll need? (If you're not sure, reply <span className="text-brand-primary font-black">"not sure"</span> for guided estimation).
           </span>
         ),
       }
@@ -397,7 +397,8 @@ const ChatWidget = () => {
   const planningSuggestions = [
     "Plan for Retirement",
     "Children's Education Plan",
-    "Career Break Savings"
+    "Career Break Savings",
+    "Plan for Housing"
   ];
 
   const isOpenRef = useRef(isOpen);

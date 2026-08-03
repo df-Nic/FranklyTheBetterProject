@@ -188,7 +188,7 @@ export default function ExpenseOptimizerPage() {
                   }`}
               >
                 <CreditCard className="w-3.5 h-3.5" />
-                <span>Credit Cards</span>
+                <span>Cards</span>
               </button>
               <button
                 onClick={() => handleSwitchMode('deposits')}
