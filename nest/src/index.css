@@ -59,6 +59,22 @@ html, body {
   }
 }
 
+/* Desktop-only: keep the simulated phone (844px tall + 12px borders + the
+   p-6 gutter) inside short browser windows so the frame's rounded borders are
+   never clipped. Scoped to >=768px so the real device layout on iOS, which
+   renders full-screen below that breakpoint, is untouched. */
+@media (min-width: 768px) {
+  .frame-fit {
+    max-height: calc(100vh - 3rem);
+  }
+
+  @supports (height: 100dvh) {
+    .frame-fit {
+      max-height: calc(100dvh - 3rem);
+    }
+  }
+}
+
 body {
   font-size: 15px;
   line-height: 1.5;
